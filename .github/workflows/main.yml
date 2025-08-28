@@ -1,0 +1,49 @@
+name: Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Go ${{ matrix.go }}
+    strategy:
+      matrix:
+        go:
+          - '1.25'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Install tools
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Lint
+        run: staticcheck ./...
+
+      - name: Security
+        run: govulncheck ./...
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          path-to-lcov: coverage.out
+          parallel: false
