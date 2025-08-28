@@ -17,17 +17,13 @@ func TestHex_S(t *testing.T) {
 	assert.Equal(t, H(-1, 2).S(), -1)
 }
 
-//func TestHex_Add(t *testing.T) {
-//	testHex(t, H(1, 2).Add(H(3, -2)), 4, 0)
-//	testHex(t, P(1, 2).AddXY(3, -2), 4, 0)
-//	testHex(t, P(0.4, -0.25).Add(V(100.1, -0.1)), 100.5, -0.35)
-//	testHex(t, P(0.4, -0.25).AddXY(100.1, -0.1), 100.5, -0.35)
-//}
-//
-//func TestHex_Subtract(t *testing.T) {
-//	testVector(t, P(1, 2).Subtract(P(3, -3)), -2, 5)
-//	testVector(t, P(0.4, -0.25).Subtract(P(100.1, -0.1)), -99.7, -0.15)
-//}
+func TestHex_Add(t *testing.T) {
+	testHex(t, H(1, 2).Add(H(3, -2)), 4, 0)
+}
+
+func TestHex_Subtract(t *testing.T) {
+	testHex(t, H(1, 2).Subtract(H(3, -2)), -2, 4)
+}
 
 func TestHex_Multiply(t *testing.T) {
 	testHex(t, H(1, 2).Multiply(3), 3, 6)
@@ -40,6 +36,30 @@ func TestHex_Length(t *testing.T) {
 func TestHex_DistanceTo(t *testing.T) {
 	assert.Equal(t, H(1, -2).DistanceTo(H(0, -2)), 1)
 	assert.Equal(t, H(1, -2).DistanceTo(H(5, -1)), 5)
+}
+
+func TestHex_Neighbors(t *testing.T) {
+	assert.Equal(t, H(1, 2).Neighbors(), []Hex{{2, 2}, {2, 1}, {1, 1}, {0, 2}, {0, 3}, {1, 3}})
+}
+
+func TestHex_Neighbor(t *testing.T) {
+	testHex(t, H(1, 2).Neighbor(DirectionFlatSE), 2, 2)
+	testHex(t, H(1, 2).Neighbor(DirectionPointyE), 2, 2)
+
+	testHex(t, H(1, 2).Neighbor(DirectionFlatNE), 2, 1)
+	testHex(t, H(1, 2).Neighbor(DirectionPointyNE), 2, 1)
+
+	testHex(t, H(1, 2).Neighbor(DirectionFlatN), 1, 1)
+	testHex(t, H(1, 2).Neighbor(DirectionPointyNW), 1, 1)
+
+	testHex(t, H(1, 2).Neighbor(DirectionFlatNW), 0, 2)
+	testHex(t, H(1, 2).Neighbor(DirectionPointyW), 0, 2)
+
+	testHex(t, H(1, 2).Neighbor(DirectionFlatSW), 0, 3)
+	testHex(t, H(1, 2).Neighbor(DirectionPointySW), 0, 3)
+
+	testHex(t, H(1, 2).Neighbor(DirectionFlatS), 1, 3)
+	testHex(t, H(1, 2).Neighbor(DirectionPointySE), 1, 3)
 }
 
 func TestHex_Range(t *testing.T) {

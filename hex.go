@@ -27,16 +27,8 @@ func (h Hex) Add(hex Hex) Hex {
 	return Hex{h.Q + hex.Q, h.R + hex.R}
 }
 
-func (h Hex) AddQR(deltaQ, deltaR int) Hex {
-	return Hex{h.Q + deltaQ, h.R + deltaR}
-}
-
 func (h Hex) Subtract(hex Hex) Hex {
 	return Hex{h.Q - hex.Q, h.R - hex.R}
-}
-
-func (h Hex) SubtractQR(deltaQ, deltaR int) Hex {
-	return Hex{h.Q - deltaQ, h.R - deltaR}
 }
 
 func (h Hex) Multiply(factor int) Hex {
@@ -59,6 +51,21 @@ func (h Hex) To(coordType CoordinateType) ints.Point {
 	return HexTo(h, coordType)
 }
 
+func (h Hex) Neighbors() []Hex {
+	neighbors := make([]Hex, len(Directions))
+	for i, v := range Directions {
+		neighbors[i] = Hex{h.Q + v.X, h.R + v.Y}
+	}
+
+	return neighbors
+}
+
+func (h Hex) Neighbor(direction Direction) Hex {
+	v := Directions[direction]
+
+	return Hex{h.Q + v.X, h.R + v.Y}
+}
+
 // Range returns the set of hexagons around the hexagon for a given radius
 func (h Hex) Range(n int) []Hex {
 	if n <= 0 {
@@ -68,7 +75,7 @@ func (h Hex) Range(n int) []Hex {
 	results := make([]Hex, 0, 1+n*(n+1)*3)
 	for q := -n; q <= n; q++ {
 		for r := max(-n, -q-n); r <= min(n, -q+n); r++ {
-			results = append(results, h.AddQR(q, r))
+			results = append(results, Hex{h.Q + q, h.R + r})
 		}
 	}
 
