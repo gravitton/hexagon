@@ -18,7 +18,7 @@ const (
 	DoubleHeight                       // Double rows (flat-top hexes)
 )
 
-func HexTo(hex Hex, coordType CoordinateType) ints.Point {
+func To(hex Hex, coordType CoordinateType) ints.Point {
 	switch coordType {
 	case OffsetOddR:
 		return ToOffsetOddR(hex)
@@ -39,7 +39,7 @@ func HexTo(hex Hex, coordType CoordinateType) ints.Point {
 	}
 }
 
-func HexFrom(index ints.Point, coordType CoordinateType) Hex {
+func From(index ints.Point, coordType CoordinateType) Hex {
 	switch coordType {
 	case OffsetOddR:
 		return FromOffsetOddR(index)

@@ -5,8 +5,8 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
-// NeighborsFor returns the neighbors for the given coordinate.
-func NeighborsFor(index ints.Point, coordType CoordinateType) []ints.Vector {
+// DirectionsFor returns the neighbors for the given coordinate.
+func DirectionsFor(index ints.Point, coordType CoordinateType) []ints.Vector {
 	parityQ := index.X & 1 // col
 	parityR := index.Y & 1 // row
 
@@ -30,9 +30,9 @@ func NeighborsFor(index ints.Point, coordType CoordinateType) []ints.Vector {
 	}
 }
 
-// NeighborForDirection returns the neighbor for the given coordinate in the given direction.
-func NeighborForDirection(index ints.Point, coordType CoordinateType, direction Direction) ints.Vector {
-	return NeighborsFor(index, coordType)[direction]
+// DirectionFor returns the neighbor for the given coordinate in the given direction.
+func DirectionFor(index ints.Point, coordType CoordinateType, direction Direction) ints.Vector {
+	return DirectionsFor(index, coordType)[direction]
 }
 
 // Direction enum

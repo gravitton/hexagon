@@ -70,8 +70,8 @@ func TestHex_Range(t *testing.T) {
 }
 
 func TestHex_String(t *testing.T) {
-	assert.Equal(t, H(10, 16).String(), "(+10,+16)")
-	assert.Equal(t, H(1, -2).String(), "(+1,-2)")
+	assert.Equal(t, H(10, 16).String(), "(10,16)")
+	assert.Equal(t, H(1, -2).String(), "(1,-2)")
 }
 
 func TestFractionalHex_New(t *testing.T) {
@@ -97,7 +97,7 @@ func TestFractionalHex_Round(t *testing.T) {
 }
 
 func TestFractionalHex_String(t *testing.T) {
-	assert.Equal(t, F(10.9, 16.2).String(), "(+10.90,+16.20)")
+	assert.Equal(t, F(10.9, 16.2).String(), "(10.90,16.20)")
 	assert.Equal(t, F(-1.2, -2.5).String(), "(-1.20,-2.50)")
 }
 

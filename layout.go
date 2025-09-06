@@ -6,74 +6,69 @@ import (
 )
 
 type Layout struct {
-	Orientation orientation
+	orientation orientation
 	Size        floats.Size  // multiplication factor relative to the canonical hexagon
 	Origin      floats.Point // center Point for hexagon with coordinates (0,0)
 }
 
 func LayoutFlatTop(size floats.Size, origin floats.Point) Layout {
-	return Layout{OrientationFlat, size, origin}
+	//o := orientationFlat
+	//o.toPixel = o.toPixel.PreScale(size.XY()).PreTranslate(origin.XY())
+	//o.fromPixel = o.fromPixel.Unscale(size.XY()).Untranslate(origin.XY())
+	return Layout{orientationFlat, size, origin}
 }
 
 func LayoutPointyTop(size floats.Size, origin floats.Point) Layout {
+	//o := orientationPointy
+	//o.toPixel = o.toPixel.PreScale(size.XY()).PreTranslate(origin.XY())
+	//o.fromPixel = o.fromPixel.Unscale(size.XY()).Untranslate(origin.XY())
 	return Layout{orientationPointy, size, origin}
 }
 
 func (l Layout) Bounds() floats.Size {
-	return l.Size.ScaleXY(l.Orientation.bounds.XY())
+	return l.Size.ScaleXY(l.orientation.bounds.XY())
 }
 
 func (l Layout) Spacing() floats.Size {
-	return l.Size.ScaleXY(l.Orientation.spacing.XY())
+	return l.Size.ScaleXY(l.orientation.spacing.XY())
 }
 
-func (l Layout) HexToPixel(h Hex) floats.Point {
-	vector := geom.V(float64(h.Q), float64(h.R))
-
-	x := l.Orientation.hexToX.Dot(vector)
-	y := l.Orientation.hexToY.Dot(vector)
-
-	return l.Origin.AddXY(x, y).MultiplyXY(l.Size.XY())
+// ToPoint converts a hex to a pixel point of its center in the layout.
+func (l Layout) ToPoint(hex Hex) floats.Point {
+	return l.Origin.Add(floats.V(hex.QR()).Transform(l.orientation.toPixel).MultiplyXY(l.Size.XY()))
+	//return floats.P(hex.QR()).Transform(l.orientation.toPixel)
 }
 
-func (l Layout) PixelToHex(p floats.Point) FractionalHex {
-	point := p.Subtract(l.Origin).DivideXY(l.Size.XY())
-
-	q := point.Dot(l.Orientation.pixelToQ)
-	r := point.Dot(l.Orientation.pixelToR)
-
-	return FractionalHex{q, r}
+// FromPoint converts a pixel point to a fractional hex in the layout.
+func (l Layout) FromPoint(point floats.Point) FractionalHex {
+	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPixel).XY())
+	//return F(point.Transform(l.orientation.fromPixel).XY())
 }
 
 func (l Layout) Hexagon(h Hex) floats.RegularPolygon {
-	// TODO: use l.orientation.startAngle
-	return geom.Hexagon(l.HexToPixel(h), l.Size)
+	return geom.Hexagon(l.ToPoint(h), l.Size, l.orientation.orientation)
 }
 
 type orientation struct {
-	hexToX, hexToY     floats.Vector // TODO: use matrix
-	pixelToQ, pixelToR floats.Vector // TODO: use matrix
-	startAngle         float64
-	bounds             floats.Vector
-	spacing            floats.Vector
+	toPixel     geom.Matrix
+	fromPixel   geom.Matrix
+	orientation geom.Orientation
+	bounds      floats.Vector
+	spacing     floats.Vector
 }
 
 var orientationPointy = orientation{
-	geom.V(geom.Sqrt3, geom.Sqrt3/2.0),
-	geom.V(0.0, 3.0/2.0),
-	geom.V(geom.Sqrt3/3.0, -1.0/3.0),
-	geom.V(0.0, 2.0/3.0),
-	0.5, // 90 degrees
+	geom.M(geom.Sqrt3, geom.Sqrt3/2.0, 0, 0.0, 3.0/2.0, 0.0),
+	geom.M(geom.Sqrt3/3.0, -1.0/3.0, 0, 0.0, 2.0/3.0, 0),
+	geom.PointTop,
 	geom.V(geom.Sqrt3, 2.0),
 	geom.V(geom.Sqrt3, 3.0/2.0),
 }
 
-var OrientationFlat = orientation{
-	geom.V(3.0/2.0, 0.0),
-	geom.V(geom.Sqrt3/2.0, geom.Sqrt3),
-	geom.V(2.0/3.0, 0.0),
-	geom.V(-1.0/3.0, geom.Sqrt3/3.0),
-	0.0, // 0 degrees
+var orientationFlat = orientation{
+	geom.M(3.0/2.0, 0.0, 0, geom.Sqrt3/2.0, geom.Sqrt3, 0),
+	geom.M(2.0/3.0, 0.0, 0, -1.0/3.0, geom.Sqrt3/3.0, 0),
+	geom.FlatTop,
 	geom.V(2.0, geom.Sqrt3),
 	geom.V(3.0/2.0, geom.Sqrt3),
 }

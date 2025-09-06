@@ -23,6 +23,14 @@ func (h Hex) S() int {
 	return -h.Q - h.R
 }
 
+func (h Hex) QR() (int, int) {
+	return h.Q, h.R
+}
+
+func (h Hex) QRS() (int, int, int) {
+	return h.Q, h.R, h.S()
+}
+
 func (h Hex) Add(hex Hex) Hex {
 	return Hex{h.Q + hex.Q, h.R + hex.R}
 }
@@ -43,12 +51,12 @@ func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()
 }
 
-func (h Hex) ToPoint() ints.Point {
-	return geom.P(h.Q, h.R)
+func (h Hex) To(coordType CoordinateType) ints.Point {
+	return To(h, coordType)
 }
 
-func (h Hex) To(coordType CoordinateType) ints.Point {
-	return HexTo(h, coordType)
+func (h Hex) ToPoint() ints.Point {
+	return geom.P(h.Q, h.R)
 }
 
 func (h Hex) Neighbors() []Hex {
@@ -83,7 +91,7 @@ func (h Hex) Range(n int) []Hex {
 }
 
 func (h Hex) String() string {
-	return fmt.Sprintf("(%+d,%+d)", h.Q, h.R)
+	return fmt.Sprintf("(%d,%d)", h.Q, h.R)
 }
 
 type FractionalHex struct {
@@ -97,6 +105,14 @@ func F(q, r float64) FractionalHex {
 
 func (h FractionalHex) S() float64 {
 	return -h.Q - h.R
+}
+
+func (h FractionalHex) QR() (float64, float64) {
+	return h.Q, h.R
+}
+
+func (h FractionalHex) QRS() (float64, float64, float64) {
+	return h.Q, h.R, h.S()
 }
 
 func (h FractionalHex) ToPoint() floats.Point {
@@ -122,5 +138,5 @@ func (h FractionalHex) Round() Hex {
 }
 
 func (h FractionalHex) String() string {
-	return fmt.Sprintf("(%+.2f,%+.2f)", h.Q, h.R)
+	return fmt.Sprintf("(%.2f,%.2f)", h.Q, h.R)
 }

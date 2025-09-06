@@ -75,13 +75,13 @@ func TestNeighbors(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.index.String(), func(t *testing.T) {
-			assert.Equal(t, NeighborsFor(test.index, Axial), test.axial)
-			assert.Equal(t, NeighborsFor(test.index, OffsetOddR), test.offsetOddR)
-			assert.Equal(t, NeighborsFor(test.index, OffsetEvenR), test.offsetEvenR)
-			assert.Equal(t, NeighborsFor(test.index, OffsetOddQ), test.offsetOddQ)
-			assert.Equal(t, NeighborsFor(test.index, OffsetEvenQ), test.offsetEvenQ)
-			assert.Equal(t, NeighborsFor(test.index, DoubleWidth), test.doubleWidth)
-			assert.Equal(t, NeighborsFor(test.index, DoubleHeight), test.doubleHeight)
+			assert.Equal(t, DirectionsFor(test.index, Axial), test.axial)
+			assert.Equal(t, DirectionsFor(test.index, OffsetOddR), test.offsetOddR)
+			assert.Equal(t, DirectionsFor(test.index, OffsetEvenR), test.offsetEvenR)
+			assert.Equal(t, DirectionsFor(test.index, OffsetOddQ), test.offsetOddQ)
+			assert.Equal(t, DirectionsFor(test.index, OffsetEvenQ), test.offsetEvenQ)
+			assert.Equal(t, DirectionsFor(test.index, DoubleWidth), test.doubleWidth)
+			assert.Equal(t, DirectionsFor(test.index, DoubleHeight), test.doubleHeight)
 		})
 	}
 }
