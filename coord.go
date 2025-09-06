@@ -163,7 +163,7 @@ func ToDoubleHeight(hex Hex) ints.Point {
 
 func FromDoubleHeight(index ints.Point) Hex {
 	q := index.X
-	r := (index.Y - index.X) / 2.0
+	r := (index.Y - index.X) / 2
 
 	return Hex{q, r}
 }

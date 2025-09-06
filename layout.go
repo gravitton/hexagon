@@ -13,15 +13,15 @@ type Layout struct {
 
 func LayoutFlatTop(size floats.Size, origin floats.Point) Layout {
 	//o := orientationFlat
-	//o.toPixel = o.toPixel.PreScale(size.XY()).PreTranslate(origin.XY())
-	//o.fromPixel = o.fromPixel.Unscale(size.XY()).Untranslate(origin.XY())
+	//o.toPoint = o.toPoint.PreScale(size.XY()).PreTranslate(origin.XY())
+	//o.fromPoint = o.fromPoint.Unscale(size.XY()).Untranslate(origin.XY())
 	return Layout{orientationFlat, size, origin}
 }
 
 func LayoutPointyTop(size floats.Size, origin floats.Point) Layout {
 	//o := orientationPointy
-	//o.toPixel = o.toPixel.PreScale(size.XY()).PreTranslate(origin.XY())
-	//o.fromPixel = o.fromPixel.Unscale(size.XY()).Untranslate(origin.XY())
+	//o.toPoint = o.toPoint.PreScale(size.XY()).PreTranslate(origin.XY())
+	//o.fromPoint = o.fromPoint.Unscale(size.XY()).Untranslate(origin.XY())
 	return Layout{orientationPointy, size, origin}
 }
 
@@ -35,14 +35,14 @@ func (l Layout) Spacing() floats.Size {
 
 // ToPoint converts a hex to a pixel point of its center in the layout.
 func (l Layout) ToPoint(hex Hex) floats.Point {
-	return l.Origin.Add(floats.V(hex.QR()).Transform(l.orientation.toPixel).MultiplyXY(l.Size.XY()))
-	//return floats.P(hex.QR()).Transform(l.orientation.toPixel)
+	return l.Origin.Add(floats.V(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
+	//return floats.P(hex.QR()).Transform(l.orientation.toPoint)
 }
 
 // FromPoint converts a pixel point to a fractional hex in the layout.
 func (l Layout) FromPoint(point floats.Point) FractionalHex {
-	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPixel).XY())
-	//return F(point.Transform(l.orientation.fromPixel).XY())
+	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPoint).XY())
+	//return F(point.Transform(l.orientation.fromPoint).XY())
 }
 
 func (l Layout) Hexagon(h Hex) floats.RegularPolygon {
@@ -50,8 +50,8 @@ func (l Layout) Hexagon(h Hex) floats.RegularPolygon {
 }
 
 type orientation struct {
-	toPixel     geom.Matrix
-	fromPixel   geom.Matrix
+	toPoint     geom.Matrix
+	fromPoint   geom.Matrix
 	orientation geom.Orientation
 	bounds      floats.Vector
 	spacing     floats.Vector
