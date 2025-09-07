@@ -9,17 +9,17 @@ import (
 )
 
 func TestNeighbors(t *testing.T) {
-	axialDirection := []ints.Vector{{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-	offsetOddRDirectionOddRow := []ints.Vector{{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {0, 1}, {1, 1}}
-	offsetOddRDirectionEvenRow := []ints.Vector{{1, 0}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-	offsetEvenRDirectionOddRow := []ints.Vector{{1, 0}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-	offsetEvenRDirectionEvenRow := []ints.Vector{{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {0, 1}, {1, 1}}
-	offsetOddQDirectionOddCol := []ints.Vector{{1, 1}, {1, 0}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-	offsetOddQDirectionEvenCol := []ints.Vector{{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {0, 1}}
-	offsetEvenQDirectionOddCol := []ints.Vector{{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {0, 1}}
-	offsetEvenQDirectionEvenCol := []ints.Vector{{1, 1}, {1, 0}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}}
-	doubleWidthDirection := []ints.Vector{{2, 0}, {1, -1}, {-1, -1}, {-2, 0}, {-1, 1}, {1, 1}}
-	doubleHeightDirection := []ints.Vector{{1, 1}, {1, -1}, {0, -2}, {-1, -1}, {-1, 1}, {0, 2}}
+	axialDirection := []ints.Vector{{X: 1, Y: 0}, {X: 1, Y: -1}, {X: 0, Y: -1}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: 1}}
+	offsetOddRDirectionOddRow := []ints.Vector{{X: 1, Y: 0}, {X: 1, Y: -1}, {X: 0, Y: -1}, {X: -1, Y: 0}, {X: 0, Y: 1}, {X: 1, Y: 1}}
+	offsetOddRDirectionEvenRow := []ints.Vector{{X: 1, Y: 0}, {X: 0, Y: -1}, {X: -1, Y: -1}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: 1}}
+	offsetEvenRDirectionOddRow := []ints.Vector{{X: 1, Y: 0}, {X: 0, Y: -1}, {X: -1, Y: -1}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: 1}}
+	offsetEvenRDirectionEvenRow := []ints.Vector{{X: 1, Y: 0}, {X: 1, Y: -1}, {X: 0, Y: -1}, {X: -1, Y: 0}, {X: 0, Y: 1}, {X: 1, Y: 1}}
+	offsetOddQDirectionOddCol := []ints.Vector{{X: 1, Y: 1}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: 1}}
+	offsetOddQDirectionEvenCol := []ints.Vector{{X: 1, Y: 0}, {X: 1, Y: -1}, {X: 0, Y: -1}, {X: -1, Y: -1}, {X: -1, Y: 0}, {X: 0, Y: 1}}
+	offsetEvenQDirectionOddCol := []ints.Vector{{X: 1, Y: 0}, {X: 1, Y: -1}, {X: 0, Y: -1}, {X: -1, Y: -1}, {X: -1, Y: 0}, {X: 0, Y: 1}}
+	offsetEvenQDirectionEvenCol := []ints.Vector{{X: 1, Y: 1}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: 1}}
+	doubleWidthDirection := []ints.Vector{{X: 2, Y: 0}, {X: 1, Y: -1}, {X: -1, Y: -1}, {X: -2, Y: 0}, {X: -1, Y: 1}, {X: 1, Y: 1}}
+	doubleHeightDirection := []ints.Vector{{X: 1, Y: 1}, {X: 1, Y: -1}, {X: 0, Y: -2}, {X: -1, Y: -1}, {X: -1, Y: 1}, {X: 0, Y: 2}}
 
 	tests := []struct {
 		index        ints.Point
