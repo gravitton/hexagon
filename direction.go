@@ -5,7 +5,9 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
-// NeighborOffsets returns the neighbors for the given coordinate.
+// NeighborOffsets returns the 6 neighbor offsets for the given coordinate index
+// in the specified coordinate system. For offset systems this accounts for
+// row/column parity when determining neighbor vectors.
 func NeighborOffsets(index ints.Point, coordType CoordinateType) []ints.Vector {
 	parityQ := index.X & 1 // col
 	parityR := index.Y & 1 // row
@@ -30,12 +32,13 @@ func NeighborOffsets(index ints.Point, coordType CoordinateType) []ints.Vector {
 	}
 }
 
-// NeighborOffset returns the neighbor for the given coordinate in the given direction.
+// NeighborOffset returns the neighbor offset vector for the given coordinate
+// in the specified direction and coordinate system.
 func NeighborOffset(index ints.Point, coordType CoordinateType, direction Direction) ints.Vector {
 	return NeighborOffsets(index, coordType)[direction]
 }
 
-// Direction enum
+// Direction represents one of the six neighbor directions around a hex.
 type Direction int
 
 // Direction for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
@@ -58,7 +61,7 @@ const (
 	DirectionPointySE Direction = 5
 )
 
-// Directions for axial (cube) coordinates
+// Directions are the 6 axial neighbor vectors in clockwise order, starting at E/SE.
 var Directions = [6]ints.Vector{
 	geom.V(1, 0),
 	geom.V(1, -1),
@@ -68,7 +71,8 @@ var Directions = [6]ints.Vector{
 	geom.V(0, 1),
 }
 
-// Directions for offset odd-r coordinates (even row, odd row)
+// DirectionsOffsetOddR lists neighbor vectors for odd-r offset coordinates as
+// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
 var DirectionsOffsetOddR = [2][6]ints.Vector{
 	{
 		geom.V(1, 0),
@@ -88,7 +92,8 @@ var DirectionsOffsetOddR = [2][6]ints.Vector{
 	},
 }
 
-// Directions for offset even-r coordinates (even row, odd row)
+// DirectionsOffsetEvenR lists neighbor vectors for even-r offset coordinates as
+// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
 var DirectionsOffsetEvenR = [2][6]ints.Vector{
 	{
 		geom.V(1, 0),
@@ -108,7 +113,8 @@ var DirectionsOffsetEvenR = [2][6]ints.Vector{
 	},
 }
 
-// Directions for offset odd-q coordinates (even col, odd col)
+// DirectionsOffsetOddQ lists neighbor vectors for odd-q offset coordinates as
+// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
 var DirectionsOffsetOddQ = [2][6]ints.Vector{
 	{
 		geom.V(1, 0),
@@ -128,7 +134,8 @@ var DirectionsOffsetOddQ = [2][6]ints.Vector{
 	},
 }
 
-// Directions for offset even-q coordinates (even col, odd col)
+// DirectionsOffsetEvenQ lists neighbor vectors for even-q offset coordinates as
+// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
 var DirectionsOffsetEvenQ = [2][6]ints.Vector{
 	{
 		geom.V(1, 1),
@@ -148,7 +155,7 @@ var DirectionsOffsetEvenQ = [2][6]ints.Vector{
 	},
 }
 
-// Directions for double-width coordinates
+// DirectionsDoubleWidth are neighbor vectors for double-width coordinates.
 var DirectionsDoubleWidth = [6]ints.Vector{
 	geom.V(2, 0),
 	geom.V(1, -1),
@@ -158,7 +165,7 @@ var DirectionsDoubleWidth = [6]ints.Vector{
 	geom.V(1, 1),
 }
 
-// Directions for double-height coordinates
+// DirectionsDoubleHeight are neighbor vectors for double-height coordinates.
 var DirectionsDoubleHeight = [6]ints.Vector{
 	geom.V(1, 1),
 	geom.V(1, -1),
