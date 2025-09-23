@@ -61,11 +61,11 @@ func (h Hex) DistanceTo(hex Hex) int {
 }
 
 // To converts the hex into the specified coordinate system, returning an ints.Point.
-func (h Hex) To(coordType CoordinateType) ints.Point {
-	return To(h, coordType)
+func (h Hex) To(system CoordinateSystem) ints.Point {
+	return To(h, system)
 }
 
-// ToPoint returns the axial (q,r) as an ints.Point.
+// ToPoint returns (q,r) as an ints.Point.
 func (h Hex) ToPoint() ints.Point {
 	return geom.P(h.Q, h.R)
 }
@@ -88,9 +88,9 @@ func (h Hex) Neighbor(direction Direction) Hex {
 }
 
 // Range returns the set of hexes within radius n around h, inclusive of h.
-// When n <= 0, it returns nil.
+// When n < 0, it returns nil, when n == 0, it returns itself.
 func (h Hex) Range(n int) []Hex {
-	if n <= 0 {
+	if n < 0 {
 		return nil
 	}
 

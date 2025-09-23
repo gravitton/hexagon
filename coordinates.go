@@ -72,6 +72,11 @@ func FromAxial(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }
 
+// FromPoint is alias to FromAxial.
+func FromPoint(index ints.Point) Hex {
+	return Hex{index.X, index.Y}
+}
+
 // ToOffsetOddR converts axial to odd-r offset coordinates.
 // Odd rows are shifted right by +1/2 column.
 func ToOffsetOddR(hex Hex) ints.Point {

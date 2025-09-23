@@ -43,27 +43,17 @@ func TestHex_Neighbors(t *testing.T) {
 }
 
 func TestHex_Neighbor(t *testing.T) {
-	testHex(t, H(1, 2).Neighbor(DirectionFlatSE), 2, 2)
-	testHex(t, H(1, 2).Neighbor(DirectionPointyE), 2, 2)
-
-	testHex(t, H(1, 2).Neighbor(DirectionFlatNE), 2, 1)
-	testHex(t, H(1, 2).Neighbor(DirectionPointyNE), 2, 1)
-
-	testHex(t, H(1, 2).Neighbor(DirectionFlatN), 1, 1)
-	testHex(t, H(1, 2).Neighbor(DirectionPointyNW), 1, 1)
-
-	testHex(t, H(1, 2).Neighbor(DirectionFlatNW), 0, 2)
-	testHex(t, H(1, 2).Neighbor(DirectionPointyW), 0, 2)
-
-	testHex(t, H(1, 2).Neighbor(DirectionFlatSW), 0, 3)
-	testHex(t, H(1, 2).Neighbor(DirectionPointySW), 0, 3)
-
-	testHex(t, H(1, 2).Neighbor(DirectionFlatS), 1, 3)
-	testHex(t, H(1, 2).Neighbor(DirectionPointySE), 1, 3)
+	testHex(t, H(1, 2).Neighbor(DirectionSMinus), 2, 2)
+	testHex(t, H(1, 2).Neighbor(DirectionQPlus), 2, 1)
+	testHex(t, H(1, 2).Neighbor(DirectionRMinus), 1, 1)
+	testHex(t, H(1, 2).Neighbor(DirectionSPlus), 0, 2)
+	testHex(t, H(1, 2).Neighbor(DirectionQMinus), 0, 3)
+	testHex(t, H(1, 2).Neighbor(DirectionRPlus), 1, 3)
 }
 
 func TestHex_Range(t *testing.T) {
-	assert.Equal(t, H(0, 0).Range(0), nil)
+	assert.Equal(t, H(0, 0).Range(-1), nil)
+	assert.Equal(t, H(0, 0).Range(0), []Hex{{-0, 0}})
 	assert.Equal(t, H(0, 0).Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
 	assert.Equal(t, len(H(0, 0).Range(2)), 19)
 	assert.Equal(t, len(H(0, 0).Range(3)), 37)
