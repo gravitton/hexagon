@@ -5,22 +5,22 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
-// CoordinateType enumerates supported hexagonal grid coordinate systems.
-type CoordinateType int
+// CoordinateSystem enumerates supported hexagonal grid coordinate systems.
+type CoordinateSystem int
 
 const (
-	Axial        CoordinateType = iota // Axial (Cube) coordinates (q, r)
-	OffsetOddR                         // Odd rows are offset (pointy-top hexes)
-	OffsetEvenR                        // Even rows are offset (pointy-top hexes)
-	OffsetOddQ                         // Odd columns are offset (flat-top hexes)
-	OffsetEvenQ                        // Even columns are offset (flat-top hexes)
-	DoubleWidth                        // Double cols (pointy-top hexes)
-	DoubleHeight                       // Double rows (flat-top hexes)
+	Axial        CoordinateSystem = iota // Axial (Cube) coordinates (q, r, s)
+	OffsetOddR                           // Odd rows are offset (pointy-top hexes)
+	OffsetEvenR                          // Even rows are offset (pointy-top hexes)
+	OffsetOddQ                           // Odd columns are offset (flat-top hexes)
+	OffsetEvenQ                          // Even columns are offset (flat-top hexes)
+	DoubleWidth                          // Double cols (pointy-top hexes)
+	DoubleHeight                         // Double rows (flat-top hexes)
 )
 
 // To converts an axial hex to the given coordinate system as an ints.Point.
-func To(hex Hex, coordType CoordinateType) ints.Point {
-	switch coordType {
+func To(hex Hex, system CoordinateSystem) ints.Point {
+	switch system {
 	case OffsetOddR:
 		return ToOffsetOddR(hex)
 	case OffsetEvenR:
@@ -34,15 +34,15 @@ func To(hex Hex, coordType CoordinateType) ints.Point {
 	case DoubleHeight:
 		return ToDoubleHeight(hex)
 	case Axial:
-		return hex.ToPoint()
+		return ToAxial(hex)
 	default:
-		return hex.ToPoint()
+		panic("unsupported coordinate system")
 	}
 }
 
 // From converts a coordinate in the given system into an axial Hex.
-func From(index ints.Point, coordType CoordinateType) Hex {
-	switch coordType {
+func From(index ints.Point, system CoordinateSystem) Hex {
+	switch system {
 	case OffsetOddR:
 		return FromOffsetOddR(index)
 	case OffsetEvenR:
@@ -56,14 +56,19 @@ func From(index ints.Point, coordType CoordinateType) Hex {
 	case DoubleHeight:
 		return FromDoubleHeight(index)
 	case Axial:
-		return FromPoint(index)
+		return FromAxial(index)
 	default:
-		return FromPoint(index)
+		panic("unsupported coordinate system")
 	}
 }
 
-// FromPoint converts an ints.Point (q,r) into an axial Hex.
-func FromPoint(index ints.Point) Hex {
+// ToAxial returns the axial (q,r) as an ints.Point.
+func ToAxial(hex Hex) ints.Point {
+	return hex.ToPoint()
+}
+
+// FromAxial converts an ints.Point (q,r) into an axial Hex.
+func FromAxial(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }
 

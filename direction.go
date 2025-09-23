@@ -5,70 +5,129 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
+// Direction represents one of the six neighbor directions around a hex.
+//
+// Constants for the directions from a Hex.
+// - Q+ increments q and compensates by decrementing r.
+// - R+ increments r and compensates by decrementing s (-q-r).
+// - S+ increments s (-q-r) compensates by decrementing q.
+type Direction int
+
+// NeighborOffset returns the neighbor offset vector for the given direction.
+func (d Direction) NeighborOffset() ints.Vector {
+	return Directions[d%6]
+}
+
+const (
+	DirectionSMinus Direction = iota // -S, flat-top SE, pointy-top E
+	DirectionQPlus                   // +Q, flat-top NE, pointy-top NE
+	DirectionRMinus                  // -R, flat-top N,  pointy-top NW
+	DirectionSPlus                   // +S, flat-top NW, pointy-top W
+	DirectionQMinus                  // -Q, flat-top SW, pointy-top SW
+	DirectionRPlus                   // +R, flat-top S,  pointy-top SE
+)
+
+// Direction aliases for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
+const (
+	DirectionFlatTopSE = DirectionSMinus
+	DirectionFlatTopNE = DirectionQPlus
+	DirectionFlatTopN  = DirectionRMinus
+	DirectionFlatTopNW = DirectionSPlus
+	DirectionFlatTopSW = DirectionQMinus
+	DirectionFlatTopS  = DirectionRPlus
+)
+
+// Direction aliases for pointy-top hexes (Axial, OffsetOddR, OffsetEvenR, DoubleWidth)
+const (
+	DirectionPointyTopE  = DirectionSMinus
+	DirectionPointyTopNE = DirectionQPlus
+	DirectionPointyTopNW = DirectionRMinus
+	DirectionPointyTopW  = DirectionSPlus
+	DirectionPointyTopSW = DirectionQMinus
+	DirectionPointyTopSE = DirectionRPlus
+)
+
 // NeighborOffsets returns the 6 neighbor offsets for the given coordinate index
 // in the specified coordinate system. For offset systems this accounts for
 // row/column parity when determining neighbor vectors.
-func NeighborOffsets(index ints.Point, coordType CoordinateType) []ints.Vector {
-	parityQ := index.X & 1 // col
-	parityR := index.Y & 1 // row
-
-	switch coordType {
+func NeighborOffsets(index ints.Point, system CoordinateSystem) []ints.Vector {
+	switch system {
 	case OffsetOddR:
-		return DirectionsOffsetOddR[parityR][:]
+		return NeighborOffsetsOffsetOddR(index)
 	case OffsetEvenR:
-		return DirectionsOffsetEvenR[parityR][:]
+		return NeighborOffsetsOffsetEvenR(index)
 	case OffsetOddQ:
-		return DirectionsOffsetOddQ[parityQ][:]
+		return NeighborOffsetsOffsetOddQ(index)
 	case OffsetEvenQ:
-		return DirectionsOffsetEvenQ[parityQ][:]
+		return NeighborOffsetsOffsetEvenQ(index)
 	case DoubleWidth:
-		return DirectionsDoubleWidth[:]
+		return NeighborOffsetsDoubleWidth()
 	case DoubleHeight:
-		return DirectionsDoubleHeight[:]
+		return NeighborOffsetsForDoubleHeight()
 	case Axial:
-		return Directions[:]
+		return NeighborOffsetsAxial()
 	default:
-		return Directions[:]
+		panic("unsupported coordinate system")
 	}
 }
 
 // NeighborOffset returns the neighbor offset vector for the given coordinate
 // in the specified direction and coordinate system.
-func NeighborOffset(index ints.Point, coordType CoordinateType, direction Direction) ints.Vector {
-	return NeighborOffsets(index, coordType)[direction]
+func NeighborOffset(index ints.Point, system CoordinateSystem, direction Direction) ints.Vector {
+	return NeighborOffsets(index, system)[direction]
 }
 
-// Direction represents one of the six neighbor directions around a hex.
-type Direction int
+// NeighborOffsetsAxial returns the neighbor offsets in axial (cube) coordinate system.
+func NeighborOffsetsAxial() []ints.Vector {
+	return Directions[:]
+}
 
-// Direction for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
-const (
-	DirectionFlatSE Direction = 0
-	DirectionFlatNE Direction = 1
-	DirectionFlatN  Direction = 2
-	DirectionFlatNW Direction = 3
-	DirectionFlatSW Direction = 4
-	DirectionFlatS  Direction = 5
-)
+// NeighborOffsetsOffsetOddR returns the neighbor offsets in odd-r offset coordinate system.
+func NeighborOffsetsOffsetOddR(index ints.Point) []ints.Vector {
+	parity := index.Y & 1
 
-// Direction for pointy-top hexes (Axial, OffsetOddR, OffsetEvenR, DoubleWidth)
-const (
-	DirectionPointyE  Direction = 0
-	DirectionPointyNE Direction = 1
-	DirectionPointyNW Direction = 2
-	DirectionPointyW  Direction = 3
-	DirectionPointySW Direction = 4
-	DirectionPointySE Direction = 5
-)
+	return DirectionsOffsetOddR[parity][:]
+}
 
-// Directions are the 6 axial neighbor vectors in clockwise order, starting at E/SE.
+// NeighborOffsetsOffsetEvenR returns the neighbor offsets in even-r offset coordinate system.
+func NeighborOffsetsOffsetEvenR(index ints.Point) []ints.Vector {
+	parity := index.Y & 1
+
+	return DirectionsOffsetEvenR[parity][:]
+}
+
+// NeighborOffsetsOffsetOddQ returns the neighbor offsets in odd-q offset coordinate system.
+func NeighborOffsetsOffsetOddQ(index ints.Point) []ints.Vector {
+	parity := index.X & 1
+
+	return DirectionsOffsetOddQ[parity][:]
+}
+
+// NeighborOffsetsOffsetEvenQ returns the neighbor offsets in even-q offset coordinate system.
+func NeighborOffsetsOffsetEvenQ(index ints.Point) []ints.Vector {
+	parity := index.X & 1
+
+	return DirectionsOffsetEvenQ[parity][:]
+}
+
+// NeighborOffsetsDoubleWidth returns the neighbor offsets in double-width coordinate system.
+func NeighborOffsetsDoubleWidth() []ints.Vector {
+	return DirectionsDoubleWidth[:]
+}
+
+// NeighborOffsetsOffsetEvenR returns the neighbor offsets in double-height coordinate system.
+func NeighborOffsetsForDoubleHeight() []ints.Vector {
+	return DirectionsDoubleHeight[:]
+}
+
+// Directions lists neighbor vectors for axial coordinates in counter-clockwise, starting at (south)-east direction.
 var Directions = [6]ints.Vector{
-	geom.V(1, 0),
-	geom.V(1, -1),
-	geom.V(0, -1),
-	geom.V(-1, 0),
-	geom.V(-1, 1),
-	geom.V(0, 1),
+	geom.V(1, 0),  // -S, flat-top SE, pointy-top E
+	geom.V(1, -1), // +Q, flat-top NE, pointy-top NE
+	geom.V(0, -1), // -R, flat-top N,  pointy-top NW
+	geom.V(-1, 0), // +S, flat-top NW, pointy-top W
+	geom.V(-1, 1), // -Q, flat-top SW, pointy-top SW
+	geom.V(0, 1),  // +R, flat-top S,  pointy-top SE
 }
 
 // DirectionsOffsetOddR lists neighbor vectors for odd-r offset coordinates as
@@ -155,7 +214,7 @@ var DirectionsOffsetEvenQ = [2][6]ints.Vector{
 	},
 }
 
-// DirectionsDoubleWidth are neighbor vectors for double-width coordinates.
+// DirectionsDoubleWidth lists neighbor vectors for double-width coordinates.
 var DirectionsDoubleWidth = [6]ints.Vector{
 	geom.V(2, 0),
 	geom.V(1, -1),
@@ -165,7 +224,7 @@ var DirectionsDoubleWidth = [6]ints.Vector{
 	geom.V(1, 1),
 }
 
-// DirectionsDoubleHeight are neighbor vectors for double-height coordinates.
+// DirectionsDoubleHeight lists neighbor vectors for double-height coordinates.
 var DirectionsDoubleHeight = [6]ints.Vector{
 	geom.V(1, 1),
 	geom.V(1, -1),

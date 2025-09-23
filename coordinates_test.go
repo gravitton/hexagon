@@ -85,7 +85,9 @@ func TestCoordinateConversion(t *testing.T) {
 
 	for _, test := range tests {
 		hexPoint := geom.P(test.hex.Q, test.hex.R)
+
 		t.Run(test.hex.String(), func(t *testing.T) {
+			assert.Equal(t, ToAxial(test.hex), hexPoint)
 			assert.Equal(t, ToOffsetOddR(test.hex), test.offsetOddR)
 			assert.Equal(t, ToOffsetEvenR(test.hex), test.offsetEvenR)
 			assert.Equal(t, ToOffsetOddQ(test.hex), test.offsetOddQ)
@@ -93,7 +95,7 @@ func TestCoordinateConversion(t *testing.T) {
 			assert.Equal(t, ToDoubleWidth(test.hex), test.doubleWidth)
 			assert.Equal(t, ToDoubleHeight(test.hex), test.doubleHeight)
 
-			assert.Equal(t, FromPoint(hexPoint), test.hex)
+			assert.Equal(t, FromAxial(hexPoint), test.hex)
 			assert.Equal(t, FromOffsetOddR(test.offsetOddR), test.hex)
 			assert.Equal(t, FromOffsetEvenR(test.offsetEvenR), test.hex)
 			assert.Equal(t, FromOffsetOddQ(test.offsetOddQ), test.hex)
@@ -125,7 +127,6 @@ func TestCoordinateConversion(t *testing.T) {
 			assert.Equal(t, test.hex.To(DoubleWidth), test.doubleWidth)
 			assert.Equal(t, test.hex.To(DoubleHeight), test.doubleHeight)
 			assert.Equal(t, test.hex.ToPoint(), hexPoint)
-
 		})
 	}
 }
