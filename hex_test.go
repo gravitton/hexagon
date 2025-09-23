@@ -59,6 +59,15 @@ func TestHex_Range(t *testing.T) {
 	assert.Equal(t, len(H(0, 0).Range(3)), 37)
 }
 
+func TestHex_Line(t *testing.T) {
+	assert.Equal(t, H(0, 0).Line(H(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
+	assert.Equal(t, H(0, 0).Line(H(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
+	assert.Equal(t, H(0, 0).Line(H(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
+	assert.Equal(t, H(0, 0).Line(H(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
+	assert.Equal(t, H(0, 0).Line(H(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+
+}
+
 func TestHex_String(t *testing.T) {
 	assert.Equal(t, H(10, 16).String(), "(10,16)")
 	assert.Equal(t, H(1, -2).String(), "(1,-2)")
