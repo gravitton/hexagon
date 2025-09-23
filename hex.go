@@ -51,7 +51,7 @@ func (h Hex) Multiply(factor int) Hex {
 	return Hex{h.Q * factor, h.R * factor}
 }
 
-// Length creates the distance from the origin (0,0) in hex steps.
+// Length returns the distance from the origin (0,0) in hex steps.
 func (h Hex) Length() int {
 	return int((math.Abs(float64(h.Q)) + math.Abs(float64(h.R)) + math.Abs(float64(h.S()))) / 2)
 }
@@ -105,7 +105,7 @@ func (h Hex) Range(n int) []Hex {
 	return results
 }
 
-// Line returns a list of hexes that connect hex to the target hex in a straight line.
+// Line returns the sequence of hexes that connects this hex to target in a straight line.
 func (h Hex) Line(target Hex) []Hex {
 	n := h.DistanceTo(target)
 	step := 1.0 / math.Max(float64(n), 1.0)
@@ -123,7 +123,7 @@ func (h Hex) Line(target Hex) []Hex {
 	return results
 }
 
-// HasLineOfSight checks if the target hex is visible from the hex, taking into consideration a set of blocking hexagons
+// HasLineOfSight checks if the target hex is visible from this hex, taking into account a set of blocking hexagons.
 func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 	line := h.Line(target)
 	for _, lineHex := range line[:len(line)-1] {
@@ -135,7 +135,7 @@ func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 	return true
 }
 
-// FieldOfView returns a list of hexes that are visible from the hex, taking into consideration a set of blocking hexagons
+// FieldOfView returns the subset of candidate hexes visible from this hex, taking into account a set of blocking hexagons.
 func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 	results := make([]Hex, 0, len(candidates))
 	for _, candidate := range candidates {

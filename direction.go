@@ -63,7 +63,7 @@ func NeighborOffsets(index ints.Point, system CoordinateSystem) []ints.Vector {
 	case DoubleWidth:
 		return NeighborOffsetsDoubleWidth()
 	case DoubleHeight:
-		return NeighborOffsetsForDoubleHeight()
+		return NeighborOffsetsDoubleHeight()
 	case Axial:
 		return NeighborOffsetsAxial()
 	default:
@@ -115,8 +115,8 @@ func NeighborOffsetsDoubleWidth() []ints.Vector {
 	return DirectionsDoubleWidth[:]
 }
 
-// NeighborOffsetsOffsetEvenR returns the neighbor offsets in double-height coordinate system.
-func NeighborOffsetsForDoubleHeight() []ints.Vector {
+// NeighborOffsetsDoubleHeight returns the neighbor offsets in double-height coordinate system.
+func NeighborOffsetsDoubleHeight() []ints.Vector {
 	return DirectionsDoubleHeight[:]
 }
 

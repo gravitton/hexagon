@@ -41,13 +41,13 @@ func (l Layout) Spacing() floats.Size {
 	return l.Size.ScaleXY(l.orientation.spacing.XY())
 }
 
-// ToAxial converts a hex to a pixel point of its center in the layout.
+// ToPoint converts a hex to the pixel coordinates of its center in the layout.
 func (l Layout) ToPoint(hex Hex) floats.Point {
 	return l.Origin.Add(floats.V(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
 	//return floats.P(hex.QR()).Transform(l.orientation.toPoint)
 }
 
-// FromAxial converts a pixel point to a fractional hex in the layout.
+// FromPoint converts a pixel point to a fractional hex in the layout.
 func (l Layout) FromPoint(point floats.Point) FractionalHex {
 	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPoint).XY())
 	//return F(point.Transform(l.orientation.fromPoint).XY())

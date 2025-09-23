@@ -109,7 +109,7 @@ func TestNeighbors(t *testing.T) {
 			assert.Equal(t, NeighborOffsetsOffsetOddQ(test.index), test.offsetOddQ)
 			assert.Equal(t, NeighborOffsetsOffsetEvenQ(test.index), test.offsetEvenQ)
 			assert.Equal(t, NeighborOffsetsDoubleWidth(), test.doubleWidth)
-			assert.Equal(t, NeighborOffsetsForDoubleHeight(), test.doubleHeight)
+			assert.Equal(t, NeighborOffsetsDoubleHeight(), test.doubleHeight)
 
 			assert.Equal(t, NeighborOffsets(test.index, Axial), test.axial)
 			assert.Equal(t, NeighborOffsets(test.index, OffsetOddR), test.offsetOddR)
