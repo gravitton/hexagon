@@ -60,7 +60,7 @@ func TestNeighbors(t *testing.T) {
 		doubleHeight []ints.Vector
 	}{
 		{
-			index:        geom.P(0, 0), // even col, even row
+			index:        geom.Pt(0, 0), // even col, even row
 			axial:        axialDirection,
 			offsetOddR:   offsetOddRDirectionEvenRow,
 			offsetEvenR:  offsetEvenRDirectionEvenRow,
@@ -70,7 +70,7 @@ func TestNeighbors(t *testing.T) {
 			doubleHeight: doubleHeightDirection,
 		},
 		{
-			index:        geom.P(1, 1), // odd col, odd row
+			index:        geom.Pt(1, 1), // odd col, odd row
 			axial:        axialDirection,
 			offsetOddR:   offsetOddRDirectionOddRow,
 			offsetEvenR:  offsetEvenRDirectionOddRow,
@@ -80,7 +80,7 @@ func TestNeighbors(t *testing.T) {
 			doubleHeight: doubleHeightDirection,
 		},
 		{
-			index:        geom.P(3, 2), // odd col, even row
+			index:        geom.Pt(3, 2), // odd col, even row
 			axial:        axialDirection,
 			offsetOddR:   offsetOddRDirectionEvenRow,
 			offsetEvenR:  offsetEvenRDirectionEvenRow,
@@ -90,7 +90,7 @@ func TestNeighbors(t *testing.T) {
 			doubleHeight: doubleHeightDirection,
 		},
 		{
-			index:        geom.P(-2, -3), // even col, odd row
+			index:        geom.Pt(-2, -3), // even col, odd row
 			axial:        axialDirection,
 			offsetOddR:   offsetOddRDirectionOddRow,
 			offsetEvenR:  offsetEvenRDirectionOddRow,

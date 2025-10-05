@@ -68,7 +68,7 @@ func (h Hex) To(system CoordinateSystem) ints.Point {
 
 // ToPoint returns (q,r) as an ints.Point.
 func (h Hex) ToPoint() ints.Point {
-	return geom.P(h.Q, h.R)
+	return geom.Pt(h.Q, h.R)
 }
 
 // Neighbors returns the six neighboring hexes around h in axial coordinates.
@@ -180,7 +180,7 @@ func (h FractionalHex) QRS() (float64, float64, float64) {
 
 // ToPoint returns the axial (q,r) as a floats.Point.
 func (h FractionalHex) ToPoint() floats.Point {
-	return geom.P(h.Q, h.R)
+	return geom.Pt(h.Q, h.R)
 }
 
 // Lerp creates a new FractionalHex in linear interpolation towards given hex.

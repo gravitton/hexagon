@@ -85,7 +85,7 @@ func ToOffsetOddR(hex Hex) ints.Point {
 	col := hex.Q + (hex.R-parity)/2
 	row := hex.R
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromOffsetOddR converts an odd-r offset coordinate to axial.
@@ -106,7 +106,7 @@ func ToOffsetEvenR(hex Hex) ints.Point {
 	col := hex.Q + (hex.R+parity)/2
 	row := hex.R
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromOffsetEvenR converts an even-r offset coordinate to axial.
@@ -127,7 +127,7 @@ func ToOffsetOddQ(hex Hex) ints.Point {
 	col := hex.Q
 	row := hex.R + (hex.Q-parity)/2
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromOffsetOddQ converts an odd-q offset coordinate to axial.
@@ -148,7 +148,7 @@ func ToOffsetEvenQ(hex Hex) ints.Point {
 	col := hex.Q
 	row := hex.R + (hex.Q+parity)/2
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromOffsetEvenQ converts an even-q offset coordinate to axial.
@@ -166,7 +166,7 @@ func ToDoubleWidth(hex Hex) ints.Point {
 	col := 2*hex.Q + hex.R
 	row := hex.R
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromDoubleWidth converts a double-width coordinate to axial.
@@ -182,7 +182,7 @@ func ToDoubleHeight(hex Hex) ints.Point {
 	col := hex.Q
 	row := 2*hex.R + hex.Q
 
-	return geom.P(col, row)
+	return geom.Pt(col, row)
 }
 
 // FromDoubleHeight converts a double-height coordinate to axial.

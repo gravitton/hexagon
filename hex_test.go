@@ -84,8 +84,8 @@ func TestFractionalHex_S(t *testing.T) {
 }
 
 func TestFractionalHex_ToPoint(t *testing.T) {
-	assert.Equal(t, F(10.9, 16.2).ToPoint(), geom.P(10.9, 16.2))
-	assert.Equal(t, F(-1.2, -2.5).ToPoint(), geom.P(-1.2, -2.5))
+	assert.Equal(t, F(10.9, 16.2).ToPoint(), geom.Pt(10.9, 16.2))
+	assert.Equal(t, F(-1.2, -2.5).ToPoint(), geom.Pt(-1.2, -2.5))
 }
 
 func TestFractionalHex_Round(t *testing.T) {

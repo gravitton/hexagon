@@ -31,6 +31,7 @@ import (
 
 - [Tomáš Novotný](https://github.com/tomas-novotny)
 - [All Contributors][link-contributors]
+- [Red Blob Games](https://www.redblobgames.com/grids/hexagons)
 
 
 ## License

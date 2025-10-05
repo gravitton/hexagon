@@ -122,32 +122,32 @@ func NeighborOffsetsDoubleHeight() []ints.Vector {
 
 // Directions lists neighbor vectors for axial coordinates in counter-clockwise, starting at (south)-east direction.
 var Directions = [6]ints.Vector{
-	geom.V(1, 0),  // -S, flat-top SE, pointy-top E
-	geom.V(1, -1), // +Q, flat-top NE, pointy-top NE
-	geom.V(0, -1), // -R, flat-top N,  pointy-top NW
-	geom.V(-1, 0), // +S, flat-top NW, pointy-top W
-	geom.V(-1, 1), // -Q, flat-top SW, pointy-top SW
-	geom.V(0, 1),  // +R, flat-top S,  pointy-top SE
+	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
+	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE
+	geom.Vec(0, -1), // -R, flat-top N,  pointy-top NW
+	geom.Vec(-1, 0), // +S, flat-top NW, pointy-top W
+	geom.Vec(-1, 1), // -Q, flat-top SW, pointy-top SW
+	geom.Vec(0, 1),  // +R, flat-top S,  pointy-top SE
 }
 
 // DirectionsOffsetOddR lists neighbor vectors for odd-r offset coordinates as
 // [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
 var DirectionsOffsetOddR = [2][6]ints.Vector{
 	{
-		geom.V(1, 0),
-		geom.V(0, -1),
-		geom.V(-1, -1),
-		geom.V(-1, 0),
-		geom.V(-1, 1),
-		geom.V(0, 1),
+		geom.Vec(1, 0),
+		geom.Vec(0, -1),
+		geom.Vec(-1, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(-1, 1),
+		geom.Vec(0, 1),
 	},
 	{
-		geom.V(1, 0),
-		geom.V(1, -1),
-		geom.V(0, -1),
-		geom.V(-1, 0),
-		geom.V(0, 1),
-		geom.V(1, 1),
+		geom.Vec(1, 0),
+		geom.Vec(1, -1),
+		geom.Vec(0, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(0, 1),
+		geom.Vec(1, 1),
 	},
 }
 
@@ -155,20 +155,20 @@ var DirectionsOffsetOddR = [2][6]ints.Vector{
 // [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
 var DirectionsOffsetEvenR = [2][6]ints.Vector{
 	{
-		geom.V(1, 0),
-		geom.V(1, -1),
-		geom.V(0, -1),
-		geom.V(-1, 0),
-		geom.V(0, 1),
-		geom.V(1, 1),
+		geom.Vec(1, 0),
+		geom.Vec(1, -1),
+		geom.Vec(0, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(0, 1),
+		geom.Vec(1, 1),
 	},
 	{
-		geom.V(1, 0),
-		geom.V(0, -1),
-		geom.V(-1, -1),
-		geom.V(-1, 0),
-		geom.V(-1, 1),
-		geom.V(0, 1),
+		geom.Vec(1, 0),
+		geom.Vec(0, -1),
+		geom.Vec(-1, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(-1, 1),
+		geom.Vec(0, 1),
 	},
 }
 
@@ -176,20 +176,20 @@ var DirectionsOffsetEvenR = [2][6]ints.Vector{
 // [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
 var DirectionsOffsetOddQ = [2][6]ints.Vector{
 	{
-		geom.V(1, 0),
-		geom.V(1, -1),
-		geom.V(0, -1),
-		geom.V(-1, -1),
-		geom.V(-1, 0),
-		geom.V(0, 1),
+		geom.Vec(1, 0),
+		geom.Vec(1, -1),
+		geom.Vec(0, -1),
+		geom.Vec(-1, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(0, 1),
 	},
 	{
-		geom.V(1, 1),
-		geom.V(1, 0),
-		geom.V(0, -1),
-		geom.V(-1, 0),
-		geom.V(-1, 1),
-		geom.V(0, 1),
+		geom.Vec(1, 1),
+		geom.Vec(1, 0),
+		geom.Vec(0, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(-1, 1),
+		geom.Vec(0, 1),
 	},
 }
 
@@ -197,39 +197,39 @@ var DirectionsOffsetOddQ = [2][6]ints.Vector{
 // [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
 var DirectionsOffsetEvenQ = [2][6]ints.Vector{
 	{
-		geom.V(1, 1),
-		geom.V(1, 0),
-		geom.V(0, -1),
-		geom.V(-1, 0),
-		geom.V(-1, 1),
-		geom.V(0, 1),
+		geom.Vec(1, 1),
+		geom.Vec(1, 0),
+		geom.Vec(0, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(-1, 1),
+		geom.Vec(0, 1),
 	},
 	{
-		geom.V(1, 0),
-		geom.V(1, -1),
-		geom.V(0, -1),
-		geom.V(-1, -1),
-		geom.V(-1, 0),
-		geom.V(0, 1),
+		geom.Vec(1, 0),
+		geom.Vec(1, -1),
+		geom.Vec(0, -1),
+		geom.Vec(-1, -1),
+		geom.Vec(-1, 0),
+		geom.Vec(0, 1),
 	},
 }
 
 // DirectionsDoubleWidth lists neighbor vectors for double-width coordinates.
 var DirectionsDoubleWidth = [6]ints.Vector{
-	geom.V(2, 0),
-	geom.V(1, -1),
-	geom.V(-1, -1),
-	geom.V(-2, 0),
-	geom.V(-1, 1),
-	geom.V(1, 1),
+	geom.Vec(2, 0),
+	geom.Vec(1, -1),
+	geom.Vec(-1, -1),
+	geom.Vec(-2, 0),
+	geom.Vec(-1, 1),
+	geom.Vec(1, 1),
 }
 
 // DirectionsDoubleHeight lists neighbor vectors for double-height coordinates.
 var DirectionsDoubleHeight = [6]ints.Vector{
-	geom.V(1, 1),
-	geom.V(1, -1),
-	geom.V(0, -2),
-	geom.V(-1, -1),
-	geom.V(-1, 1),
-	geom.V(0, 2),
+	geom.Vec(1, 1),
+	geom.Vec(1, -1),
+	geom.Vec(0, -2),
+	geom.Vec(-1, -1),
+	geom.Vec(-1, 1),
+	geom.Vec(0, 2),
 }

@@ -43,8 +43,8 @@ func (l Layout) Spacing() floats.Size {
 
 // ToPoint converts a hex to the pixel coordinates of its center in the layout.
 func (l Layout) ToPoint(hex Hex) floats.Point {
-	return l.Origin.Add(floats.V(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
-	//return floats.P(hex.QR()).Transform(l.orientation.toPoint)
+	return l.Origin.Add(floats.Vec(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
+	//return floats.Pt(hex.QR()).Transform(l.orientation.toPoint)
 }
 
 // FromPoint converts a pixel point to a fractional hex in the layout.
@@ -67,17 +67,17 @@ type orientation struct {
 }
 
 var orientationPointyTop = orientation{
-	geom.M(geom.Sqrt3, geom.Sqrt3/2.0, 0, 0.0, 3.0/2.0, 0.0),
-	geom.M(geom.Sqrt3/3.0, -1.0/3.0, 0, 0.0, 2.0/3.0, 0),
+	geom.Mat(geom.Sqrt3, geom.Sqrt3/2.0, 0, 0.0, 3.0/2.0, 0.0),
+	geom.Mat(geom.Sqrt3/3.0, -1.0/3.0, 0, 0.0, 2.0/3.0, 0),
 	geom.PointTop,
-	geom.V(geom.Sqrt3, 2.0),
-	geom.V(geom.Sqrt3, 3.0/2.0),
+	geom.Vec(geom.Sqrt3, 2.0),
+	geom.Vec(geom.Sqrt3, 3.0/2.0),
 }
 
 var orientationFlatTop = orientation{
-	geom.M(3.0/2.0, 0.0, 0, geom.Sqrt3/2.0, geom.Sqrt3, 0),
-	geom.M(2.0/3.0, 0.0, 0, -1.0/3.0, geom.Sqrt3/3.0, 0),
+	geom.Mat(3.0/2.0, 0.0, 0, geom.Sqrt3/2.0, geom.Sqrt3, 0),
+	geom.Mat(2.0/3.0, 0.0, 0, -1.0/3.0, geom.Sqrt3/3.0, 0),
 	geom.FlatTop,
-	geom.V(2.0, geom.Sqrt3),
-	geom.V(3.0/2.0, geom.Sqrt3),
+	geom.Vec(2.0, geom.Sqrt3),
+	geom.Vec(3.0/2.0, geom.Sqrt3),
 }
