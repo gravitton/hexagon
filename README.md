@@ -9,6 +9,9 @@
 
 Hexagon library for game development.
 
+- Convert between coordinate systems
+- Map hexes to pixels (and back)
+
 ## Installation
 
 ```bash
@@ -23,7 +26,34 @@ package main
 
 import (
 	hex "github.com/gravitton/hexagon"
+	geom "github.com/gravitton/geometry"
 )
+
+// create hexagon in axial coordinates (q,r) 
+a := hex.H(1, -2)
+b := hex.H(0, 3)
+
+// use basic math on hexes
+c := a.Add(b)
+d := a.Subtract(b)
+e := a.Multiply(2)
+distance := a.DistanceTo(b)
+
+// neighbors and range
+neighbors := a.Neighbors()
+neighbor := a.Neighbor(hex.DirectionQPlus)
+ring := b.Range(2)
+
+// conversions between coordinate systems
+pOddR := a.To(hex.OffsetOddR)
+pEvenQ := a.To(hex.OffsetEvenQ)
+dw := a.To(hex.DoubleWidth)
+dh := a.To(hex.DoubleHeight)
+
+// hexagon map layout
+layout := hex.LayoutFlatTop(geom.Sz(16, 16), geom.Pt(100, 80))
+center := layout.ToPoint(a)
+clicked := layout.FromPoint(geom.Pt(499.0, 123.4)).Round()
 ```
 
 
