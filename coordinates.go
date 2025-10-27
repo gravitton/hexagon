@@ -64,7 +64,7 @@ func From(index ints.Point, system CoordinateSystem) Hex {
 
 // ToAxial returns the axial (q,r) as an ints.Point.
 func ToAxial(hex Hex) ints.Point {
-	return hex.ToPoint()
+	return hex.Point()
 }
 
 // FromAxial converts an ints.Point (q,r) into an axial Hex.

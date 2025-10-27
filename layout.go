@@ -43,14 +43,14 @@ func (l Layout) Spacing() floats.Size {
 
 // ToPoint converts a hex to the pixel coordinates of its center in the layout.
 func (l Layout) ToPoint(hex Hex) floats.Point {
-	return l.Origin.Add(floats.Vec(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
 	//return floats.Pt(hex.QR()).Transform(l.orientation.toPoint)
+	return l.Origin.Add(floats.Vec(hex.QR()).Transform(l.orientation.toPoint).MultiplyXY(l.Size.XY()))
 }
 
 // FromPoint converts a pixel point to a fractional hex in the layout.
 func (l Layout) FromPoint(point floats.Point) FractionalHex {
-	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPoint).XY())
 	//return F(point.Transform(l.orientation.fromPoint).XY())
+	return F(point.Subtract(l.Origin).DivideXY(l.Size.XY()).Transform(l.orientation.fromPoint).XY())
 }
 
 // Hexagon creates a floats.RegularPolygon representing the hex cell in pixel space.

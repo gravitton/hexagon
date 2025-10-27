@@ -66,8 +66,8 @@ func (h Hex) To(system CoordinateSystem) ints.Point {
 	return To(h, system)
 }
 
-// ToPoint returns (q,r) as an ints.Point.
-func (h Hex) ToPoint() ints.Point {
+// Point returns (q,r) as a ints.Point.
+func (h Hex) Point() ints.Point {
 	return geom.Pt(h.Q, h.R)
 }
 
@@ -178,8 +178,8 @@ func (h FractionalHex) QRS() (float64, float64, float64) {
 	return h.Q, h.R, h.S()
 }
 
-// ToPoint returns the axial (q,r) as a floats.Point.
-func (h FractionalHex) ToPoint() floats.Point {
+// Point returns the axial (q,r) as a floats.Point.
+func (h FractionalHex) Point() floats.Point {
 	return geom.Pt(h.Q, h.R)
 }
 

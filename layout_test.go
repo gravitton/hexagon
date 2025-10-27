@@ -10,7 +10,7 @@ import (
 	"github.com/gravitton/geometry/types/floats"
 )
 
-func TestHexToPixel(t *testing.T) {
+var (
 	// flat-top layout
 	// - width             = 2 * size.Width
 	// - height            = sqrt(3) * size.Height
@@ -18,9 +18,9 @@ func TestHexToPixel(t *testing.T) {
 	// - verticalSpacing   = sqrt(3) * size.Height (= height)
 	// x = q * horizontalSpacing (= q * 3/2 * size.Width)
 	// y = q * verticalSpacing/2 + r * verticalSpacing (= q * 1/2 * sqrt(3) * size.Height + r * sqrt(3) * size.Height)
-	layoutFlatTop := LayoutFlatTop(geom.Sz(10.0, 10.0), geom.Pt(0.0, 0.0))
-	layoutFlatTopWithOrigin := LayoutFlatTop(geom.Sz(10.0, 10.0), geom.Pt(-100.0, 50.0))
-	layoutFlatTopWithOriginSkew := LayoutFlatTop(geom.Sz(10.0, 8.0), geom.Pt(-100.0, 50.0))
+	layoutFlatTop               = LayoutFlatTop(geom.Sz(10.0, 10.0), geom.Pt(0.0, 0.0))
+	layoutFlatTopWithOrigin     = LayoutFlatTop(geom.Sz(10.0, 10.0), geom.Pt(-100.0, 50.0))
+	layoutFlatTopWithOriginSkew = LayoutFlatTop(geom.Sz(10.0, 8.0), geom.Pt(-100.0, 50.0))
 
 	// pointy-top layout
 	// - width             = sqrt(3) * size.Width
@@ -29,10 +29,12 @@ func TestHexToPixel(t *testing.T) {
 	// - verticalSpacing   = 3/2 * size.Height (= 3/4 * height)
 	// x = q * horizontalSpacing + r * horizontalSpacing/2  (= q * sqrt(3) * size.Width + r * 1/2 * sqrt(3) * size.Height)
 	// y = r * verticalSpacing (= r * 3/2 * size.Height)
-	layoutPointyTop := LayoutPointyTop(geom.Sz(10.0, 10.0), geom.Pt(0.0, 0.0))
-	layoutPointyTopWithOrigin := LayoutPointyTop(geom.Sz(10.0, 10.0), geom.Pt(-100.0, 50.0))
-	layoutPointyTopWithOriginSkew := LayoutPointyTop(geom.Sz(10.0, 8.0), geom.Pt(-100.0, 50.0))
+	layoutPointyTop               = LayoutPointyTop(geom.Sz(10.0, 10.0), geom.Pt(0.0, 0.0))
+	layoutPointyTopWithOrigin     = LayoutPointyTop(geom.Sz(10.0, 10.0), geom.Pt(-100.0, 50.0))
+	layoutPointyTopWithOriginSkew = LayoutPointyTop(geom.Sz(10.0, 8.0), geom.Pt(-100.0, 50.0))
+)
 
+func TestLayout_Point(t *testing.T) {
 	tests := []struct {
 		layout   Layout
 		hex      Hex
@@ -179,6 +181,33 @@ func TestHexToPixel(t *testing.T) {
 			assert.Equal(t, actualHex.R, test.hex.R)
 		})
 	}
+}
+
+func TestLayout_Bounds(t *testing.T) {
+	geom.AssertSize(t, layoutFlatTop.Bounds(), 20.0, 17.320508)
+	geom.AssertSize(t, layoutFlatTopWithOrigin.Bounds(), 20.0, 17.320508)
+	geom.AssertSize(t, layoutFlatTopWithOriginSkew.Bounds(), 20.0, 13.856406)
+	geom.AssertSize(t, layoutPointyTop.Bounds(), 17.320508, 20.0)
+	geom.AssertSize(t, layoutPointyTopWithOrigin.Bounds(), 17.320508, 20.0)
+	geom.AssertSize(t, layoutPointyTopWithOriginSkew.Bounds(), 17.320508, 16.0)
+}
+
+func TestLayout_Spacing(t *testing.T) {
+	geom.AssertSize(t, layoutFlatTop.Spacing(), 15.0, 17.320508)
+	geom.AssertSize(t, layoutFlatTopWithOrigin.Spacing(), 15.0, 17.320508)
+	geom.AssertSize(t, layoutFlatTopWithOriginSkew.Spacing(), 15.0, 13.856406)
+	geom.AssertSize(t, layoutPointyTop.Spacing(), 17.320508, 15.0)
+	geom.AssertSize(t, layoutPointyTopWithOrigin.Spacing(), 17.320508, 15.0)
+	geom.AssertSize(t, layoutPointyTopWithOriginSkew.Spacing(), 17.320508, 12.0)
+}
+
+func TestLayout_Hexagon(t *testing.T) {
+	geom.AssertRegularPolygon(t, layoutFlatTop.Hexagon(H(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutFlatTopWithOrigin.Hexagon(H(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutFlatTopWithOriginSkew.Hexagon(H(1, 0)), -85.0, 56.928203, 10.0, 8.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTop.Hexagon(H(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 90*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTopWithOrigin.Hexagon(H(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 90*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTopWithOriginSkew.Hexagon(H(0, 1)), -91.339745, 62.0, 10.0, 8.0, 6, 90*geom.DegToRad)
 }
 
 func testName(layout Layout) string {

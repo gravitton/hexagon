@@ -7,109 +7,135 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
+var (
+	testHex     = Hex{-1, 3}
+	testHexZero = Hex{0, 0}
+	testFracHex = FractionalHex{10.9, -1.2}
+)
+
 func TestHex_New(t *testing.T) {
-	testHex(t, H(10, 16), 10, 16)
-	testHex(t, H(-1, -2), -1, -2)
+	AssertHex(t, testHex, -1, 3)
+	AssertHex(t, H(1, -2), 1, -2)
 }
 
 func TestHex_S(t *testing.T) {
-	assert.Equal(t, H(10, 16).S(), -26)
-	assert.Equal(t, H(-1, 2).S(), -1)
+	assert.Equal(t, testHex.S(), -2)
+}
+
+func TestHex_QR(t *testing.T) {
+	q, r := testHex.QR()
+	assert.Equal(t, q, -1)
+	assert.Equal(t, r, 3)
+}
+
+func TestHex_QRS(t *testing.T) {
+	q, r, s := testHex.QRS()
+	assert.Equal(t, q, -1)
+	assert.Equal(t, r, 3)
+	assert.Equal(t, s, -2)
 }
 
 func TestHex_Add(t *testing.T) {
-	testHex(t, H(1, 2).Add(H(3, -2)), 4, 0)
+	AssertHex(t, testHex.Add(H(3, -2)), 2, 1)
 }
 
 func TestHex_Subtract(t *testing.T) {
-	testHex(t, H(1, 2).Subtract(H(3, -2)), -2, 4)
+	AssertHex(t, testHex.Subtract(H(3, -2)), -4, 5)
 }
 
 func TestHex_Multiply(t *testing.T) {
-	testHex(t, H(1, 2).Multiply(3), 3, 6)
+	AssertHex(t, testHex.Multiply(3), -3, 9)
 }
 
 func TestHex_Length(t *testing.T) {
-	assert.Equal(t, H(1, -2).Length(), 2)
+	assert.Equal(t, testHex.Length(), 3)
 }
 
 func TestHex_DistanceTo(t *testing.T) {
-	assert.Equal(t, H(1, -2).DistanceTo(H(0, -2)), 1)
-	assert.Equal(t, H(1, -2).DistanceTo(H(5, -1)), 5)
+	assert.Equal(t, testHex.DistanceTo(H(0, 3)), 1)
+	assert.Equal(t, testHex.DistanceTo(H(1, 6)), 5)
 }
 
 func TestHex_Neighbors(t *testing.T) {
-	assert.Equal(t, H(1, 2).Neighbors(), []Hex{{2, 2}, {2, 1}, {1, 1}, {0, 2}, {0, 3}, {1, 3}})
+	assert.Equal(t, testHex.Neighbors(), []Hex{{0, 3}, {0, 2}, {-1, 2}, {-2, 3}, {-2, 4}, {-1, 4}})
 }
 
 func TestHex_Neighbor(t *testing.T) {
-	testHex(t, H(1, 2).Neighbor(DirectionSMinus), 2, 2)
-	testHex(t, H(1, 2).Neighbor(DirectionQPlus), 2, 1)
-	testHex(t, H(1, 2).Neighbor(DirectionRMinus), 1, 1)
-	testHex(t, H(1, 2).Neighbor(DirectionSPlus), 0, 2)
-	testHex(t, H(1, 2).Neighbor(DirectionQMinus), 0, 3)
-	testHex(t, H(1, 2).Neighbor(DirectionRPlus), 1, 3)
+	AssertHex(t, testHex.Neighbor(DirectionSMinus), 0, 3)
+	AssertHex(t, testHex.Neighbor(DirectionQPlus), 0, 2)
+	AssertHex(t, testHex.Neighbor(DirectionRMinus), -1, 2)
+	AssertHex(t, testHex.Neighbor(DirectionSPlus), -2, 3)
+	AssertHex(t, testHex.Neighbor(DirectionQMinus), -2, 4)
+	AssertHex(t, testHex.Neighbor(DirectionRPlus), -1, 4)
 }
 
 func TestHex_Range(t *testing.T) {
-	assert.Equal(t, H(0, 0).Range(-1), nil)
-	assert.Equal(t, H(0, 0).Range(0), []Hex{{-0, 0}})
-	assert.Equal(t, H(0, 0).Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
-	assert.Equal(t, len(H(0, 0).Range(2)), 19)
-	assert.Equal(t, len(H(0, 0).Range(3)), 37)
+	assert.Equal(t, testHexZero.Range(-1), nil)
+	assert.Equal(t, testHexZero.Range(0), []Hex{{-0, 0}})
+	assert.Equal(t, testHexZero.Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
+	assert.Equal(t, len(testHexZero.Range(2)), 19)
+	assert.Equal(t, len(testHexZero.Range(3)), 37)
 }
 
 func TestHex_Line(t *testing.T) {
-	assert.Equal(t, H(0, 0).Line(H(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
-	assert.Equal(t, H(0, 0).Line(H(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
-	assert.Equal(t, H(0, 0).Line(H(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
-	assert.Equal(t, H(0, 0).Line(H(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
-	assert.Equal(t, H(0, 0).Line(H(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+	assert.Equal(t, testHexZero.Line(H(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
+	assert.Equal(t, testHexZero.Line(H(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
+	assert.Equal(t, testHexZero.Line(H(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
+	assert.Equal(t, testHexZero.Line(H(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
+	assert.Equal(t, testHexZero.Line(H(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+}
 
+func TestHex_HasLineOfSight(t *testing.T) {
+	// TODO: add test
+	//assert.True(t, testHexZero.HasLineOfSight())
+}
+
+func TestHex_FieldOfView(t *testing.T) {
+	// TODO: add test
+	//assert.Equal(t, testHexZero.FieldOfView())
 }
 
 func TestHex_String(t *testing.T) {
-	assert.Equal(t, H(10, 16).String(), "(10,16)")
-	assert.Equal(t, H(1, -2).String(), "(1,-2)")
+	assert.Equal(t, testHex.String(), "(-1,3)")
 }
 
 func TestFractionalHex_New(t *testing.T) {
-	testFractionalHex(t, F(10.9, 16.2), 10.9, 16.2)
-	testFractionalHex(t, F(-1.2, -2.5), -1.2, -2.5)
+	AssertFracHex(t, testFracHex, 10.9, -1.2)
+	AssertFracHex(t, F(-1.2, -2.5), -1.2, -2.5)
 }
 
 func TestFractionalHex_S(t *testing.T) {
-	assert.Equal(t, F(10.9, 16.2).S(), -27.1)
-	assert.Equal(t, F(-1.2, -2.5).S(), 3.7)
+	assert.EqualDelta(t, testFracHex.S(), -9.7, geom.Delta)
 }
 
-func TestFractionalHex_ToPoint(t *testing.T) {
-	assert.Equal(t, F(10.9, 16.2).ToPoint(), geom.Pt(10.9, 16.2))
-	assert.Equal(t, F(-1.2, -2.5).ToPoint(), geom.Pt(-1.2, -2.5))
+func TestFractionalHex_QR(t *testing.T) {
+	q, r := testFracHex.QR()
+	assert.EqualDelta(t, q, 10.9, geom.Delta)
+	assert.EqualDelta(t, r, -1.2, geom.Delta)
+}
+
+func TestFractionalHex_QRS(t *testing.T) {
+	q, r, s := testFracHex.QRS()
+	assert.EqualDelta(t, q, 10.9, geom.Delta)
+	assert.EqualDelta(t, r, -1.2, geom.Delta)
+	assert.EqualDelta(t, s, -9.7, geom.Delta)
+}
+
+func TestFractionalHex_Point(t *testing.T) {
+	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
+}
+
+func TestFractionalHex_Lerp(t *testing.T) {
+	AssertFracHex(t, testFracHex.Lerp(F(12, 0), 0.1), 11.01, -1.08)
 }
 
 func TestFractionalHex_Round(t *testing.T) {
-	testHex(t, F(10.9, 16.2).Round(), 11, 16)
-	testHex(t, F(10.5001, 16.4999).Round(), 11, 16)
-	testHex(t, F(10.50000001, 16.5000001).Round(), 10, 17)
-	testHex(t, F(10.500001, 16.500000001).Round(), 11, 16)
+	AssertHex(t, F(10.9, 16.2).Round(), 11, 16)
+	AssertHex(t, F(10.5001, 16.4999).Round(), 11, 16)
+	AssertHex(t, F(10.50000001, 16.5000001).Round(), 10, 17)
+	AssertHex(t, F(10.500001, 16.500000001).Round(), 11, 16)
 }
 
 func TestFractionalHex_String(t *testing.T) {
-	assert.Equal(t, F(10.9, 16.2).String(), "(10.90,16.20)")
-	assert.Equal(t, F(-1.2, -2.5).String(), "(-1.20,-2.50)")
-}
-
-func testHex(t *testing.T, h Hex, q, r int) {
-	t.Helper()
-
-	assert.Equal(t, h.Q, q)
-	assert.Equal(t, h.R, r)
-}
-
-func testFractionalHex(t *testing.T, h FractionalHex, q, r float64) {
-	t.Helper()
-
-	assert.Equal(t, h.Q, q)
-	assert.Equal(t, h.R, r)
+	assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
 }

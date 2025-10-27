@@ -127,7 +127,7 @@ func TestCoordinateConversion(t *testing.T) {
 			assert.Equal(t, test.hex.To(OffsetEvenQ), test.offsetEvenQ)
 			assert.Equal(t, test.hex.To(DoubleWidth), test.doubleWidth)
 			assert.Equal(t, test.hex.To(DoubleHeight), test.doubleHeight)
-			assert.Equal(t, test.hex.ToPoint(), hexPoint)
+			assert.Equal(t, test.hex.Point(), hexPoint)
 		})
 	}
 }
