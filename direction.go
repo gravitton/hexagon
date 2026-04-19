@@ -10,7 +10,7 @@ import (
 // Constants for the directions from a Hex.
 // - Q+ increments q and compensates by decrementing r.
 // - R+ increments r and compensates by decrementing s (-q-r).
-// - S+ increments s (-q-r) compensates by decrementing q.
+// - S+ increments s (-q-r) and compensates by decrementing q.
 type Direction int
 
 // NeighborOffset returns the neighbor offset vector for the given direction.

@@ -72,7 +72,7 @@ func FromAxial(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }
 
-// FromPoint is alias to FromAxial.
+// FromPoint is an alias for FromAxial.
 func FromPoint(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }

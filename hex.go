@@ -66,7 +66,7 @@ func (h Hex) To(system CoordinateSystem) ints.Point {
 	return To(h, system)
 }
 
-// Point returns (q,r) as a ints.Point.
+// Point returns (q,r) as a [ints.Point].
 func (h Hex) Point() ints.Point {
 	return geom.Pt(h.Q, h.R)
 }
@@ -115,7 +115,7 @@ func (h Hex) Line(target Hex) []Hex {
 	start := FractionalHex{float64(h.Q) + e, float64(h.R) + 2*e}
 	end := FractionalHex{float64(target.Q) + e, float64(target.R) + 2*e}
 
-	results := make([]Hex, 0, n)
+	results := make([]Hex, 0, n+1)
 	for i := 0; i <= n; i++ {
 		results = append(results, start.Lerp(end, step*float64(i)).Round())
 	}

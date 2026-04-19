@@ -17,17 +17,11 @@ type Layout struct {
 
 // LayoutFlatTop constructs a Layout for flat-top hexes with the given size and origin.
 func LayoutFlatTop(size floats.Size, origin floats.Point) Layout {
-	//o := orientationFlatTop
-	//o.toPoint = o.toPoint.PreScale(size.XY()).PreTranslate(origin.XY())
-	//o.fromPoint = o.fromPoint.Unscale(size.XY()).Untranslate(origin.XY())
 	return Layout{orientationFlatTop, size, origin}
 }
 
 // LayoutPointyTop constructs a Layout for pointy-top hexes with the given size and origin.
 func LayoutPointyTop(size floats.Size, origin floats.Point) Layout {
-	//o := orientationPointyTop
-	//o.toPoint = o.toPoint.PreScale(size.XY()).PreTranslate(origin.XY())
-	//o.fromPoint = o.fromPoint.Unscale(size.XY()).Untranslate(origin.XY())
 	return Layout{orientationPointyTop, size, origin}
 }
 
@@ -69,7 +63,7 @@ type orientation struct {
 var orientationPointyTop = orientation{
 	geom.Mat(geom.Sqrt3, geom.Sqrt3/2.0, 0, 0.0, 3.0/2.0, 0.0),
 	geom.Mat(geom.Sqrt3/3.0, -1.0/3.0, 0, 0.0, 2.0/3.0, 0),
-	geom.PointTop,
+	geom.PointyTop,
 	geom.Vec(geom.Sqrt3, 2.0),
 	geom.Vec(geom.Sqrt3, 3.0/2.0),
 }

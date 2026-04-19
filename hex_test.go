@@ -86,13 +86,45 @@ func TestHex_Line(t *testing.T) {
 }
 
 func TestHex_HasLineOfSight(t *testing.T) {
-	// TODO: add test
-	//assert.True(t, testHexZero.HasLineOfSight())
+	// Clear line with no blockers
+	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), nil))
+	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{}))
+
+	// Same hex always has line of sight to itself
+	assert.True(t, testHexZero.HasLineOfSight(testHexZero, nil))
+
+	// Blocked in the middle
+	assert.False(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(1, 0)}))
+	assert.False(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(2, 0)}))
+
+	// Blocker beyond the target does not affect visibility
+	assert.True(t, testHexZero.HasLineOfSight(H(2, 0), []Hex{H(3, 0)}))
+
+	// Target in the blocking list is still visible (can see into, not through)
+	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(3, 0)}))
 }
 
 func TestHex_FieldOfView(t *testing.T) {
-	// TODO: add test
-	//assert.Equal(t, testHexZero.FieldOfView())
+	candidates := testHexZero.Range(3)
+
+	// No blocking: all candidates are visible
+	assert.Equal(t, len(testHexZero.FieldOfView(candidates, nil)), len(candidates))
+	assert.Equal(t, len(testHexZero.FieldOfView(candidates, []Hex{})), len(candidates))
+
+	// Immediate neighbors (distance <= 1) are always visible regardless of blocking
+	blocking := testHexZero.Neighbors()
+	visible := testHexZero.FieldOfView(candidates, blocking)
+	for _, v := range visible {
+		assert.True(t, testHexZero.DistanceTo(v) <= 1)
+	}
+
+	// A gap in the blocking ring allows seeing through it
+	// H(1,0) is left unblocked, making H(2,0) and H(3,0) visible in that direction
+	partialBlocking := []Hex{H(0, -1), H(1, -1), H(-1, 0), H(-1, 1), H(0, 1)}
+	visible = testHexZero.FieldOfView([]Hex{H(2, 0), H(3, 0), H(0, -2)}, partialBlocking)
+	assert.Equal(t, len(visible), 2)
+	assert.Equal(t, visible[0], H(2, 0))
+	assert.Equal(t, visible[1], H(3, 0))
 }
 
 func TestHex_String(t *testing.T) {

@@ -216,8 +216,8 @@ func testName(layout Layout) string {
 	switch layout.orientation.orientation {
 	case geom.FlatTop:
 		name = append(name, "flat-top")
-	case geom.PointTop:
-		name = append(name, "point-top")
+	case geom.PointyTop:
+		name = append(name, "pointy-top")
 	}
 
 	if !layout.Origin.IsZero() {
