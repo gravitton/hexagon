@@ -15,7 +15,7 @@ var (
 
 func TestHex_New(t *testing.T) {
 	AssertHex(t, testHex, -1, 3)
-	AssertHex(t, H(1, -2), 1, -2)
+	AssertHex(t, Coord(1, -2), 1, -2)
 }
 
 func TestHex_S(t *testing.T) {
@@ -36,11 +36,11 @@ func TestHex_QRS(t *testing.T) {
 }
 
 func TestHex_Add(t *testing.T) {
-	AssertHex(t, testHex.Add(H(3, -2)), 2, 1)
+	AssertHex(t, testHex.Add(Coord(3, -2)), 2, 1)
 }
 
 func TestHex_Subtract(t *testing.T) {
-	AssertHex(t, testHex.Subtract(H(3, -2)), -4, 5)
+	AssertHex(t, testHex.Subtract(Coord(3, -2)), -4, 5)
 }
 
 func TestHex_Multiply(t *testing.T) {
@@ -52,8 +52,8 @@ func TestHex_Length(t *testing.T) {
 }
 
 func TestHex_DistanceTo(t *testing.T) {
-	assert.Equal(t, testHex.DistanceTo(H(0, 3)), 1)
-	assert.Equal(t, testHex.DistanceTo(H(1, 6)), 5)
+	assert.Equal(t, testHex.DistanceTo(Coord(0, 3)), 1)
+	assert.Equal(t, testHex.DistanceTo(Coord(1, 6)), 5)
 }
 
 func TestHex_Neighbors(t *testing.T) {
@@ -61,12 +61,12 @@ func TestHex_Neighbors(t *testing.T) {
 }
 
 func TestHex_Neighbor(t *testing.T) {
-	AssertHex(t, testHex.Neighbor(DirectionSMinus), 0, 3)
-	AssertHex(t, testHex.Neighbor(DirectionQPlus), 0, 2)
-	AssertHex(t, testHex.Neighbor(DirectionRMinus), -1, 2)
-	AssertHex(t, testHex.Neighbor(DirectionSPlus), -2, 3)
-	AssertHex(t, testHex.Neighbor(DirectionQMinus), -2, 4)
-	AssertHex(t, testHex.Neighbor(DirectionRPlus), -1, 4)
+	AssertHex(t, testHex.Neighbor(SMinus), 0, 3)
+	AssertHex(t, testHex.Neighbor(QPlus), 0, 2)
+	AssertHex(t, testHex.Neighbor(RMinus), -1, 2)
+	AssertHex(t, testHex.Neighbor(SPlus), -2, 3)
+	AssertHex(t, testHex.Neighbor(QMinus), -2, 4)
+	AssertHex(t, testHex.Neighbor(RPlus), -1, 4)
 }
 
 func TestHex_Range(t *testing.T) {
@@ -78,30 +78,30 @@ func TestHex_Range(t *testing.T) {
 }
 
 func TestHex_Line(t *testing.T) {
-	assert.Equal(t, testHexZero.Line(H(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
-	assert.Equal(t, testHexZero.Line(H(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
-	assert.Equal(t, testHexZero.Line(H(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
-	assert.Equal(t, testHexZero.Line(H(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
-	assert.Equal(t, testHexZero.Line(H(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+	assert.Equal(t, testHexZero.Line(Coord(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
+	assert.Equal(t, testHexZero.Line(Coord(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
+	assert.Equal(t, testHexZero.Line(Coord(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
+	assert.Equal(t, testHexZero.Line(Coord(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
+	assert.Equal(t, testHexZero.Line(Coord(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
 }
 
 func TestHex_HasLineOfSight(t *testing.T) {
 	// Clear line with no blockers
-	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), nil))
-	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{}))
+	assert.True(t, testHexZero.HasLineOfSight(Coord(3, 0), nil))
+	assert.True(t, testHexZero.HasLineOfSight(Coord(3, 0), []Hex{}))
 
 	// Same hex always has line of sight to itself
 	assert.True(t, testHexZero.HasLineOfSight(testHexZero, nil))
 
 	// Blocked in the middle
-	assert.False(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(1, 0)}))
-	assert.False(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(2, 0)}))
+	assert.False(t, testHexZero.HasLineOfSight(Coord(3, 0), []Hex{Coord(1, 0)}))
+	assert.False(t, testHexZero.HasLineOfSight(Coord(3, 0), []Hex{Coord(2, 0)}))
 
 	// Blocker beyond the target does not affect visibility
-	assert.True(t, testHexZero.HasLineOfSight(H(2, 0), []Hex{H(3, 0)}))
+	assert.True(t, testHexZero.HasLineOfSight(Coord(2, 0), []Hex{Coord(3, 0)}))
 
 	// Target in the blocking list is still visible (can see into, not through)
-	assert.True(t, testHexZero.HasLineOfSight(H(3, 0), []Hex{H(3, 0)}))
+	assert.True(t, testHexZero.HasLineOfSight(Coord(3, 0), []Hex{Coord(3, 0)}))
 }
 
 func TestHex_FieldOfView(t *testing.T) {
@@ -120,11 +120,23 @@ func TestHex_FieldOfView(t *testing.T) {
 
 	// A gap in the blocking ring allows seeing through it
 	// H(1,0) is left unblocked, making H(2,0) and H(3,0) visible in that direction
-	partialBlocking := []Hex{H(0, -1), H(1, -1), H(-1, 0), H(-1, 1), H(0, 1)}
-	visible = testHexZero.FieldOfView([]Hex{H(2, 0), H(3, 0), H(0, -2)}, partialBlocking)
+	partialBlocking := []Hex{Coord(0, -1), Coord(1, -1), Coord(-1, 0), Coord(-1, 1), Coord(0, 1)}
+	visible = testHexZero.FieldOfView([]Hex{Coord(2, 0), Coord(3, 0), Coord(0, -2)}, partialBlocking)
 	assert.Equal(t, len(visible), 2)
-	assert.Equal(t, visible[0], H(2, 0))
-	assert.Equal(t, visible[1], H(3, 0))
+	assert.Equal(t, visible[0], Coord(2, 0))
+	assert.Equal(t, visible[1], Coord(3, 0))
+}
+
+func TestHex_Point(t *testing.T) {
+	assert.Equal(t, testHex.Point(), geom.Pt(-1, 3))
+	assert.Equal(t, testHexZero.Point(), geom.Pt(0, 0))
+}
+
+func TestHex_IsZero(t *testing.T) {
+	assert.True(t, testHexZero.IsZero())
+	assert.False(t, testHex.IsZero())
+	assert.False(t, Coord(0, 1).IsZero())
+	assert.False(t, Coord(1, 0).IsZero())
 }
 
 func TestHex_String(t *testing.T) {
@@ -133,7 +145,7 @@ func TestHex_String(t *testing.T) {
 
 func TestFractionalHex_New(t *testing.T) {
 	AssertFracHex(t, testFracHex, 10.9, -1.2)
-	AssertFracHex(t, F(-1.2, -2.5), -1.2, -2.5)
+	AssertFracHex(t, FracCoord(-1.2, -2.5), -1.2, -2.5)
 }
 
 func TestFractionalHex_S(t *testing.T) {
@@ -158,14 +170,14 @@ func TestFractionalHex_Point(t *testing.T) {
 }
 
 func TestFractionalHex_Lerp(t *testing.T) {
-	AssertFracHex(t, testFracHex.Lerp(F(12, 0), 0.1), 11.01, -1.08)
+	AssertFracHex(t, testFracHex.Lerp(FracCoord(12, 0), 0.1), 11.01, -1.08)
 }
 
 func TestFractionalHex_Round(t *testing.T) {
-	AssertHex(t, F(10.9, 16.2).Round(), 11, 16)
-	AssertHex(t, F(10.5001, 16.4999).Round(), 11, 16)
-	AssertHex(t, F(10.50000001, 16.5000001).Round(), 10, 17)
-	AssertHex(t, F(10.500001, 16.500000001).Round(), 11, 16)
+	AssertHex(t, FracCoord(10.9, 16.2).Round(), 11, 16)
+	AssertHex(t, FracCoord(10.5001, 16.4999).Round(), 11, 16)
+	AssertHex(t, FracCoord(10.50000001, 16.5000001).Round(), 10, 17)
+	AssertHex(t, FracCoord(10.500001, 16.500000001).Round(), 11, 16)
 }
 
 func TestFractionalHex_String(t *testing.T) {

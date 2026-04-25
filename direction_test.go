@@ -20,32 +20,44 @@ var offsetEvenQDirectionEvenCol = []ints.Vector{{X: 1, Y: 1}, {X: 1, Y: 0}, {X: 
 var doubleWidthDirection = []ints.Vector{{X: 2, Y: 0}, {X: 1, Y: -1}, {X: -1, Y: -1}, {X: -2, Y: 0}, {X: -1, Y: 1}, {X: 1, Y: 1}}
 var doubleHeightDirection = []ints.Vector{{X: 1, Y: 1}, {X: 1, Y: -1}, {X: 0, Y: -2}, {X: -1, Y: -1}, {X: -1, Y: 1}, {X: 0, Y: 2}}
 
+func Test_String(t *testing.T) {
+	assert.Equal(t, SMinus.String(), "SMinus")
+	assert.Equal(t, QPlus.String(), "QPlus")
+	assert.Equal(t, RMinus.String(), "RMinus")
+	assert.Equal(t, SPlus.String(), "SPlus")
+	assert.Equal(t, QMinus.String(), "QMinus")
+	assert.Equal(t, RPlus.String(), "RPlus")
+	// values beyond 5 wrap via %6
+	assert.Equal(t, Direction(6).String(), "SMinus")
+	assert.Equal(t, Direction(8).String(), "RMinus")
+}
+
 func TestDirections(t *testing.T) {
-	assert.Equal(t, DirectionSMinus.NeighborOffset(), axialDirection[0])
-	assert.Equal(t, DirectionQPlus.NeighborOffset(), axialDirection[1])
-	assert.Equal(t, DirectionRMinus.NeighborOffset(), axialDirection[2])
-	assert.Equal(t, DirectionSPlus.NeighborOffset(), axialDirection[3])
-	assert.Equal(t, DirectionQMinus.NeighborOffset(), axialDirection[4])
-	assert.Equal(t, DirectionRPlus.NeighborOffset(), axialDirection[5])
+	assert.Equal(t, SMinus.NeighborOffset(), axialDirection[0])
+	assert.Equal(t, QPlus.NeighborOffset(), axialDirection[1])
+	assert.Equal(t, RMinus.NeighborOffset(), axialDirection[2])
+	assert.Equal(t, SPlus.NeighborOffset(), axialDirection[3])
+	assert.Equal(t, QMinus.NeighborOffset(), axialDirection[4])
+	assert.Equal(t, RPlus.NeighborOffset(), axialDirection[5])
 
 	// direction neighbor direction module
 	assert.Equal(t, Direction(6).NeighborOffset(), axialDirection[0])
 	assert.Equal(t, Direction(8).NeighborOffset(), axialDirection[2])
 	assert.Equal(t, Direction(15).NeighborOffset(), axialDirection[3])
 
-	assert.Equal(t, DirectionFlatTopSE, DirectionSMinus)
-	assert.Equal(t, DirectionFlatTopNE, DirectionQPlus)
-	assert.Equal(t, DirectionFlatTopN, DirectionRMinus)
-	assert.Equal(t, DirectionFlatTopNW, DirectionSPlus)
-	assert.Equal(t, DirectionFlatTopSW, DirectionQMinus)
-	assert.Equal(t, DirectionFlatTopS, DirectionRPlus)
+	assert.Equal(t, FlatTopSE, SMinus)
+	assert.Equal(t, FlatTopNE, QPlus)
+	assert.Equal(t, FlatTopN, RMinus)
+	assert.Equal(t, FlatTopNW, SPlus)
+	assert.Equal(t, FlatTopSW, QMinus)
+	assert.Equal(t, FlatTopS, RPlus)
 
-	assert.Equal(t, DirectionPointyTopE, DirectionSMinus)
-	assert.Equal(t, DirectionPointyTopNE, DirectionQPlus)
-	assert.Equal(t, DirectionPointyTopNW, DirectionRMinus)
-	assert.Equal(t, DirectionPointyTopW, DirectionSPlus)
-	assert.Equal(t, DirectionPointyTopSW, DirectionQMinus)
-	assert.Equal(t, DirectionPointyTopSE, DirectionRPlus)
+	assert.Equal(t, PointyTopE, SMinus)
+	assert.Equal(t, PointyTopNE, QPlus)
+	assert.Equal(t, PointyTopNW, RMinus)
+	assert.Equal(t, PointyTopW, SPlus)
+	assert.Equal(t, PointyTopSW, QMinus)
+	assert.Equal(t, PointyTopSE, RPlus)
 }
 
 func TestNeighbors(t *testing.T) {
@@ -128,12 +140,12 @@ func TestNeighbors(t *testing.T) {
 				DoubleWidth:  test.doubleWidth,
 				DoubleHeight: test.doubleHeight,
 			} {
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionSMinus), offsets[0])
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionQPlus), offsets[1])
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionRMinus), offsets[2])
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionSPlus), offsets[3])
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionQMinus), offsets[4])
-				assert.Equal(t, NeighborOffset(test.index, system, DirectionRPlus), offsets[5])
+				assert.Equal(t, NeighborOffset(test.index, system, SMinus), offsets[0])
+				assert.Equal(t, NeighborOffset(test.index, system, QPlus), offsets[1])
+				assert.Equal(t, NeighborOffset(test.index, system, RMinus), offsets[2])
+				assert.Equal(t, NeighborOffset(test.index, system, SPlus), offsets[3])
+				assert.Equal(t, NeighborOffset(test.index, system, QMinus), offsets[4])
+				assert.Equal(t, NeighborOffset(test.index, system, RPlus), offsets[5])
 			}
 		})
 	}

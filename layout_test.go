@@ -34,6 +34,21 @@ var (
 	layoutPointyTopWithOriginSkew = LayoutPointyTop(geom.Sz(10.0, 8.0), geom.Pt(-100.0, 50.0))
 )
 
+func TestLayout_Constructors(t *testing.T) {
+	size := geom.Sz(10.0, 8.0)
+	origin := geom.Pt(5.0, -3.0)
+
+	flat := LayoutFlatTop(size, origin)
+	assert.Equal(t, flat.Size, size)
+	assert.Equal(t, flat.Origin, origin)
+	assert.Equal(t, flat.transform.orientation, geom.FlatTop)
+
+	pointy := LayoutPointyTop(size, origin)
+	assert.Equal(t, pointy.Size, size)
+	assert.Equal(t, pointy.Origin, origin)
+	assert.Equal(t, pointy.transform.orientation, geom.PointyTop)
+}
+
 func TestLayout_Point(t *testing.T) {
 	tests := []struct {
 		layout   Layout
@@ -42,128 +57,128 @@ func TestLayout_Point(t *testing.T) {
 	}{
 		{
 			layout:   layoutFlatTop,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(0.0, 0.0),
 		},
 		{
 			layout:   layoutFlatTop,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(15.0, 25.98076211353316),
 		},
 		{
 			layout:   layoutFlatTop,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-30.0, 34.64101615137755),
 		},
 		{
 			layout:   layoutFlatTop,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(750.0, 1974.53792062852),
 		},
 
 		{
 			layout:   layoutFlatTopWithOrigin,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(-100.0, 50.0),
 		},
 		{
 			layout:   layoutFlatTopWithOrigin,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(-85.0, 75.98076211353316),
 		},
 		{
 			layout:   layoutFlatTopWithOrigin,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-130.0, 84.64101615137756),
 		},
 		{
 			layout:   layoutFlatTopWithOrigin,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(650.0, 2024.53792062852),
 		},
 
 		{
 			layout:   layoutFlatTopWithOriginSkew,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(-100.0, 50.0),
 		},
 		{
 
 			layout:   layoutFlatTopWithOriginSkew,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(-85.0, 70.78460969082653),
 		},
 		{
 			layout:   layoutFlatTopWithOriginSkew,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-130.0, 77.71281292110204),
 		},
 		{
 			layout:   layoutFlatTopWithOriginSkew,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(650.0, 1629.630336502816),
 		},
 
 		{
 			layout:   layoutPointyTop,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(0.0, 0.0),
 		},
 		{
 			layout:   layoutPointyTop,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(25.98076211353316, 15.0),
 		},
 		{
 			layout:   layoutPointyTop,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-8.660254037844384, 45.0),
 		},
 		{
 			layout:   layoutPointyTop,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(1636.7880131525887, 1335.0),
 		},
 
 		{
 			layout:   layoutPointyTopWithOrigin,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(-100.0, 50.0),
 		},
 		{
 			layout:   layoutPointyTopWithOrigin,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(-74.01923788646684, 65.0),
 		},
 		{
 			layout:   layoutPointyTopWithOrigin,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-108.66025403784438, 95.0),
 		},
 		{
 			layout:   layoutPointyTopWithOrigin,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(1536.7880131525887, 1385.0),
 		},
 
 		{
 			layout:   layoutPointyTopWithOriginSkew,
-			hex:      H(0, 0),
+			hex:      Coord(0, 0),
 			expected: geom.Pt(-100, 50.0),
 		},
 		{
 			layout:   layoutPointyTopWithOriginSkew,
-			hex:      H(1, 1),
+			hex:      Coord(1, 1),
 			expected: geom.Pt(-74.01923788646684, 62.0),
 		},
 		{
 			layout:   layoutPointyTopWithOriginSkew,
-			hex:      H(-2, 3),
+			hex:      Coord(-2, 3),
 			expected: geom.Pt(-108.66025403784438, 86.0),
 		},
 		{
 			layout:   layoutPointyTopWithOriginSkew,
-			hex:      H(50, 89),
+			hex:      Coord(50, 89),
 			expected: geom.Pt(1536.7880131525887, 1118.0),
 		},
 	}
@@ -202,18 +217,18 @@ func TestLayout_Spacing(t *testing.T) {
 }
 
 func TestLayout_Hexagon(t *testing.T) {
-	geom.AssertRegularPolygon(t, layoutFlatTop.Hexagon(H(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 60*geom.DegToRad)
-	geom.AssertRegularPolygon(t, layoutFlatTopWithOrigin.Hexagon(H(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 60*geom.DegToRad)
-	geom.AssertRegularPolygon(t, layoutFlatTopWithOriginSkew.Hexagon(H(1, 0)), -85.0, 56.928203, 10.0, 8.0, 6, 60*geom.DegToRad)
-	geom.AssertRegularPolygon(t, layoutPointyTop.Hexagon(H(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 90*geom.DegToRad)
-	geom.AssertRegularPolygon(t, layoutPointyTopWithOrigin.Hexagon(H(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 90*geom.DegToRad)
-	geom.AssertRegularPolygon(t, layoutPointyTopWithOriginSkew.Hexagon(H(0, 1)), -91.339745, 62.0, 10.0, 8.0, 6, 90*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutFlatTop.Hexagon(Coord(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutFlatTopWithOrigin.Hexagon(Coord(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutFlatTopWithOriginSkew.Hexagon(Coord(1, 0)), -85.0, 56.928203, 10.0, 8.0, 6, 60*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTop.Hexagon(Coord(0, 0)), 0.0, 0.0, 10.0, 10.0, 6, 90*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTopWithOrigin.Hexagon(Coord(0, 0)), -100.0, 50.0, 10.0, 10.0, 6, 90*geom.DegToRad)
+	geom.AssertRegularPolygon(t, layoutPointyTopWithOriginSkew.Hexagon(Coord(0, 1)), -91.339745, 62.0, 10.0, 8.0, 6, 90*geom.DegToRad)
 }
 
 func testName(layout Layout) string {
 	name := []string{}
 
-	switch layout.orientation.orientation {
+	switch layout.transform.orientation {
 	case geom.FlatTop:
 		name = append(name, "flat-top")
 	case geom.PointyTop:

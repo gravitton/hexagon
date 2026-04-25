@@ -1,51 +1,72 @@
 package hex
 
 import (
+	"fmt"
+
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
 )
 
 // Direction represents one of the six neighbor directions around a hex.
-//
-// Constants for the directions from a Hex.
+// The named constants follow cube coordinate axes:
 // - Q+ increments q and compensates by decrementing r.
 // - R+ increments r and compensates by decrementing s (-q-r).
 // - S+ increments s (-q-r) and compensates by decrementing q.
 type Direction int
+
+const (
+	SMinus Direction = iota // -S, flat-top SE, pointy-top E
+	QPlus                   // +Q, flat-top NE, pointy-top NE
+	RMinus                  // -R, flat-top N,  pointy-top NW
+	SPlus                   // +S, flat-top NW, pointy-top W
+	QMinus                  // -Q, flat-top SW, pointy-top SW
+	RPlus                   // +R, flat-top S,  pointy-top SE
+)
+
+// Direction aliases for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
+const (
+	FlatTopSE = SMinus
+	FlatTopNE = QPlus
+	FlatTopN  = RMinus
+	FlatTopNW = SPlus
+	FlatTopSW = QMinus
+	FlatTopS  = RPlus
+)
+
+// Direction aliases for pointy-top hexes (Axial, OffsetOddR, OffsetEvenR, DoubleWidth)
+const (
+	PointyTopE  = SMinus
+	PointyTopNE = QPlus
+	PointyTopNW = RMinus
+	PointyTopW  = SPlus
+	PointyTopSW = QMinus
+	PointyTopSE = RPlus
+)
 
 // NeighborOffset returns the neighbor offset vector for the given direction.
 func (d Direction) NeighborOffset() ints.Vector {
 	return Directions[d%6]
 }
 
-const (
-	DirectionSMinus Direction = iota // -S, flat-top SE, pointy-top E
-	DirectionQPlus                   // +Q, flat-top NE, pointy-top NE
-	DirectionRMinus                  // -R, flat-top N,  pointy-top NW
-	DirectionSPlus                   // +S, flat-top NW, pointy-top W
-	DirectionQMinus                  // -Q, flat-top SW, pointy-top SW
-	DirectionRPlus                   // +R, flat-top S,  pointy-top SE
-)
-
-// Direction aliases for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
-const (
-	DirectionFlatTopSE = DirectionSMinus
-	DirectionFlatTopNE = DirectionQPlus
-	DirectionFlatTopN  = DirectionRMinus
-	DirectionFlatTopNW = DirectionSPlus
-	DirectionFlatTopSW = DirectionQMinus
-	DirectionFlatTopS  = DirectionRPlus
-)
-
-// Direction aliases for pointy-top hexes (Axial, OffsetOddR, OffsetEvenR, DoubleWidth)
-const (
-	DirectionPointyTopE  = DirectionSMinus
-	DirectionPointyTopNE = DirectionQPlus
-	DirectionPointyTopNW = DirectionRMinus
-	DirectionPointyTopW  = DirectionSPlus
-	DirectionPointyTopSW = DirectionQMinus
-	DirectionPointyTopSE = DirectionRPlus
-)
+// String returns the name of the direction constant.
+func (d Direction) String() string {
+	switch d % 6 {
+	case SMinus:
+		return "SMinus"
+	case QPlus:
+		return "QPlus"
+	case RMinus:
+		return "RMinus"
+	case SPlus:
+		return "SPlus"
+	case QMinus:
+		return "QMinus"
+	case RPlus:
+		return "RPlus"
+	default:
+		return fmt.Sprintf("Direction(%d)", int(d))
+	}
+}
 
 // NeighborOffsets returns the 6 neighbor offsets for the given coordinate index
 // in the specified coordinate system. For offset systems this accounts for
@@ -120,7 +141,7 @@ func NeighborOffsetsDoubleHeight() []ints.Vector {
 	return DirectionsDoubleHeight[:]
 }
 
-// Directions lists neighbor vectors for axial coordinates in counter-clockwise, starting at (south)-east direction.
+// Directions lists the 6 neighbor vectors for axial coordinates, ordered counter-clockwise from the (south)-east direction.
 var Directions = [6]ints.Vector{
 	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
 	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE

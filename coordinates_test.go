@@ -8,6 +8,48 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
+func TestCoordinateSystem_String(t *testing.T) {
+	assert.Equal(t, Axial.String(), "Axial")
+	assert.Equal(t, OffsetOddR.String(), "OffsetOddR")
+	assert.Equal(t, OffsetEvenR.String(), "OffsetEvenR")
+	assert.Equal(t, OffsetOddQ.String(), "OffsetOddQ")
+	assert.Equal(t, OffsetEvenQ.String(), "OffsetEvenQ")
+	assert.Equal(t, DoubleWidth.String(), "DoubleWidth")
+	assert.Equal(t, DoubleHeight.String(), "DoubleHeight")
+	assert.Equal(t, CoordinateSystem(99).String(), "CoordinateSystem(99)")
+}
+
+func TestCoordinateSystem_Unsupported(t *testing.T) {
+	invalid := CoordinateSystem(99)
+
+	t.Run("To panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		To(Coord(0, 0), invalid)
+	})
+
+	t.Run("From panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		From(geom.Pt(0, 0), invalid)
+	})
+
+	t.Run("NeighborOffsets panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		NeighborOffsets(geom.Pt(0, 0), invalid)
+	})
+}
+
 func TestCoordinateConversion(t *testing.T) {
 	tests := []struct {
 		hex          Hex
@@ -19,7 +61,7 @@ func TestCoordinateConversion(t *testing.T) {
 		doubleHeight ints.Point
 	}{
 		{
-			hex:          H(0, 0),
+			hex:          Coord(0, 0),
 			offsetOddR:   geom.Pt(0, 0),
 			offsetEvenR:  geom.Pt(0, 0),
 			offsetOddQ:   geom.Pt(0, 0),
@@ -28,7 +70,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(0, 0),
 		},
 		{
-			hex:          H(1, 0),
+			hex:          Coord(1, 0),
 			offsetOddR:   geom.Pt(1, 0),
 			offsetEvenR:  geom.Pt(1, 0),
 			offsetOddQ:   geom.Pt(1, 0),
@@ -37,7 +79,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(1, 1),
 		},
 		{
-			hex:          H(1, -1),
+			hex:          Coord(1, -1),
 			offsetOddR:   geom.Pt(0, -1),
 			offsetEvenR:  geom.Pt(1, -1),
 			offsetOddQ:   geom.Pt(1, -1),
@@ -46,7 +88,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(1, -1),
 		},
 		{
-			hex:          H(0, -1),
+			hex:          Coord(0, -1),
 			offsetOddR:   geom.Pt(-1, -1),
 			offsetEvenR:  geom.Pt(0, -1),
 			offsetOddQ:   geom.Pt(0, -1),
@@ -55,7 +97,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(0, -2),
 		},
 		{
-			hex:          H(-1, 0),
+			hex:          Coord(-1, 0),
 			offsetOddR:   geom.Pt(-1, 0),
 			offsetEvenR:  geom.Pt(-1, 0),
 			offsetOddQ:   geom.Pt(-1, -1),
@@ -64,7 +106,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(-1, -1),
 		},
 		{
-			hex:          H(-1, 1),
+			hex:          Coord(-1, 1),
 			offsetOddR:   geom.Pt(-1, 1),
 			offsetEvenR:  geom.Pt(-0, 1),
 			offsetOddQ:   geom.Pt(-1, 0),
@@ -73,7 +115,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(-1, 1),
 		},
 		{
-			hex:          H(0, 1),
+			hex:          Coord(0, 1),
 			offsetOddR:   geom.Pt(0, 1),
 			offsetEvenR:  geom.Pt(1, 1),
 			offsetOddQ:   geom.Pt(0, 1),
@@ -102,7 +144,6 @@ func TestCoordinateConversion(t *testing.T) {
 			assert.Equal(t, FromOffsetEvenQ(test.offsetEvenQ), test.hex)
 			assert.Equal(t, FromDoubleWidth(test.doubleWidth), test.hex)
 			assert.Equal(t, FromDoubleHeight(test.doubleHeight), test.hex)
-			assert.Equal(t, FromPoint(hexPoint), test.hex)
 
 			assert.Equal(t, To(test.hex, Axial), hexPoint)
 			assert.Equal(t, To(test.hex, OffsetOddR), test.offsetOddR)

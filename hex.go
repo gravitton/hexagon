@@ -16,8 +16,8 @@ type Hex struct {
 	Q, R int
 }
 
-// H is shorthand for Hex{q, r}.
-func H(q, r int) Hex {
+// Coord is shorthand for Hex{q, r}.
+func Coord(q, r int) Hex {
 	return Hex{q, r}
 }
 
@@ -83,7 +83,7 @@ func (h Hex) Neighbors() []Hex {
 
 // Neighbor returns the neighboring hex of h in the given direction.
 func (h Hex) Neighbor(direction Direction) Hex {
-	v := Directions[direction]
+	v := Directions[direction%6]
 
 	return Hex{h.Q + v.X, h.R + v.Y}
 }
@@ -147,6 +147,11 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 	return results
 }
 
+// IsZero reports whether the hex is at the origin (0, 0).
+func (h Hex) IsZero() bool {
+	return h.Q == 0 && h.R == 0
+}
+
 // String returns a compact representation of the hex as (q,r).
 func (h Hex) String() string {
 	return fmt.Sprintf("(%d,%d)", h.Q, h.R)
@@ -158,8 +163,8 @@ type FractionalHex struct {
 	Q, R float64
 }
 
-// F is shorthand for FractionalHex{q, r}.
-func F(q, r float64) FractionalHex {
+// FracCoord is shorthand for FractionalHex{q, r}.
+func FracCoord(q, r float64) FractionalHex {
 	return FractionalHex{q, r}
 }
 

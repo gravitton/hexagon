@@ -22,16 +22,14 @@ go get github.com/gravitton/hexagon
 ## Usage
 
 ```go
-package main
-
 import (
 	hex "github.com/gravitton/hexagon"
 	geom "github.com/gravitton/geometry"
 )
 
 // create hexagon in axial coordinates (q,r) 
-a := hex.H(1, -2)
-b := hex.H(0, 3)
+a := hex.Coord(1, -2)
+b := hex.Coord(0, 3)
 
 // use basic math on hexes
 c := a.Add(b)
@@ -41,7 +39,7 @@ distance := a.DistanceTo(b)
 
 // neighbors and range
 neighbors := a.Neighbors()
-neighbor := a.Neighbor(hex.DirectionQPlus)
+neighbor := a.Neighbor(hex.QPlus)
 ring := b.Range(2)
 
 // conversions between coordinate systems

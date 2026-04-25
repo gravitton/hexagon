@@ -1,22 +1,68 @@
 package hex
 
 import (
+	"fmt"
+
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
 )
 
-// CoordinateSystem enumerates supported hexagonal grid coordinate systems.
+// CoordinateSystem lists supported hexagonal grid coordinate systems.
 type CoordinateSystem int
 
 const (
-	Axial        CoordinateSystem = iota // Axial (Cube) coordinates (q, r, s)
-	OffsetOddR                           // Odd rows are offset (pointy-top hexes)
-	OffsetEvenR                          // Even rows are offset (pointy-top hexes)
-	OffsetOddQ                           // Odd columns are offset (flat-top hexes)
-	OffsetEvenQ                          // Even columns are offset (flat-top hexes)
-	DoubleWidth                          // Double cols (pointy-top hexes)
-	DoubleHeight                         // Double rows (flat-top hexes)
+	// Axial stores q and r directly; s is derived as -q-r.
+	// This is the native system used throughout the package.
+	Axial CoordinateSystem = iota
+
+	// OffsetOddR is a pointy-top system where odd rows (r & 1 == 1) are shifted
+	// right by half a column. Useful for rectangular array storage.
+	OffsetOddR
+
+	// OffsetEvenR is a pointy-top system where even rows (r & 1 == 0) are shifted
+	// right by half a column. Use OffsetOddR or OffsetEvenR depending on which
+	// row parity your data places at the left edge.
+	OffsetEvenR
+
+	// OffsetOddQ is a flat-top system where odd columns (q & 1 == 1) are shifted
+	// down by half a row. Useful for rectangular array storage.
+	OffsetOddQ
+
+	// OffsetEvenQ is a flat-top system where even columns (q & 1 == 0) are shifted
+	// down by half a row. Use OffsetOddQ or OffsetEvenQ depending on which
+	// column parity your data places at the top edge.
+	OffsetEvenQ
+
+	// DoubleWidth is a pointy-top system that doubles the column axis: col = 2q+r, row = r.
+	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
+	DoubleWidth
+
+	// DoubleHeight is a flat-top system that doubles the row axis: col = q, row = 2r+q.
+	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
+	DoubleHeight
 )
+
+// String returns the name of the coordinate system.
+func (s CoordinateSystem) String() string {
+	switch s {
+	case Axial:
+		return "Axial"
+	case OffsetOddR:
+		return "OffsetOddR"
+	case OffsetEvenR:
+		return "OffsetEvenR"
+	case OffsetOddQ:
+		return "OffsetOddQ"
+	case OffsetEvenQ:
+		return "OffsetEvenQ"
+	case DoubleWidth:
+		return "DoubleWidth"
+	case DoubleHeight:
+		return "DoubleHeight"
+	default:
+		return fmt.Sprintf("CoordinateSystem(%d)", int(s))
+	}
+}
 
 // To converts an axial hex to the given coordinate system as an ints.Point.
 func To(hex Hex, system CoordinateSystem) ints.Point {
@@ -64,16 +110,11 @@ func From(index ints.Point, system CoordinateSystem) Hex {
 
 // ToAxial returns the axial (q,r) as an ints.Point.
 func ToAxial(hex Hex) ints.Point {
-	return hex.Point()
+	return geom.Pt(hex.Q, hex.R)
 }
 
 // FromAxial converts an ints.Point (q,r) into an axial Hex.
 func FromAxial(index ints.Point) Hex {
-	return Hex{index.X, index.Y}
-}
-
-// FromPoint is an alias for FromAxial.
-func FromPoint(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }
 

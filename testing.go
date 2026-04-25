@@ -7,6 +7,7 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
+// AssertHex asserts that h has the given q and r coordinates.
 func AssertHex(t *testing.T, h Hex, q, r int, messages ...string) {
 	t.Helper()
 
@@ -14,6 +15,7 @@ func AssertHex(t *testing.T, h Hex, q, r int, messages ...string) {
 	assert.Equal(t, h.R, r, append(messages, "R.")...)
 }
 
+// AssertFracHex asserts that h has the given q and r coordinates within geom.Delta tolerance.
 func AssertFracHex(t *testing.T, h FractionalHex, q, r float64, messages ...string) {
 	t.Helper()
 
