@@ -71,6 +71,39 @@ func (h Hex) Point() ints.Point {
 	return geom.Pt(h.Q, h.R)
 }
 
+// Rotate returns the hex rotated by steps×60° clockwise around the origin in screen
+// space (Y-axis pointing down). Negative steps rotate counterclockwise.
+func (h Hex) Rotate(steps int) Hex {
+	return h.RotateAround(Hex{}, steps)
+}
+
+// RotateAround returns the hex rotated by steps×60° clockwise around center in screen
+// space (Y-axis pointing down). Negative steps rotate counterclockwise.
+func (h Hex) RotateAround(center Hex, steps int) Hex {
+	relative := h.Subtract(center)
+	steps = mod6(steps)
+	for i := 0; i < steps; i++ {
+		relative = Hex{-relative.R, relative.Q + relative.R}
+	}
+
+	return center.Add(relative)
+}
+
+// ReflectQ returns the hex reflected across the q-axis (q unchanged, r and s swapped).
+func (h Hex) ReflectQ() Hex {
+	return Hex{h.Q, -h.Q - h.R}
+}
+
+// ReflectR returns the hex reflected across the r-axis (r unchanged, q and s swapped).
+func (h Hex) ReflectR() Hex {
+	return Hex{-h.Q - h.R, h.R}
+}
+
+// ReflectS returns the hex reflected across the s-axis (s unchanged, q and r swapped).
+func (h Hex) ReflectS() Hex {
+	return Hex{h.R, h.Q}
+}
+
 // Neighbors returns the six neighboring hexes around h in axial coordinates.
 func (h Hex) Neighbors() []Hex {
 	neighbors := make([]Hex, len(Directions))
@@ -100,6 +133,47 @@ func (h Hex) Range(n int) []Hex {
 		for r := max(-n, -q-n); r <= min(n, -q+n); r++ {
 			results = append(results, Hex{h.Q + q, h.R + r})
 		}
+	}
+
+	return results
+}
+
+// Ring returns the hexes at exactly distance radius from h, ordered counterclockwise.
+// Returns nil for radius < 0 and a slice containing only h for radius == 0.
+func (h Hex) Ring(radius int) []Hex {
+	if radius < 0 {
+		return nil
+	}
+	if radius == 0 {
+		return []Hex{h}
+	}
+
+	results := make([]Hex, 0, 6*radius)
+	v := Directions[QMinus]
+	current := Hex{h.Q + v.X*radius, h.R + v.Y*radius}
+
+	for d := 0; d < 6; d++ {
+		for j := 0; j < radius; j++ {
+			results = append(results, current)
+			current = current.Neighbor(Direction(d))
+		}
+	}
+
+	return results
+}
+
+// Spiral returns all hexes from h outward to radius, starting with h and expanding
+// ring by ring. The result contains the same hexes as Range but in spiral order,
+// useful for nearest-first traversal.
+func (h Hex) Spiral(radius int) []Hex {
+	if radius < 0 {
+		return nil
+	}
+
+	results := make([]Hex, 0, 1+3*radius*(radius+1))
+	results = append(results, h)
+	for r := 1; r <= radius; r++ {
+		results = append(results, h.Ring(r)...)
 	}
 
 	return results

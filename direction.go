@@ -48,6 +48,18 @@ func (d Direction) NeighborOffset() ints.Vector {
 	return Directions[d%6]
 }
 
+// Opposite returns the direction directly opposite to d (rotated 180°, three steps away).
+func (d Direction) Opposite() Direction {
+	return Direction(mod6(int(d) + 3))
+}
+
+// Rotate advances d by steps positions counterclockwise in the standard mathematical
+// sense. On typical screens with Y pointing down, positive steps appear clockwise.
+// Negative steps go the other way. Rotate(3) is equivalent to Opposite().
+func (d Direction) Rotate(steps int) Direction {
+	return Direction(mod6(int(d) + steps))
+}
+
 // String returns the name of the direction constant.
 func (d Direction) String() string {
 	switch d % 6 {
@@ -141,7 +153,12 @@ func NeighborOffsetsDoubleHeight() []ints.Vector {
 	return DirectionsDoubleHeight[:]
 }
 
-// Directions lists the 6 neighbor vectors for axial coordinates, ordered counter-clockwise from the (south)-east direction.
+// mod6 wraps n into [0, 6) correctly for negative values.
+func mod6(n int) int {
+	return ((n % 6) + 6) % 6
+}
+
+// Directions lists the 6 neighbor vectors for axial coordinates, ordered counterclockwise from the (south)-east direction.
 var Directions = [6]ints.Vector{
 	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
 	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE

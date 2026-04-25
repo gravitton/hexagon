@@ -9,8 +9,13 @@
 
 Hexagon library for game development.
 
-- Convert between coordinate systems
-- Map hexes to pixels (and back)
+- Axial (cube) coordinates with arithmetic, distance, and neighbor lookup
+- Area and perimeter traversal: range, ring, and spiral
+- Line drawing, line-of-sight, and field-of-view
+- Rotation and reflection in cube space
+- Direction enum with opposite and rotation helpers
+- Seven coordinate systems with lossless round-trip conversion
+- Pixel-space layout for flat-top and pointy-top orientations
 
 ## Installation
 
@@ -27,30 +32,53 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
-// create hexagon in axial coordinates (q,r) 
+// create hexagon in axial coordinates (q,r)
 a := hex.Coord(1, -2)
 b := hex.Coord(0, 3)
 
-// use basic math on hexes
+// arithmetic and distance
 c := a.Add(b)
 d := a.Subtract(b)
 e := a.Multiply(2)
 distance := a.DistanceTo(b)
 
-// neighbors and range
+// neighbors
 neighbors := a.Neighbors()
 neighbor := a.Neighbor(hex.QPlus)
-ring := b.Range(2)
 
-// conversions between coordinate systems
+// area traversal
+area := b.Range(2)   // all hexes within radius 2 (filled)
+ring := b.Ring(2)    // hexes at exactly distance 2 (perimeter)
+spiral := b.Spiral(2)  // same as Range but ordered center-outward
+
+// line drawing and visibility
+line := a.Line(b)
+visible := a.HasLineOfSight(b, blocking)
+fov := a.FieldOfView(candidates, blocking)
+
+// rotation and reflection (cube space)
+rotated := a.Rotate(2)                  // 2×60° clockwise around origin
+rotatedAround := a.RotateAround(b, -1)         // 1×60° counterclockwise around b
+reflectedQ := a.ReflectQ()
+reflectedR := a.ReflectR()
+reflectedS := a.ReflectS()
+
+// directions
+dir := hex.QPlus
+opp := dir.Opposite()             // SPlus
+next := dir.Rotate(1)             // RMinus (one step counterclockwise)
+offset := dir.NeighborOffset()    // axial vector for this direction
+
+// coordinate system conversions
 pOddR := a.To(hex.OffsetOddR)
 pEvenQ := a.To(hex.OffsetEvenQ)
 dw := a.To(hex.DoubleWidth)
 dh := a.To(hex.DoubleHeight)
+back := hex.From(pOddR, hex.OffsetOddR)
 
-// hexagon map layout
+// pixel-space layout
 layout := hex.LayoutFlatTop(geom.Sz(16, 16), geom.Pt(100, 80))
-center := layout.ToPoint(a)
+center  := layout.ToPoint(a)
 clicked := layout.FromPoint(geom.Pt(499.0, 123.4)).Round()
 ```
 

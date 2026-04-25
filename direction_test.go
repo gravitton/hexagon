@@ -60,6 +60,59 @@ func TestDirections(t *testing.T) {
 	assert.Equal(t, PointyTopSE, RPlus)
 }
 
+func TestDirection_Opposite(t *testing.T) {
+	assert.Equal(t, SMinus.Opposite(), SPlus)
+	assert.Equal(t, QPlus.Opposite(), QMinus)
+	assert.Equal(t, RMinus.Opposite(), RPlus)
+	assert.Equal(t, SPlus.Opposite(), SMinus)
+	assert.Equal(t, QMinus.Opposite(), QPlus)
+	assert.Equal(t, RPlus.Opposite(), RMinus)
+
+	// double opposite returns the original direction
+	for _, d := range []Direction{SMinus, QPlus, RMinus, SPlus, QMinus, RPlus} {
+		assert.Equal(t, d.Opposite().Opposite(), d)
+	}
+
+	// verify neighbor offset vectors are truly opposite
+	for _, d := range []Direction{SMinus, QPlus, RMinus} {
+		v := d.NeighborOffset()
+		opp := d.Opposite().NeighborOffset()
+		assert.Equal(t, v.X+opp.X, 0)
+		assert.Equal(t, v.Y+opp.Y, 0)
+	}
+}
+
+func TestDirection_Rotate(t *testing.T) {
+	// Rotate(0) is identity
+	assert.Equal(t, SMinus.Rotate(0), SMinus)
+	assert.Equal(t, RPlus.Rotate(0), RPlus)
+
+	// Rotate(1) advances one step counterclockwise (increments index)
+	assert.Equal(t, SMinus.Rotate(1), QPlus) // 0 → 1
+	assert.Equal(t, QPlus.Rotate(1), RMinus) // 1 → 2
+	assert.Equal(t, RPlus.Rotate(1), SMinus) // 5 → 0 (wrap)
+
+	// Rotate(-1) advances one step clockwise (decrements index)
+	assert.Equal(t, SMinus.Rotate(-1), RPlus) // 0 → 5 (wrap)
+	assert.Equal(t, QPlus.Rotate(-1), SMinus) // 1 → 0
+	assert.Equal(t, RMinus.Rotate(-1), QPlus) // 2 → 1
+
+	// Rotate(3) == Opposite()
+	for _, d := range []Direction{SMinus, QPlus, RMinus, SPlus, QMinus, RPlus} {
+		assert.Equal(t, d.Rotate(3), d.Opposite())
+	}
+
+	// Rotate(6) is identity
+	for _, d := range []Direction{SMinus, QPlus, RMinus, SPlus, QMinus, RPlus} {
+		assert.Equal(t, d.Rotate(6), d)
+	}
+
+	// Rotate and its inverse cancel out
+	for _, d := range []Direction{SMinus, QPlus, RMinus, SPlus, QMinus, RPlus} {
+		assert.Equal(t, d.Rotate(2).Rotate(-2), d)
+	}
+}
+
 func TestNeighbors(t *testing.T) {
 	tests := []struct {
 		index        ints.Point
