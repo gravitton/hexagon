@@ -16,8 +16,8 @@ type Hex struct {
 	Q, R int
 }
 
-// Coord is shorthand for Hex{q, r}.
-func Coord(q, r int) Hex {
+// Pt is shorthand for Hex{q, r}.
+func Pt(q, r int) Hex {
 	return Hex{q, r}
 }
 
@@ -237,8 +237,8 @@ type FractionalHex struct {
 	Q, R float64
 }
 
-// FracCoord is shorthand for FractionalHex{q, r}.
-func FracCoord(q, r float64) FractionalHex {
+// FracPt is shorthand for FractionalHex{q, r}.
+func FracPt(q, r float64) FractionalHex {
 	return FractionalHex{q, r}
 }
 

@@ -28,7 +28,7 @@ func TestCoordinateSystem_Unsupported(t *testing.T) {
 				t.Error("expected panic")
 			}
 		}()
-		To(Coord(0, 0), invalid)
+		To(Pt(0, 0), invalid)
 	})
 
 	t.Run("From panics", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestCoordinateConversion(t *testing.T) {
 		doubleHeight ints.Point
 	}{
 		{
-			hex:          Coord(0, 0),
+			hex:          Pt(0, 0),
 			offsetOddR:   geom.Pt(0, 0),
 			offsetEvenR:  geom.Pt(0, 0),
 			offsetOddQ:   geom.Pt(0, 0),
@@ -70,7 +70,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(0, 0),
 		},
 		{
-			hex:          Coord(1, 0),
+			hex:          Pt(1, 0),
 			offsetOddR:   geom.Pt(1, 0),
 			offsetEvenR:  geom.Pt(1, 0),
 			offsetOddQ:   geom.Pt(1, 0),
@@ -79,7 +79,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(1, 1),
 		},
 		{
-			hex:          Coord(1, -1),
+			hex:          Pt(1, -1),
 			offsetOddR:   geom.Pt(0, -1),
 			offsetEvenR:  geom.Pt(1, -1),
 			offsetOddQ:   geom.Pt(1, -1),
@@ -88,7 +88,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(1, -1),
 		},
 		{
-			hex:          Coord(0, -1),
+			hex:          Pt(0, -1),
 			offsetOddR:   geom.Pt(-1, -1),
 			offsetEvenR:  geom.Pt(0, -1),
 			offsetOddQ:   geom.Pt(0, -1),
@@ -97,7 +97,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(0, -2),
 		},
 		{
-			hex:          Coord(-1, 0),
+			hex:          Pt(-1, 0),
 			offsetOddR:   geom.Pt(-1, 0),
 			offsetEvenR:  geom.Pt(-1, 0),
 			offsetOddQ:   geom.Pt(-1, -1),
@@ -106,7 +106,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(-1, -1),
 		},
 		{
-			hex:          Coord(-1, 1),
+			hex:          Pt(-1, 1),
 			offsetOddR:   geom.Pt(-1, 1),
 			offsetEvenR:  geom.Pt(-0, 1),
 			offsetOddQ:   geom.Pt(-1, 0),
@@ -115,7 +115,7 @@ func TestCoordinateConversion(t *testing.T) {
 			doubleHeight: geom.Pt(-1, 1),
 		},
 		{
-			hex:          Coord(0, 1),
+			hex:          Pt(0, 1),
 			offsetOddR:   geom.Pt(0, 1),
 			offsetEvenR:  geom.Pt(1, 1),
 			offsetOddQ:   geom.Pt(0, 1),
