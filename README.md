@@ -7,7 +7,7 @@
 [![Go Dev Reference][ico-go-dev-reference]][link-go-dev-reference]
 [![Software License][ico-license]][link-licence]
 
-Hexagon library for game development.
+Hexagonal grid math library for game development.
 
 - Axial (cube) coordinates with arithmetic, distance, and neighbor lookup
 - Area and perimeter traversal: range, ring, and spiral
@@ -22,67 +22,120 @@ Hexagon library for game development.
 go get github.com/gravitton/hexagon
 ```
 
+## Core concepts
+
+The library uses **axial coordinates**: every hex is identified by two integers `q` and `r`. The third cube coordinate `s` is derived as `-q - r` and is never stored. All `Hex` operations return new values — the type is immutable.
+
+A companion floating-point type, `FractionalHex`, is used for interpolation and for converting pixel coordinates to hex coordinates before rounding with `Round()`.
 
 ## Usage
 
 ```go
-import (
-	hex "github.com/gravitton/hexagon"
-	geom "github.com/gravitton/geometry"
-)
+import hex "github.com/gravitton/hexagon"
 
-// create hexagon in axial coordinates (q,r)
+// Construct hexes in axial coordinates (q, r)
 a := hex.Pt(1, -2)
 b := hex.Pt(0, 3)
 
-// arithmetic and distance
+// Arithmetic and distance
 c := a.Add(b)
 d := a.Subtract(b)
 e := a.Multiply(2)
-distance := a.DistanceTo(b)
+distance := a.DistanceTo(b) // 5
 
-// neighbors
-neighbors := a.Neighbors()
-neighbor := a.Neighbor(hex.QPlus)
+// Neighbors
+neighbors := a.Neighbors()          // all 6 adjacent hexes
+neighbor  := a.Neighbor(hex.QPlus)  // one specific neighbor
 
-// area traversal
-area := b.Range(2) // all hexes within radius 2 (filled)
-ring := b.Ring(2) // hexes at exactly distance 2 (perimeter)
-spiral := b.Spiral(2) // same as Range but ordered center-outward
+// Area traversal
+area   := b.Range(2)   // all hexes within radius 2 (filled disc)
+ring   := b.Ring(2)    // hexes at exactly distance 2 (perimeter)
+spiral := b.Spiral(2)  // same set as Range, ordered center-outward
 
-// line drawing and visibility
-line := a.Line(b)
+// Line drawing and visibility
+line    := a.Line(b)
 visible := a.HasLineOfSight(b, blocking)
-fov := a.FieldOfView(candidates, blocking)
+fov     := a.FieldOfView(candidates, blocking)
 
-// rotation and reflection (cube space)
-rotated := a.Rotate(2) // 2×60° clockwise around origin
+// Rotation and reflection
+rotated       := a.Rotate(2)          // 2×60° clockwise around origin
 rotatedAround := a.RotateAround(b, -1) // 1×60° counterclockwise around b
-reflectedQ := a.ReflectQ()
-reflectedR := a.ReflectR()
-reflectedS := a.ReflectS()
+reflectedQ    := a.ReflectQ()
+reflectedR    := a.ReflectR()
+reflectedS    := a.ReflectS()
 
-// directions
-dir := hex.QPlus
-opp := dir.Opposite() // SPlus
-next := dir.Rotate(1) // RMinus (one step counterclockwise)
+// Directions
+dir    := hex.QPlus
+opp    := dir.Opposite()     // SPlus
+next   := dir.Rotate(1)      // RMinus (one step counterclockwise)
 offset := dir.NeighborOffset() // axial vector for this direction
 
-// coordinate system conversions
+// Coordinate system conversions
 pOddR := a.To(hex.OffsetOddR)
 pEvenQ := a.To(hex.OffsetEvenQ)
-dw := a.To(hex.DoubleWidth)
-dh := a.To(hex.DoubleHeight)
-back := hex.From(pOddR, hex.OffsetOddR)
+dw   := a.To(hex.DoubleWidth)
+dh   := a.To(hex.DoubleHeight)
+back := hex.From(pOddR, hex.OffsetOddR) // round-trips exactly
+
+// FractionalHex — interpolation and pixel→hex rounding
+frac    := hex.FracPt(1.4, -1.8)
+rounded := frac.Round()               // nearest Hex
+mid     := hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5)
 ```
 
+## Directions
+
+Six named directions in cube space, with flat-top and pointy-top aliases:
+
+| Constant | Index | Flat-top alias | Pointy-top alias |
+|---|---|---|---|
+| `SMinus` | 0 | `FlatTopSE` | `PointyTopE`  |
+| `QPlus`  | 1 | `FlatTopNE` | `PointyTopNE` |
+| `RMinus` | 2 | `FlatTopN`  | `PointyTopNW` |
+| `SPlus`  | 3 | `FlatTopNW` | `PointyTopW`  |
+| `QMinus` | 4 | `FlatTopSW` | `PointyTopSW` |
+| `RPlus`  | 5 | `FlatTopS`  | `PointyTopSE` |
+
+Directions are ordered counterclockwise starting from SE (flat-top) / E (pointy-top). `Direction.Rotate(n)` advances by `n` steps in the same order; negative steps go clockwise. `Direction.Opposite()` returns the direction 180° away.
+
+## Coordinate systems
+
+Seven systems are supported. Use `Hex.To(system)` / `hex.From(point, system)` to convert. All conversions are lossless round-trips.
+
+| Constant | Orientation | Description |
+|---|---|---|
+| `Axial`        | — | Native storage: `(q, r)` directly |
+| `OffsetOddR`   | Pointy-top | Odd rows shifted right |
+| `OffsetEvenR`  | Pointy-top | Even rows shifted right |
+| `OffsetOddQ`   | Flat-top | Odd columns shifted down |
+| `OffsetEvenQ`  | Flat-top | Even columns shifted down |
+| `DoubleWidth`  | Pointy-top | Column axis doubled; no parity split needed |
+| `DoubleHeight` | Flat-top | Row axis doubled; no parity split needed |
+
+The offset systems require parity-aware neighbor offset tables — use `NeighborOffsets(index, system)` or the per-system `DirectionsOffset*` variables when you need neighbors in offset space.
+
+## Line-of-sight and field-of-view
+
+`HasLineOfSight(target, blocking)` traces a straight line from `h` to `target`. The source cell is never treated as a blocker; neither is the target cell itself — only cells strictly between them matter.
+
+`FieldOfView(candidates, blocking)` returns the subset of `candidates` visible from `h`. Any hex within distance 1 is always considered visible regardless of blockers.
+
+Both functions accept a `[]Hex` slice for blockers. For large grids, build a map keyed by `Hex` and pass a function instead — the slice-based API is O(n×m) per call.
+
+## Testing helpers
+
+`AssertHex` and `AssertFracHex` are exported from the package for use in downstream test code:
+
+```go
+hex.AssertHex(t, result, 2, -1)
+hex.AssertFracHex(t, frac, 1.5, -0.5)
+```
 
 ## Credits
 
 - [Tomáš Novotný](https://github.com/tomas-novotny)
 - [All Contributors][link-contributors]
-- [Red Blob Games](https://www.redblobgames.com/grids/hexagons)
-
+- [Red Blob Games](https://www.redblobgames.com/grids/hexagons) — the canonical reference for hex grid math
 
 ## License
 
