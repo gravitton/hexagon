@@ -1,6 +1,7 @@
 package hex
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/gravitton/assert"
@@ -374,4 +375,43 @@ func TestFractionalHex_Round(t *testing.T) {
 
 func TestFractionalHex_String(t *testing.T) {
 	assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
+}
+
+func TestHex_Compare(t *testing.T) {
+	t.Run("orders by q first", func(t *testing.T) {
+		assert.Equal(t, Pt(1, 9).Compare(Pt(2, 0)), -1)
+		assert.Equal(t, Pt(2, 0).Compare(Pt(1, 9)), 1)
+	})
+	t.Run("falls back to r", func(t *testing.T) {
+		assert.Equal(t, Pt(1, 1).Compare(Pt(1, 2)), -1)
+		assert.Equal(t, Pt(1, 2).Compare(Pt(1, 1)), 1)
+	})
+	t.Run("equal", func(t *testing.T) {
+		assert.Equal(t, testHex.Compare(testHex), 0)
+		assert.Equal(t, testHexZero.Compare(Pt(0, 0)), 0)
+	})
+	t.Run("antisymmetric and transitive", func(t *testing.T) {
+		hexes := Pt(0, 0).Spiral(2)
+		for _, a := range hexes {
+			for _, b := range hexes {
+				assert.Equal(t, a.Compare(b), -b.Compare(a))
+
+				for _, c := range hexes {
+					if a.Compare(b) < 0 && b.Compare(c) < 0 {
+						assert.True(t, a.Compare(c) < 0)
+					}
+				}
+			}
+		}
+	})
+	t.Run("sorts", func(t *testing.T) {
+		hexes := []Hex{Pt(1, 2), Pt(-1, 0), Pt(1, -3), Pt(0, 7)}
+		slices.SortFunc(hexes, Hex.Compare)
+
+		assert.Equal(t, hexes, []Hex{Pt(-1, 0), Pt(0, 7), Pt(1, -3), Pt(1, 2)})
+
+		index, found := slices.BinarySearchFunc(hexes, Pt(1, -3), Hex.Compare)
+		assert.True(t, found)
+		assert.Equal(t, index, 2)
+	})
 }

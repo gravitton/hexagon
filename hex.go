@@ -1,6 +1,7 @@
 package hex
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 	"slices"
@@ -222,6 +223,17 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 // IsZero reports whether the hex is at the origin (0, 0).
 func (h Hex) IsZero() bool {
 	return h.Q == 0 && h.R == 0
+}
+
+// Compare returns -1, 0, or +1 as h sorts before, with, or after hex, ordering by
+// Q and then by R, the axial counterpart of [geom.Point.Compare]. It follows the
+// [cmp.Compare] convention.
+func (h Hex) Compare(hex Hex) int {
+	if c := cmp.Compare(h.Q, hex.Q); c != 0 {
+		return c
+	}
+
+	return cmp.Compare(h.R, hex.R)
 }
 
 // To converts the hex into the specified coordinate system, returning an ints.Point.

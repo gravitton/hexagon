@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.3.0...master)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.4.0...master)
+
+
+## [v1.4.0 (2026-08-26)](https://github.com/gravitton/hexagon/compare/v1.3.0...v1.4.0)
+### Added
+- `Hex.Compare(hex) int` – orders hexes by Q and then by R in the `cmp.Compare` convention, the axial counterpart of `geom.Point.Compare`, for `slices.SortFunc` and `slices.BinarySearchFunc`. The order is total but arbitrary in space — it follows neither distance nor angle from the origin
 
 
 ## [v1.3.0 (2026-08-26)](https://github.com/gravitton/hexagon/compare/v1.2.0...v1.3.0)
