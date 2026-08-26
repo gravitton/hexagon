@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v1.3.0 (2026-08-26)](https://github.com/gravitton/hexagon/compare/v1.2.0...v1.3.0)
 ### Changed
 - Require Go 1.27
-- `Direction` constants are renumbered to run by increasing angle — `SMinus`, `RPlus`, `QMinus`, `SPlus`, `RMinus`, `QPlus` — matching `geom.Direction`, so a positive `Rotate` step is counterclockwise in math coordinates and clockwise as drawn on a screen with Y pointing down. `Directions` and every `DirectionsOffset*` table follow the new order (**breaking**)
+- `Direction` constants are renumbered to run by increasing angle — `SMinus`, `RPlus`, `QMinus`, `SPlus`, `RMinus`, `QPlus` — matching `geometry` v1.11.0, so a positive `Rotate` step is counterclockwise in math coordinates and clockwise as drawn on a screen with Y pointing down. Everything ordered by direction follows the new order: `Directions`, the offset tables, `CoordinateSystem.Offsets`, `Hex.Neighbors`, `Hex.Ring`, and `Hex.Spiral` (**breaking**)
 - `Hex.Rotate` and `Hex.RotateAround` now turn in the same sense as `Direction.Rotate`, as they always did before the reorder — no change for callers, but the two are now guaranteed consistent and tested as such
-- `Hex.Ring` is ordered by increasing angle and starts from the `SMinus` corner (angle 0) rather than `QMinus`, making `Ring(1)` exactly `Neighbors()` (**breaking**)
+- `Hex.Ring` starts from the `SMinus` corner (angle 0) instead of the `QMinus` corner, making `Ring(1)` exactly `Neighbors()`; `Hex.Spiral` follows (**breaking**)
 - `Direction.NeighborOffset()` renamed to `Direction.Offset()`, matching `geom.Direction.Offset` and freeing the name from the package-level `NeighborOffset` function (**breaking**)
 - Compass direction aliases spelled out in full, matching `geometry`: `FlatTopSE` is now `FlatTopSouthEast`, `PointyTopNE` is now `PointyTopNorthEast`, and so on for all twelve (**breaking**)
 - `To(hex, system)` and `From(index, system)` replaced by the methods `CoordinateSystem.To(hex)` and `CoordinateSystem.From(index)`; `Hex.To(system)` is unchanged and now forwards to `system.To(hex)` (**breaking**)
@@ -34,7 +34,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `Hex.HasLineOfSight` no longer treats the source hex as a blocker, as the documentation already promised
 - `Hex.Length` computes `(|q|+|r|+|s|)/2` in integer arithmetic instead of round-tripping through `float64`
 - Neighbor offsets are returned as `[6]ints.Vector` by value; the removed functions returned slices aliasing the package's own tables, so callers could mutate them
-- Package documentation no longer describes `Layout`, removed in v1.2.0
 
 
 ## [v1.2.0 (2026-05-03)](https://github.com/gravitton/hexagon/compare/v1.1.0...v1.2.0)
