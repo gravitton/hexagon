@@ -53,7 +53,7 @@ func (h Hex) Multiply(factor int) Hex {
 
 // Length returns the distance from the origin (0,0) in hex steps.
 func (h Hex) Length() int {
-	return int((math.Abs(float64(h.Q)) + math.Abs(float64(h.R)) + math.Abs(float64(h.S()))) / 2)
+	return (geom.Abs(h.Q) + geom.Abs(h.R) + geom.Abs(h.S())) / 2
 }
 
 // DistanceTo returns the hex distance between h and the given hex.
@@ -61,27 +61,19 @@ func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()
 }
 
-// To converts the hex into the specified coordinate system, returning an ints.Point.
-func (h Hex) To(system CoordinateSystem) ints.Point {
-	return To(h, system)
-}
-
-// Point returns (q,r) as a [ints.Point].
-func (h Hex) Point() ints.Point {
-	return geom.Pt(h.Q, h.R)
-}
-
-// Rotate returns the hex rotated by steps×60° clockwise around the origin in screen
-// space (Y-axis pointing down). Negative steps rotate counterclockwise.
+// Rotate returns the hex rotated by steps×60° around the origin, in the same sense as
+// [Direction.Rotate]: clockwise as drawn on a screen with Y pointing down.
+// Negative steps rotate the other way.
 func (h Hex) Rotate(steps int) Hex {
 	return h.RotateAround(Hex{}, steps)
 }
 
-// RotateAround returns the hex rotated by steps×60° clockwise around center in screen
-// space (Y-axis pointing down). Negative steps rotate counterclockwise.
+// RotateAround returns the hex rotated by steps×60° around center, in the same sense as
+// [Direction.Rotate]: clockwise as drawn on a screen with Y pointing down.
+// Negative steps rotate the other way.
 func (h Hex) RotateAround(center Hex, steps int) Hex {
 	relative := h.Subtract(center)
-	steps = mod6(steps)
+	steps = geom.Mod(steps, 6)
 	for i := 0; i < steps; i++ {
 		relative = Hex{-relative.R, relative.Q + relative.R}
 	}
@@ -107,8 +99,8 @@ func (h Hex) ReflectS() Hex {
 // Neighbors returns the six neighboring hexes around h in axial coordinates.
 func (h Hex) Neighbors() []Hex {
 	neighbors := make([]Hex, len(Directions))
-	for i, v := range Directions {
-		neighbors[i] = Hex{h.Q + v.X, h.R + v.Y}
+	for i, direction := range Directions {
+		neighbors[i] = h.Neighbor(direction)
 	}
 
 	return neighbors
@@ -116,7 +108,7 @@ func (h Hex) Neighbors() []Hex {
 
 // Neighbor returns the neighboring hex of h in the given direction.
 func (h Hex) Neighbor(direction Direction) Hex {
-	v := Directions[direction%6]
+	v := direction.Offset()
 
 	return Hex{h.Q + v.X, h.R + v.Y}
 }
@@ -138,7 +130,9 @@ func (h Hex) Range(n int) []Hex {
 	return results
 }
 
-// Ring returns the hexes at exactly distance radius from h, ordered counterclockwise.
+// Ring returns the hexes at exactly distance radius from h, ordered by increasing angle from
+// the [SMinus] corner: clockwise as drawn on a screen with Y pointing down. Ring(1) is exactly
+// [Hex.Neighbors].
 // Returns nil for radius < 0 and a slice containing only h for radius == 0.
 func (h Hex) Ring(radius int) []Hex {
 	if radius < 0 {
@@ -149,13 +143,12 @@ func (h Hex) Ring(radius int) []Hex {
 	}
 
 	results := make([]Hex, 0, 6*radius)
-	v := Directions[QMinus]
-	current := Hex{h.Q + v.X*radius, h.R + v.Y*radius}
+	for _, direction := range Directions {
+		corner := direction.Hex().Multiply(radius)
+		edge := direction.Rotate(2).Hex()
 
-	for d := 0; d < 6; d++ {
-		for j := 0; j < radius; j++ {
-			results = append(results, current)
-			current = current.Neighbor(Direction(d))
+		for j := range radius {
+			results = append(results, h.Add(corner).Add(edge.Multiply(j)))
 		}
 	}
 
@@ -198,9 +191,14 @@ func (h Hex) Line(target Hex) []Hex {
 }
 
 // HasLineOfSight checks if the target hex is visible from this hex, taking into account a set of blocking hexagons.
+// Neither h nor target counts as a blocker — only the hexes strictly between them do.
 func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 	line := h.Line(target)
-	for _, lineHex := range line[:len(line)-1] {
+	if len(line) < 3 {
+		return true
+	}
+
+	for _, lineHex := range line[1 : len(line)-1] {
 		if slices.Contains(blocking, lineHex) {
 			return false
 		}
@@ -224,6 +222,16 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 // IsZero reports whether the hex is at the origin (0, 0).
 func (h Hex) IsZero() bool {
 	return h.Q == 0 && h.R == 0
+}
+
+// To converts the hex into the specified coordinate system, returning an ints.Point.
+func (h Hex) To(system CoordinateSystem) ints.Point {
+	return system.To(h)
+}
+
+// Point returns (q,r) as a [ints.Point].
+func (h Hex) Point() ints.Point {
+	return geom.Pt(h.Q, h.R)
 }
 
 // String returns a compact representation of the hex as (q,r).
@@ -257,11 +265,6 @@ func (h FractionalHex) QRS() (float64, float64, float64) {
 	return h.Q, h.R, h.S()
 }
 
-// Point returns the axial (q,r) as a floats.Point.
-func (h FractionalHex) Point() floats.Point {
-	return geom.Pt(h.Q, h.R)
-}
-
 // Lerp creates a new FractionalHex in linear interpolation towards given hex.
 func (h FractionalHex) Lerp(hex FractionalHex, t float64) FractionalHex {
 	return FractionalHex{geom.Lerp(h.Q, hex.Q, t), geom.Lerp(h.R, hex.R, t)}
@@ -284,6 +287,11 @@ func (h FractionalHex) Round() Hex {
 	}
 
 	return Hex{int(q), int(r)}
+}
+
+// Point returns the axial (q,r) as a floats.Point.
+func (h FractionalHex) Point() floats.Point {
+	return geom.Pt(h.Q, h.R)
 }
 
 // String returns a compact representation of the fractional hex as (q,r) with 2 decimals.

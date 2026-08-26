@@ -42,6 +42,79 @@ const (
 	DoubleHeight
 )
 
+// Offsets returns the 6 neighbor offsets for the given coordinate index in this system,
+// indexed by [Direction]. For offset systems this accounts for row/column parity.
+func (s CoordinateSystem) Offsets(index ints.Point) [6]ints.Vector {
+	switch s {
+	case OffsetOddR:
+		return offsetsOddR[index.Y&1]
+	case OffsetEvenR:
+		return offsetsEvenR[index.Y&1]
+	case OffsetOddQ:
+		return offsetsOddQ[index.X&1]
+	case OffsetEvenQ:
+		return offsetsEvenQ[index.X&1]
+	case DoubleWidth:
+		return offsetsDoubleWidth
+	case DoubleHeight:
+		return offsetsDoubleHeight
+	case Axial:
+		return directionOffsets
+	default:
+		panic("unsupported coordinate system")
+	}
+}
+
+// Offset returns the neighbor offset vector for the given coordinate index and direction
+// in this system. Out-of-range directions wrap into [SMinus, QPlus].
+func (s CoordinateSystem) Offset(index ints.Point, direction Direction) ints.Vector {
+	return s.Offsets(index)[direction.normalize()]
+}
+
+// To converts an axial hex into this coordinate system as an ints.Point.
+func (s CoordinateSystem) To(hex Hex) ints.Point {
+	switch s {
+	case OffsetOddR:
+		return toOffsetOddR(hex)
+	case OffsetEvenR:
+		return toOffsetEvenR(hex)
+	case OffsetOddQ:
+		return toOffsetOddQ(hex)
+	case OffsetEvenQ:
+		return toOffsetEvenQ(hex)
+	case DoubleWidth:
+		return toDoubleWidth(hex)
+	case DoubleHeight:
+		return toDoubleHeight(hex)
+	case Axial:
+		return toAxial(hex)
+	default:
+		panic("unsupported coordinate system")
+	}
+}
+
+// From converts a coordinate in this system into an axial Hex.
+func (s CoordinateSystem) From(index ints.Point) Hex {
+	switch s {
+	case OffsetOddR:
+		return fromOffsetOddR(index)
+	case OffsetEvenR:
+		return fromOffsetEvenR(index)
+	case OffsetOddQ:
+		return fromOffsetOddQ(index)
+	case OffsetEvenQ:
+		return fromOffsetEvenQ(index)
+	case DoubleWidth:
+		return fromDoubleWidth(index)
+	case DoubleHeight:
+		return fromDoubleHeight(index)
+	case Axial:
+		return fromAxial(index)
+	default:
+		panic("unsupported coordinate system")
+	}
+}
+
 // String returns the name of the coordinate system.
 func (s CoordinateSystem) String() string {
 	switch s {
@@ -64,63 +137,19 @@ func (s CoordinateSystem) String() string {
 	}
 }
 
-// To converts an axial hex to the given coordinate system as an ints.Point.
-func To(hex Hex, system CoordinateSystem) ints.Point {
-	switch system {
-	case OffsetOddR:
-		return ToOffsetOddR(hex)
-	case OffsetEvenR:
-		return ToOffsetEvenR(hex)
-	case OffsetOddQ:
-		return ToOffsetOddQ(hex)
-	case OffsetEvenQ:
-		return ToOffsetEvenQ(hex)
-	case DoubleWidth:
-		return ToDoubleWidth(hex)
-	case DoubleHeight:
-		return ToDoubleHeight(hex)
-	case Axial:
-		return ToAxial(hex)
-	default:
-		panic("unsupported coordinate system")
-	}
-}
-
-// From converts a coordinate in the given system into an axial Hex.
-func From(index ints.Point, system CoordinateSystem) Hex {
-	switch system {
-	case OffsetOddR:
-		return FromOffsetOddR(index)
-	case OffsetEvenR:
-		return FromOffsetEvenR(index)
-	case OffsetOddQ:
-		return FromOffsetOddQ(index)
-	case OffsetEvenQ:
-		return FromOffsetEvenQ(index)
-	case DoubleWidth:
-		return FromDoubleWidth(index)
-	case DoubleHeight:
-		return FromDoubleHeight(index)
-	case Axial:
-		return FromAxial(index)
-	default:
-		panic("unsupported coordinate system")
-	}
-}
-
-// ToAxial returns the axial (q,r) as an ints.Point.
-func ToAxial(hex Hex) ints.Point {
+// toAxial returns the axial (q,r) as an ints.Point.
+func toAxial(hex Hex) ints.Point {
 	return geom.Pt(hex.Q, hex.R)
 }
 
-// FromAxial converts an ints.Point (q,r) into an axial Hex.
-func FromAxial(index ints.Point) Hex {
+// fromAxial converts an ints.Point (q,r) into an axial Hex.
+func fromAxial(index ints.Point) Hex {
 	return Hex{index.X, index.Y}
 }
 
-// ToOffsetOddR converts axial to odd-r offset coordinates.
+// toOffsetOddR converts axial to odd-r offset coordinates.
 // Odd rows are shifted right by +1/2 column.
-func ToOffsetOddR(hex Hex) ints.Point {
+func toOffsetOddR(hex Hex) ints.Point {
 	parity := hex.R & 1
 
 	col := hex.Q + (hex.R-parity)/2
@@ -129,8 +158,8 @@ func ToOffsetOddR(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// FromOffsetOddR converts an odd-r offset coordinate to axial.
-func FromOffsetOddR(index ints.Point) Hex {
+// fromOffsetOddR converts an odd-r offset coordinate to axial.
+func fromOffsetOddR(index ints.Point) Hex {
 	parity := index.Y & 1
 
 	q := index.X - (index.Y-parity)/2
@@ -139,9 +168,9 @@ func FromOffsetOddR(index ints.Point) Hex {
 	return Hex{q, r}
 }
 
-// ToOffsetEvenR converts axial to even-r offset coordinates.
+// toOffsetEvenR converts axial to even-r offset coordinates.
 // Even rows are shifted right by +1/2 column.
-func ToOffsetEvenR(hex Hex) ints.Point {
+func toOffsetEvenR(hex Hex) ints.Point {
 	parity := hex.R & 1
 
 	col := hex.Q + (hex.R+parity)/2
@@ -150,8 +179,8 @@ func ToOffsetEvenR(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// FromOffsetEvenR converts an even-r offset coordinate to axial.
-func FromOffsetEvenR(index ints.Point) Hex {
+// fromOffsetEvenR converts an even-r offset coordinate to axial.
+func fromOffsetEvenR(index ints.Point) Hex {
 	parity := index.Y & 1
 
 	q := index.X - (index.Y+parity)/2
@@ -160,9 +189,9 @@ func FromOffsetEvenR(index ints.Point) Hex {
 	return Hex{q, r}
 }
 
-// ToOffsetOddQ converts axial to odd-q offset coordinates.
+// toOffsetOddQ converts axial to odd-q offset coordinates.
 // Odd columns are shifted down by +1/2 row.
-func ToOffsetOddQ(hex Hex) ints.Point {
+func toOffsetOddQ(hex Hex) ints.Point {
 	parity := hex.Q & 1
 
 	col := hex.Q
@@ -171,8 +200,8 @@ func ToOffsetOddQ(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// FromOffsetOddQ converts an odd-q offset coordinate to axial.
-func FromOffsetOddQ(index ints.Point) Hex {
+// fromOffsetOddQ converts an odd-q offset coordinate to axial.
+func fromOffsetOddQ(index ints.Point) Hex {
 	parity := index.X & 1
 
 	q := index.X
@@ -181,9 +210,9 @@ func FromOffsetOddQ(index ints.Point) Hex {
 	return Hex{q, r}
 }
 
-// ToOffsetEvenQ converts axial to even-q offset coordinates.
+// toOffsetEvenQ converts axial to even-q offset coordinates.
 // Even columns are shifted down by +1/2 row.
-func ToOffsetEvenQ(hex Hex) ints.Point {
+func toOffsetEvenQ(hex Hex) ints.Point {
 	parity := hex.Q & 1
 
 	col := hex.Q
@@ -192,8 +221,8 @@ func ToOffsetEvenQ(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// FromOffsetEvenQ converts an even-q offset coordinate to axial.
-func FromOffsetEvenQ(index ints.Point) Hex {
+// fromOffsetEvenQ converts an even-q offset coordinate to axial.
+func fromOffsetEvenQ(index ints.Point) Hex {
 	parity := index.X & 1
 
 	q := index.X
@@ -202,34 +231,138 @@ func FromOffsetEvenQ(index ints.Point) Hex {
 	return Hex{q, r}
 }
 
-// ToDoubleWidth converts axial to double-width coordinates (doubling the q axis).
-func ToDoubleWidth(hex Hex) ints.Point {
+// toDoubleWidth converts axial to double-width coordinates (doubling the q axis).
+func toDoubleWidth(hex Hex) ints.Point {
 	col := 2*hex.Q + hex.R
 	row := hex.R
 
 	return geom.Pt(col, row)
 }
 
-// FromDoubleWidth converts a double-width coordinate to axial.
-func FromDoubleWidth(index ints.Point) Hex {
+// fromDoubleWidth converts a double-width coordinate to axial.
+func fromDoubleWidth(index ints.Point) Hex {
 	q := (index.X - index.Y) / 2
 	r := index.Y
 
 	return Hex{q, r}
 }
 
-// ToDoubleHeight converts axial to double-height coordinates (doubling the r axis).
-func ToDoubleHeight(hex Hex) ints.Point {
+// toDoubleHeight converts axial to double-height coordinates (doubling the r axis).
+func toDoubleHeight(hex Hex) ints.Point {
 	col := hex.Q
 	row := 2*hex.R + hex.Q
 
 	return geom.Pt(col, row)
 }
 
-// FromDoubleHeight converts a double-height coordinate to axial.
-func FromDoubleHeight(index ints.Point) Hex {
+// fromDoubleHeight converts a double-height coordinate to axial.
+func fromDoubleHeight(index ints.Point) Hex {
 	q := index.X
 	r := (index.Y - index.X) / 2
 
 	return Hex{q, r}
+}
+
+// offsetsOddR lists neighbor vectors for odd-r offset coordinates as
+// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
+var offsetsOddR = [2][6]ints.Vector{
+	{
+		geom.Vec(1, 0),   // SMinus
+		geom.Vec(0, 1),   // RPlus
+		geom.Vec(-1, 1),  // QMinus
+		geom.Vec(-1, 0),  // SPlus
+		geom.Vec(-1, -1), // RMinus
+		geom.Vec(0, -1),  // QPlus
+	},
+	{
+		geom.Vec(1, 0),  // SMinus
+		geom.Vec(1, 1),  // RPlus
+		geom.Vec(0, 1),  // QMinus
+		geom.Vec(-1, 0), // SPlus
+		geom.Vec(0, -1), // RMinus
+		geom.Vec(1, -1), // QPlus
+	},
+}
+
+// offsetsEvenR lists neighbor vectors for even-r offset coordinates as
+// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
+var offsetsEvenR = [2][6]ints.Vector{
+	{
+		geom.Vec(1, 0),  // SMinus
+		geom.Vec(1, 1),  // RPlus
+		geom.Vec(0, 1),  // QMinus
+		geom.Vec(-1, 0), // SPlus
+		geom.Vec(0, -1), // RMinus
+		geom.Vec(1, -1), // QPlus
+	},
+	{
+		geom.Vec(1, 0),   // SMinus
+		geom.Vec(0, 1),   // RPlus
+		geom.Vec(-1, 1),  // QMinus
+		geom.Vec(-1, 0),  // SPlus
+		geom.Vec(-1, -1), // RMinus
+		geom.Vec(0, -1),  // QPlus
+	},
+}
+
+// offsetsOddQ lists neighbor vectors for odd-q offset coordinates as
+// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
+var offsetsOddQ = [2][6]ints.Vector{
+	{
+		geom.Vec(1, 0),   // SMinus
+		geom.Vec(0, 1),   // RPlus
+		geom.Vec(-1, 0),  // QMinus
+		geom.Vec(-1, -1), // SPlus
+		geom.Vec(0, -1),  // RMinus
+		geom.Vec(1, -1),  // QPlus
+	},
+	{
+		geom.Vec(1, 1),  // SMinus
+		geom.Vec(0, 1),  // RPlus
+		geom.Vec(-1, 1), // QMinus
+		geom.Vec(-1, 0), // SPlus
+		geom.Vec(0, -1), // RMinus
+		geom.Vec(1, 0),  // QPlus
+	},
+}
+
+// offsetsEvenQ lists neighbor vectors for even-q offset coordinates as
+// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
+var offsetsEvenQ = [2][6]ints.Vector{
+	{
+		geom.Vec(1, 1),  // SMinus
+		geom.Vec(0, 1),  // RPlus
+		geom.Vec(-1, 1), // QMinus
+		geom.Vec(-1, 0), // SPlus
+		geom.Vec(0, -1), // RMinus
+		geom.Vec(1, 0),  // QPlus
+	},
+	{
+		geom.Vec(1, 0),   // SMinus
+		geom.Vec(0, 1),   // RPlus
+		geom.Vec(-1, 0),  // QMinus
+		geom.Vec(-1, -1), // SPlus
+		geom.Vec(0, -1),  // RMinus
+		geom.Vec(1, -1),  // QPlus
+	},
+}
+
+// offsetsDoubleWidth lists neighbor vectors for double-width coordinates.
+var offsetsDoubleWidth = [6]ints.Vector{
+	geom.Vec(2, 0),   // SMinus
+	geom.Vec(1, 1),   // RPlus
+	geom.Vec(-1, 1),  // QMinus
+	geom.Vec(-2, 0),  // SPlus
+	geom.Vec(-1, -1), // RMinus
+	geom.Vec(1, -1),  // QPlus
+}
+
+// offsetsDoubleHeight lists neighbor vectors for double-height coordinates.
+var offsetsDoubleHeight = [6]ints.Vector{
+	geom.Vec(1, 1),   // SMinus
+	geom.Vec(0, 2),   // RPlus
+	geom.Vec(-1, 1),  // QMinus
+	geom.Vec(-1, -1), // SPlus
+	geom.Vec(0, -2),  // RMinus
+	geom.Vec(1, -1),  // QPlus
 }

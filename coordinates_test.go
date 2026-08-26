@@ -8,49 +8,94 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
-func TestCoordinateSystem_String(t *testing.T) {
-	assert.Equal(t, Axial.String(), "Axial")
-	assert.Equal(t, OffsetOddR.String(), "OffsetOddR")
-	assert.Equal(t, OffsetEvenR.String(), "OffsetEvenR")
-	assert.Equal(t, OffsetOddQ.String(), "OffsetOddQ")
-	assert.Equal(t, OffsetEvenQ.String(), "OffsetEvenQ")
-	assert.Equal(t, DoubleWidth.String(), "DoubleWidth")
-	assert.Equal(t, DoubleHeight.String(), "DoubleHeight")
-	assert.Equal(t, CoordinateSystem(99).String(), "CoordinateSystem(99)")
+func TestCoordinateSystem_Offsets(t *testing.T) {
+	tests := []struct {
+		index        ints.Point
+		axial        [6]ints.Vector
+		offsetOddR   [6]ints.Vector
+		offsetEvenR  [6]ints.Vector
+		offsetOddQ   [6]ints.Vector
+		offsetEvenQ  [6]ints.Vector
+		doubleWidth  [6]ints.Vector
+		doubleHeight [6]ints.Vector
+	}{
+		{
+			index:        geom.Pt(0, 0), // even col, even row
+			axial:        axialDirection,
+			offsetOddR:   offsetOddRDirectionEvenRow,
+			offsetEvenR:  offsetEvenRDirectionEvenRow,
+			offsetOddQ:   offsetOddQDirectionEvenCol,
+			offsetEvenQ:  offsetEvenQDirectionEvenCol,
+			doubleWidth:  doubleWidthDirection,
+			doubleHeight: doubleHeightDirection,
+		},
+		{
+			index:        geom.Pt(1, 1), // odd col, odd row
+			axial:        axialDirection,
+			offsetOddR:   offsetOddRDirectionOddRow,
+			offsetEvenR:  offsetEvenRDirectionOddRow,
+			offsetOddQ:   offsetOddQDirectionOddCol,
+			offsetEvenQ:  offsetEvenQDirectionOddCol,
+			doubleWidth:  doubleWidthDirection,
+			doubleHeight: doubleHeightDirection,
+		},
+		{
+			index:        geom.Pt(3, 2), // odd col, even row
+			axial:        axialDirection,
+			offsetOddR:   offsetOddRDirectionEvenRow,
+			offsetEvenR:  offsetEvenRDirectionEvenRow,
+			offsetOddQ:   offsetOddQDirectionOddCol,
+			offsetEvenQ:  offsetEvenQDirectionOddCol,
+			doubleWidth:  doubleWidthDirection,
+			doubleHeight: doubleHeightDirection,
+		},
+		{
+			index:        geom.Pt(-2, -3), // even col, odd row
+			axial:        axialDirection,
+			offsetOddR:   offsetOddRDirectionOddRow,
+			offsetEvenR:  offsetEvenRDirectionOddRow,
+			offsetOddQ:   offsetOddQDirectionEvenCol,
+			offsetEvenQ:  offsetEvenQDirectionEvenCol,
+			doubleWidth:  doubleWidthDirection,
+			doubleHeight: doubleHeightDirection,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.index.String(), func(t *testing.T) {
+			assert.Equal(t, Axial.Offsets(test.index), test.axial)
+			assert.Equal(t, OffsetOddR.Offsets(test.index), test.offsetOddR)
+			assert.Equal(t, OffsetEvenR.Offsets(test.index), test.offsetEvenR)
+			assert.Equal(t, OffsetOddQ.Offsets(test.index), test.offsetOddQ)
+			assert.Equal(t, OffsetEvenQ.Offsets(test.index), test.offsetEvenQ)
+			assert.Equal(t, DoubleWidth.Offsets(test.index), test.doubleWidth)
+			assert.Equal(t, DoubleHeight.Offsets(test.index), test.doubleHeight)
+
+			for system, offsets := range map[CoordinateSystem][6]ints.Vector{
+				Axial:        test.axial,
+				OffsetOddR:   test.offsetOddR,
+				OffsetEvenR:  test.offsetEvenR,
+				OffsetOddQ:   test.offsetOddQ,
+				OffsetEvenQ:  test.offsetEvenQ,
+				DoubleWidth:  test.doubleWidth,
+				DoubleHeight: test.doubleHeight,
+			} {
+				assert.Equal(t, system.Offset(test.index, SMinus), offsets[0])
+				assert.Equal(t, system.Offset(test.index, RPlus), offsets[1])
+				assert.Equal(t, system.Offset(test.index, QMinus), offsets[2])
+				assert.Equal(t, system.Offset(test.index, SPlus), offsets[3])
+				assert.Equal(t, system.Offset(test.index, RMinus), offsets[4])
+				assert.Equal(t, system.Offset(test.index, QPlus), offsets[5])
+
+				// out-of-range directions wrap, negatives included
+				assert.Equal(t, system.Offset(test.index, Direction(6)), offsets[0])
+				assert.Equal(t, system.Offset(test.index, Direction(-1)), offsets[5])
+			}
+		})
+	}
 }
 
-func TestCoordinateSystem_Unsupported(t *testing.T) {
-	invalid := CoordinateSystem(99)
-
-	t.Run("To panics", func(t *testing.T) {
-		defer func() {
-			if recover() == nil {
-				t.Error("expected panic")
-			}
-		}()
-		To(Pt(0, 0), invalid)
-	})
-
-	t.Run("From panics", func(t *testing.T) {
-		defer func() {
-			if recover() == nil {
-				t.Error("expected panic")
-			}
-		}()
-		From(geom.Pt(0, 0), invalid)
-	})
-
-	t.Run("NeighborOffsets panics", func(t *testing.T) {
-		defer func() {
-			if recover() == nil {
-				t.Error("expected panic")
-			}
-		}()
-		NeighborOffsets(geom.Pt(0, 0), invalid)
-	})
-}
-
-func TestCoordinateConversion(t *testing.T) {
+func TestCoordinateSystem_Conversion(t *testing.T) {
 	tests := []struct {
 		hex          Hex
 		offsetOddR   ints.Point
@@ -129,37 +174,37 @@ func TestCoordinateConversion(t *testing.T) {
 		hexPoint := geom.Pt(test.hex.Q, test.hex.R)
 
 		t.Run(test.hex.String(), func(t *testing.T) {
-			assert.Equal(t, ToAxial(test.hex), hexPoint)
-			assert.Equal(t, ToOffsetOddR(test.hex), test.offsetOddR)
-			assert.Equal(t, ToOffsetEvenR(test.hex), test.offsetEvenR)
-			assert.Equal(t, ToOffsetOddQ(test.hex), test.offsetOddQ)
-			assert.Equal(t, ToOffsetEvenQ(test.hex), test.offsetEvenQ)
-			assert.Equal(t, ToDoubleWidth(test.hex), test.doubleWidth)
-			assert.Equal(t, ToDoubleHeight(test.hex), test.doubleHeight)
+			assert.Equal(t, toAxial(test.hex), hexPoint)
+			assert.Equal(t, toOffsetOddR(test.hex), test.offsetOddR)
+			assert.Equal(t, toOffsetEvenR(test.hex), test.offsetEvenR)
+			assert.Equal(t, toOffsetOddQ(test.hex), test.offsetOddQ)
+			assert.Equal(t, toOffsetEvenQ(test.hex), test.offsetEvenQ)
+			assert.Equal(t, toDoubleWidth(test.hex), test.doubleWidth)
+			assert.Equal(t, toDoubleHeight(test.hex), test.doubleHeight)
 
-			assert.Equal(t, FromAxial(hexPoint), test.hex)
-			assert.Equal(t, FromOffsetOddR(test.offsetOddR), test.hex)
-			assert.Equal(t, FromOffsetEvenR(test.offsetEvenR), test.hex)
-			assert.Equal(t, FromOffsetOddQ(test.offsetOddQ), test.hex)
-			assert.Equal(t, FromOffsetEvenQ(test.offsetEvenQ), test.hex)
-			assert.Equal(t, FromDoubleWidth(test.doubleWidth), test.hex)
-			assert.Equal(t, FromDoubleHeight(test.doubleHeight), test.hex)
+			assert.Equal(t, fromAxial(hexPoint), test.hex)
+			assert.Equal(t, fromOffsetOddR(test.offsetOddR), test.hex)
+			assert.Equal(t, fromOffsetEvenR(test.offsetEvenR), test.hex)
+			assert.Equal(t, fromOffsetOddQ(test.offsetOddQ), test.hex)
+			assert.Equal(t, fromOffsetEvenQ(test.offsetEvenQ), test.hex)
+			assert.Equal(t, fromDoubleWidth(test.doubleWidth), test.hex)
+			assert.Equal(t, fromDoubleHeight(test.doubleHeight), test.hex)
 
-			assert.Equal(t, To(test.hex, Axial), hexPoint)
-			assert.Equal(t, To(test.hex, OffsetOddR), test.offsetOddR)
-			assert.Equal(t, To(test.hex, OffsetEvenR), test.offsetEvenR)
-			assert.Equal(t, To(test.hex, OffsetOddQ), test.offsetOddQ)
-			assert.Equal(t, To(test.hex, OffsetEvenQ), test.offsetEvenQ)
-			assert.Equal(t, To(test.hex, DoubleWidth), test.doubleWidth)
-			assert.Equal(t, To(test.hex, DoubleHeight), test.doubleHeight)
+			assert.Equal(t, Axial.To(test.hex), hexPoint)
+			assert.Equal(t, OffsetOddR.To(test.hex), test.offsetOddR)
+			assert.Equal(t, OffsetEvenR.To(test.hex), test.offsetEvenR)
+			assert.Equal(t, OffsetOddQ.To(test.hex), test.offsetOddQ)
+			assert.Equal(t, OffsetEvenQ.To(test.hex), test.offsetEvenQ)
+			assert.Equal(t, DoubleWidth.To(test.hex), test.doubleWidth)
+			assert.Equal(t, DoubleHeight.To(test.hex), test.doubleHeight)
 
-			assert.Equal(t, From(hexPoint, Axial), test.hex)
-			assert.Equal(t, From(test.offsetOddR, OffsetOddR), test.hex)
-			assert.Equal(t, From(test.offsetEvenR, OffsetEvenR), test.hex)
-			assert.Equal(t, From(test.offsetOddQ, OffsetOddQ), test.hex)
-			assert.Equal(t, From(test.offsetEvenQ, OffsetEvenQ), test.hex)
-			assert.Equal(t, From(test.doubleWidth, DoubleWidth), test.hex)
-			assert.Equal(t, From(test.doubleHeight, DoubleHeight), test.hex)
+			assert.Equal(t, Axial.From(hexPoint), test.hex)
+			assert.Equal(t, OffsetOddR.From(test.offsetOddR), test.hex)
+			assert.Equal(t, OffsetEvenR.From(test.offsetEvenR), test.hex)
+			assert.Equal(t, OffsetOddQ.From(test.offsetOddQ), test.hex)
+			assert.Equal(t, OffsetEvenQ.From(test.offsetEvenQ), test.hex)
+			assert.Equal(t, DoubleWidth.From(test.doubleWidth), test.hex)
+			assert.Equal(t, DoubleHeight.From(test.doubleHeight), test.hex)
 
 			assert.Equal(t, test.hex.To(Axial), hexPoint)
 			assert.Equal(t, test.hex.To(OffsetOddR), test.offsetOddR)
@@ -171,4 +216,92 @@ func TestCoordinateConversion(t *testing.T) {
 			assert.Equal(t, test.hex.Point(), hexPoint)
 		})
 	}
+}
+
+// TestCoordinateSystem_OffsetsSyncWithDirection guards the hand-written offset tables against drifting out of
+// sync with Directions — reordering the directions without permuting every table in lockstep
+// must fail here.
+func TestCoordinateSystem_OffsetsSyncWithDirection(t *testing.T) {
+	for _, system := range []CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ} {
+		t.Run(system.String(), func(t *testing.T) {
+			for x := -8; x <= 8; x++ {
+				for y := -8; y <= 8; y++ {
+					index := geom.Pt(x, y)
+					assert.Equal(t, system.Offsets(index), deriveOffsets(index, system), index.String())
+				}
+			}
+		})
+	}
+
+	// the double systems only address cells whose column and row have matching parity
+	for _, system := range []CoordinateSystem{DoubleWidth, DoubleHeight} {
+		t.Run(system.String(), func(t *testing.T) {
+			for x := -8; x <= 8; x++ {
+				for y := -8; y <= 8; y++ {
+					if (x+y)%2 != 0 {
+						continue
+					}
+
+					index := geom.Pt(x, y)
+					assert.Equal(t, system.Offsets(index), deriveOffsets(index, system), index.String())
+				}
+			}
+		})
+	}
+}
+
+// deriveOffsets computes the neighbor offsets for a system straight from Directions and the
+// coordinate conversion, which is the definition the literal tables cache.
+func deriveOffsets(index ints.Point, system CoordinateSystem) [6]ints.Vector {
+	hex := system.From(index)
+
+	var offsets [6]ints.Vector
+	for i, direction := range Directions {
+		neighbor := system.To(hex.Neighbor(direction))
+		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
+	}
+
+	return offsets
+}
+
+func TestCoordinateSystem_Unsupported(t *testing.T) {
+	invalid := CoordinateSystem(99)
+
+	t.Run("To panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		invalid.To(Pt(0, 0))
+	})
+
+	t.Run("From panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		invalid.From(geom.Pt(0, 0))
+	})
+
+	t.Run("Offsets panics", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Error("expected panic")
+			}
+		}()
+		invalid.Offsets(geom.Pt(0, 0))
+	})
+}
+
+func TestCoordinateSystem_String(t *testing.T) {
+	assert.Equal(t, Axial.String(), "Axial")
+	assert.Equal(t, OffsetOddR.String(), "OffsetOddR")
+	assert.Equal(t, OffsetEvenR.String(), "OffsetEvenR")
+	assert.Equal(t, OffsetOddQ.String(), "OffsetOddQ")
+	assert.Equal(t, OffsetEvenQ.String(), "OffsetEvenQ")
+	assert.Equal(t, DoubleWidth.String(), "DoubleWidth")
+	assert.Equal(t, DoubleHeight.String(), "DoubleHeight")
+	assert.Equal(t, CoordinateSystem(99).String(), "CoordinateSystem(99)")
 }

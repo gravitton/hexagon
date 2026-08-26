@@ -6,9 +6,5 @@
 // neighbor lookup, distances, ranges, and converting between axial and
 // offset coordinate systems.
 //
-// In addition, Layout converts between hex coordinates and pixel space
-// for both flat-top and pointy-top hex orientations, and can generate
-// basic shapes (like a regular hexagon) for rendering.
-//
 // See README and unit tests for more examples.
 package hex
