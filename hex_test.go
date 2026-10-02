@@ -426,6 +426,15 @@ func TestHex_Line(t *testing.T) {
 			}
 		}
 	})
+	t.Run("reversed is the line back", func(t *testing.T) {
+		for _, source := range testHexZero.Spiral(4) {
+			for _, target := range testHexZero.Spiral(4) {
+				back := target.Line(source)
+				slices.Reverse(back)
+				assert.Equal(t, source.Line(target), back, source.String()+" to "+target.String())
+			}
+		}
+	})
 	t.Run("allocates once", func(t *testing.T) {
 		assert.Equal(t, testing.AllocsPerRun(100, func() {
 			sinkHexes = testHexZero.Line(Pt(4, -1))
@@ -476,6 +485,16 @@ func TestHex_HasLineOfSight(t *testing.T) {
 		for _, h := range testHexZero.Range(5) {
 			between := slices.Contains(line[1:len(line)-1], h)
 			assert.Equal(t, testHexZero.HasLineOfSight(target, []Hex{h}), !between, h.String())
+		}
+	})
+	t.Run("sees the same both ways", func(t *testing.T) {
+		for _, source := range testHexZero.Spiral(3) {
+			for _, target := range testHexZero.Spiral(3) {
+				for _, h := range testHexZero.Spiral(3) {
+					blocking := []Hex{h}
+					assert.Equal(t, source.HasLineOfSight(target, blocking), target.HasLineOfSight(source, blocking), source.String()+" to "+target.String()+" past "+h.String())
+				}
+			}
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {

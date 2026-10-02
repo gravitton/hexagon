@@ -23,13 +23,17 @@ Hexagonal grid math library for game development
 
 ## Features
 
-- **Axial coordinates** – two integers per hex, the third cube coordinate derived and never stored.
+- **Axial coordinates** – two integers per hex, the third cube coordinate derived.
 - **Immutable** – every method returns a new value.
-- **Traversal** – neighbors, range, ring and spiral, line drawing, line of sight and field of view.
+- **Traversal** – neighbors, range, ring, spiral, lines, line of sight and field of view.
 - **Cube space** – rotation by sixths of a turn and reflection across the q-, r- and s-axis.
-- **Directions** as an enum, with flat-top and pointy-top compass aliases.
+- **Directions** – six, clockwise on screen, with flat-top and pointy-top aliases.
 - **Seven coordinate systems** with lossless round-trip conversion.
-- **Extras** – `geometry` interop, JSON, name parsing, test assertions.
+- **Map keys** – a `Hex` compares exactly with `==` and orders with `Compare`.
+- **Reproducible** – fractional hexes round the same on amd64 and arm64.
+- **Extras** – `geometry` interop, JSON, name parsing and `hextest` assertions.
+
+The rules behind them are in the [package documentation][link-go-dev-reference].
 
 ## Installation
 
@@ -49,14 +53,14 @@ import hex "github.com/gravitton/hexagon"
 a := hex.Pt(1, -2) // axial (q, r)
 b := hex.Pt(0, 3)
 
-a.S()            // 1, the derived cube coordinate
-a.Length()       // 2, distance from the origin in hex steps
-a.DistanceTo(b)  // 5
+a.S()           // 1, the derived cube coordinate
+a.Length()      // 2, distance from the origin in hex steps
+a.DistanceTo(b) // 5
 
-a.Add(b)         // Hex{1, 1}
-a.Subtract(b)    // Hex{1, -5}
-a.Multiply(2)    // Hex{2, -4}
-a.Lerp(b, 0.5)   // the hex halfway along the line to b
+a.Add(b)       // Hex{1, 1}
+a.Subtract(b)  // Hex{1, -5}
+a.Multiply(2)  // Hex{2, -4}
+a.Lerp(b, 0.5) // the hex halfway along the line to b
 ```
 
 ### Neighbors and traversal
@@ -64,8 +68,8 @@ a.Lerp(b, 0.5)   // the hex halfway along the line to b
 ```go
 h := hex.Pt(0, 0)
 
-h.Neighbors()             // all 6 adjacent hexes as an array, by increasing angle
-h.Neighbor(hex.QPlus)     // one specific neighbor
+h.Neighbors()         // all 6 adjacent hexes as an array, by increasing angle
+h.Neighbor(hex.QPlus) // one specific neighbor
 
 h.Range(2)  // all hexes within radius 2 (filled disc)
 h.Ring(2)   // hexes at exactly distance 2 (perimeter)
@@ -99,24 +103,24 @@ map keyed by `Hex` and filter before calling.
 ### Rotation and reflection
 
 ```go
-a.Turn(2)                   // 2×60° around the origin
-a.TurnAround(b, -1)         // 1×60° the other way, around b
-a.ReflectQ()                // mirrored across the q-axis; also ReflectR and ReflectS
+a.Turn(2)           // 2×60° around the origin
+a.TurnAround(b, -1) // 1×60° the other way, around b
+a.ReflectQ()        // mirrored across the q-axis; also ReflectR and ReflectS
 ```
 
 ### Directions
 
 ```go
 dir := hex.QPlus
-dir.Opposite()  // QMinus
-dir.Turn(1)     // SMinus, one step of increasing angle
-dir.Offset()    // ints.Vector, the axial step
-dir.Hex()       // Hex, the same step as a hex
-dir.Angle()     // 5π/3
+dir.Opposite() // QMinus
+dir.Turn(1)    // SMinus, one step of increasing angle
+dir.Offset()   // ints.Vector, the axial step
+dir.Hex()      // Hex, the same step as a hex
+dir.Angle()    // 5π/3
 
-hex.Directions()                 // all six, by increasing angle, as a fresh array
-hex.DirectionFromAngle(math.Pi)  // SPlus, the nearest of the six
-hex.ParseDirection("QPlus")      // the name back to the constant, "None" to DirectionNone
+hex.Directions()                // all six, by increasing angle, as a fresh array
+hex.DirectionFromAngle(math.Pi) // SPlus, the nearest of the six
+hex.ParseDirection("QPlus")     // the name back to the constant, "None" to DirectionNone
 ```
 
 Six named directions in cube space, with flat-top and pointy-top aliases:
@@ -136,11 +140,11 @@ direction lies 30° further along, so take π/6 off a flat-top angle before `Dir
 ### Coordinate systems
 
 ```go
-p := a.To(hex.OffsetOddR)      // or hex.OffsetOddR.To(a)
-hex.OffsetOddR.From(p)         // round-trips exactly
+p := a.To(hex.OffsetOddR) // or hex.OffsetOddR.To(a)
+hex.OffsetOddR.From(p)    // round-trips exactly
 
-hex.CoordinateSystems()               // all seven, as a fresh array
-hex.ParseCoordinateSystem("Axial")    // the name back to the constant
+hex.CoordinateSystems()            // all seven, as a fresh array
+hex.ParseCoordinateSystem("Axial") // the name back to the constant
 ```
 
 | Constant       | Orientation | Description                                 |
@@ -157,8 +161,8 @@ The offset systems need parity-aware neighbor offsets. Ask the system for them �
 row and column parity:
 
 ```go
-hex.OffsetOddR.Offsets(index)                          // all 6, indexed by Direction
-hex.OffsetOddR.Offset(index, hex.PointyTopEast)        // just one
+hex.OffsetOddR.Offsets(index)                   // all 6, indexed by Direction
+hex.OffsetOddR.Offset(index, hex.PointyTopEast) // just one
 ```
 
 `Direction.Offset()` is the axial case of the same thing, equal to `hex.Axial.Offset(index, direction)`.
@@ -170,9 +174,9 @@ space on the grid:
 
 ```go
 f := hex.FracPt(1.4, -1.8)
-f.Round()                                          // the nearest Hex, preserving q+r+s=0
-f.Length()                                         // 1.8, without rounding to a hex
-hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5)      // FractionalHex{1.5, -0.5}
+f.Round()                                     // the nearest Hex, preserving q+r+s=0
+f.Length()                                    // 1.8, without rounding to a hex
+hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5) // FractionalHex{1.5, -0.5}
 
 hex.Pt(2, -1).Float() // the other way, exactly
 ```
@@ -186,8 +190,8 @@ Pixel layout lives in [`gravitton/grid`](https://github.com/gravitton/grid); the
 this package builds on live in [`gravitton/geometry`](https://github.com/gravitton/geometry).
 
 ```go
-a.Point()          // ints.Point{1, -2}
-a.Float().Point()  // floats.Point{1, -2}
+a.Point()         // ints.Point{1, -2}
+a.Float().Point() // floats.Point{1, -2}
 
 json.Marshal(hex.Pt(1, -2))  // {"q":1,"r":-2}
 json.Marshal(hex.QPlus)      // "QPlus"
@@ -203,37 +207,10 @@ type, so the helpers stay out of the main package:
 import "github.com/gravitton/hexagon/hextest"
 
 hextest.AssertHex(t, got, hex.Pt(2, -1))
-hextest.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp")
+hextest.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp: ")
 ```
 
 Full reference: [pkg.go.dev][link-go-dev-reference].
-
-## Conventions
-
-**Coordinates.** A hex is stored as the axial pair `(q, r)`; `s` is `-q-r` and is derived on
-demand, so no value can hold an inconsistent cube triple. Directions are ordered by increasing
-angle from `SMinus` (flat-top SE, pointy-top E): counterclockwise in the standard math convention
-where Y grows upward, which appears **clockwise as drawn** on a screen with Y pointing down.
-`Direction.Turn(n)`, `Hex.Turn(n)` and `Ring` all turn that way; negative steps go back.
-
-**Enums.** Every out-of-range `Direction` wraps into `[SMinus, QPlus]`, negatives included. Only
-`DirectionNone` stands outside the six: it steps nowhere, turns to itself, and has no angle.
-`CoordinateSystemNone` is its counterpart for the seven systems, and every value outside them
-counts as none.
-
-**Equality.** Axial coordinates are integers, so `Hex.Equal` is exact and a `Hex` works as a map
-key with `==`. `Compare` orders by `q` and then by `r` in the `cmp.Compare` convention — a total
-order, but an arbitrary one in space, following neither distance nor angle. `FractionalHex.Equal`
-compares within `geom.Epsilon` for `float64`.
-
-**Degenerate inputs.** A negative radius returns `nil` from `Range`, `Ring` and `Spiral`; a zero
-radius returns the center alone; a line from a hex to itself is that one hex. The only panics are a
-`CoordinateSystem` outside the seven passed to `Offsets`, `Offset`, `To` or `From`, and a NaN or
-infinite coordinate passed to `FractionalHex.Round`, which has no hex.
-
-**Methods.** Both hex types have `Equal`, `String`, JSON with the one-character keys `q` and `r`,
-and a conversion to the other (`Hex.Float`, `FractionalHex.Round`). Both enums have `IsNone`,
-`String`, a `Parse*` function and text marshalling by name.
 
 ## Planned
 
@@ -247,19 +224,9 @@ and a conversion to the other (`Hex.Float`, `FractionalHex.Round`). Both enums h
 ## Not planned, by design
 
 This package is the coordinate math alone: a hex knows its neighbors, its distances and its
-shape on the grid, and nothing about where it is drawn or what it holds.
-[`gravitton/grid`](https://github.com/gravitton/grid) owns that layer and builds on this one, so
-the following will not be added here:
-
-- **Pixel layout** – hex↔screen mapping, cell size and orientation: `grid.Layout`, and the
-  `NewHexagonFlatTopGrid` / `NewHexagonPointyTopGrid` constructors. `Layout` lived here until
-  v1.2.0 and moved out.
-- **Storage** – a grid holding a value per hex, with bounds, iteration and draw order: `grid.Grid`,
-  `grid.Cell` and `grid.Array`.
-- **Pathfinding** – A*, Dijkstra, greedy best-first and BFS around blockers, with per-cell cost:
-  `grid.Grid.Path` and the searches beside it. `Hex.Line` is the straight line only.
-- **The hexagon as a shape** – vertices, bounds and area come from `geom.RegularPolygon`, reached
-  through `grid.Cell.Polygon`, which knows the pixel size this package does not.
+shape on the grid, and nothing about where it is drawn or what it holds. That layer is
+[`gravitton/grid`](https://github.com/gravitton/grid), which builds on this package and holds
+everything it leaves out.
 
 ## Credits
 

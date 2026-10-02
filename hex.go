@@ -59,7 +59,8 @@ func (h Hex) Multiply(factor int) Hex {
 // Lerp creates a new Hex at the interpolated position between h and hex, rounded to the
 // nearest hex. It interpolates through [FractionalHex], so the result is a hex the straight
 // line from h to hex passes through. It panics for a NaN or infinite t, as
-// [FractionalHex.Round] does.
+// [FractionalHex.Round] does, and a finite t that carries the position beyond the range of int
+// gives a platform-dependent hex.
 func (h Hex) Lerp(hex Hex, t float64) Hex {
 	return h.Float().Lerp(hex.Float(), t).Round()
 }

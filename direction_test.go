@@ -13,16 +13,6 @@ import (
 )
 
 var axialDirection = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetOddRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetOddRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
-var offsetEvenRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
-var offsetEvenRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetOddQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
-var offsetOddQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetEvenQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetEvenQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
-var doubleWidthDirection = [6]ints.Vector{{X: 2, Y: 0}, {X: 1, Y: 1}, {X: -1, Y: 1}, {X: -2, Y: 0}, {X: -1, Y: -1}, {X: 1, Y: -1}}
-var doubleHeightDirection = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 2}, {X: -1, Y: 1}, {X: -1, Y: -1}, {X: 0, Y: -2}, {X: 1, Y: -1}}
 
 func TestDirections(t *testing.T) {
 	t.Run("by increasing angle", func(t *testing.T) {

@@ -36,13 +36,13 @@ const (
 	// DoubleWidth is a pointy-top system that doubles the column axis: col = 2q+r, row = r.
 	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
 	// It addresses only the cells whose col and row share a parity; From maps any other
-	// coordinate to a cell beside it.
+	// coordinate to the cell beside it on the side of lower q, the same at every position.
 	DoubleWidth
 
 	// DoubleHeight is a flat-top system that doubles the row axis: col = q, row = 2r+q.
 	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
 	// It addresses only the cells whose col and row share a parity; From maps any other
-	// coordinate to a cell beside it.
+	// coordinate to the cell beside it on the side of lower r, the same at every position.
 	DoubleHeight
 
 	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so
@@ -97,13 +97,14 @@ func (s CoordinateSystem) Offsets(index ints.Point) [6]ints.Vector {
 
 // Offset returns the neighbor offset vector for the given coordinate index and direction
 // in this system. Out-of-range directions wrap into [SMinus, QPlus], and [DirectionNone]
-// gives the zero vector.
+// gives the zero vector. It panics for a system outside the seven, whatever the direction.
 func (s CoordinateSystem) Offset(index ints.Point, direction Direction) ints.Vector {
+	offsets := s.Offsets(index)
 	if direction.IsNone() {
 		return ints.Vector{}
 	}
 
-	return s.Offsets(index)[direction.normalize()]
+	return offsets[direction.normalize()]
 }
 
 // To converts an axial hex into this coordinate system as an ints.Point.
@@ -305,9 +306,10 @@ func toDoubleWidth(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// fromDoubleWidth converts a double-width coordinate to axial.
+// fromDoubleWidth converts a double-width coordinate to axial, flooring a coordinate of mixed
+// parity.
 func fromDoubleWidth(index ints.Point) Hex {
-	q := (index.X - index.Y) / 2
+	q := (index.X - index.Y) >> 1
 	r := index.Y
 
 	return Hex{q, r}
@@ -321,10 +323,11 @@ func toDoubleHeight(hex Hex) ints.Point {
 	return geom.Pt(col, row)
 }
 
-// fromDoubleHeight converts a double-height coordinate to axial.
+// fromDoubleHeight converts a double-height coordinate to axial, flooring a coordinate of mixed
+// parity.
 func fromDoubleHeight(index ints.Point) Hex {
 	q := index.X
-	r := (index.Y - index.X) / 2
+	r := (index.Y - index.X) >> 1
 
 	return Hex{q, r}
 }

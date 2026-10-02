@@ -84,6 +84,17 @@ var testConversions = []struct {
 	},
 }
 
+var offsetOddRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
+var offsetOddRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
+var offsetEvenRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
+var offsetEvenRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
+var offsetOddQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
+var offsetOddQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
+var offsetEvenQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
+var offsetEvenQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
+var doubleWidthDirection = [6]ints.Vector{{X: 2, Y: 0}, {X: 1, Y: 1}, {X: -1, Y: 1}, {X: -2, Y: 0}, {X: -1, Y: -1}, {X: 1, Y: -1}}
+var doubleHeightDirection = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 2}, {X: -1, Y: 1}, {X: -1, Y: -1}, {X: 0, Y: -2}, {X: 1, Y: -1}}
+
 func TestCoordinateSystems(t *testing.T) {
 	t.Run("the seven in order", func(t *testing.T) {
 		assert.Equal(t, CoordinateSystems(), [7]CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight})
@@ -186,7 +197,7 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			for _, h := range testHexZero.Spiral(8) {
 				index := system.To(h)
-				assert.Equal(t, system.Offsets(index), deriveOffsets(system, index), system.String(), index.String())
+				assert.Equal(t, system.Offsets(index), deriveOffsets(system, index), system.String()+" at "+index.String())
 			}
 		}
 	})
@@ -226,6 +237,11 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystemNone.Offset(geom.Pt(0, 0), SMinus)
+		}, "hex: unknown coordinate system -1")
+	})
+	t.Run("panics for a system outside the seven with no direction", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			CoordinateSystemNone.Offset(geom.Pt(0, 0), DirectionNone)
 		}, "hex: unknown coordinate system -1")
 	})
 }
@@ -268,7 +284,7 @@ func TestCoordinateSystem_From(t *testing.T) {
 	t.Run("round-trips with To", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			for _, h := range testHex.Spiral(4) {
-				assert.Equal(t, system.From(system.To(h)), h, system.String(), h.String())
+				assert.Equal(t, system.From(system.To(h)), h, system.String()+" at "+h.String())
 			}
 		}
 	})
@@ -278,8 +294,17 @@ func TestCoordinateSystem_From(t *testing.T) {
 				for y := -3; y <= 3; y++ {
 					index := geom.Pt(x, y)
 					cell := system.To(system.From(index))
-					assert.True(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y) <= 1, system.String(), index.String())
+					assert.True(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y) <= 1, system.String()+" at "+index.String())
 				}
+			}
+		}
+	})
+	t.Run("a double coordinate of mixed parity lands on the same side everywhere", func(t *testing.T) {
+		for x := -3; x <= 3; x++ {
+			for y := -3; y <= 3; y++ {
+				index := geom.Pt(x, y)
+				assert.Equal(t, DoubleWidth.From(geom.Pt(x+2, y)), DoubleWidth.From(index).Add(Pt(1, 0)), index.String())
+				assert.Equal(t, DoubleHeight.From(geom.Pt(x, y+2)), DoubleHeight.From(index).Add(Pt(0, 1)), index.String())
 			}
 		}
 	})
