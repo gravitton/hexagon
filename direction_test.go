@@ -12,7 +12,7 @@ import (
 	"github.com/gravitton/hexagon/hextest"
 )
 
-var axialDirection = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
+var axialDirection = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
 
 func TestDirections(t *testing.T) {
 	t.Run("by increasing angle", func(t *testing.T) {
@@ -23,13 +23,29 @@ func TestDirections(t *testing.T) {
 		list[0] = QPlus
 		assert.Equal(t, Directions()[0], SMinus)
 	})
+	t.Run("flat-top aliases", func(t *testing.T) {
+		assert.Equal(t, FlatTopSouthEast, SMinus)
+		assert.Equal(t, FlatTopSouth, RPlus)
+		assert.Equal(t, FlatTopSouthWest, QMinus)
+		assert.Equal(t, FlatTopNorthWest, SPlus)
+		assert.Equal(t, FlatTopNorth, RMinus)
+		assert.Equal(t, FlatTopNorthEast, QPlus)
+	})
+	t.Run("pointy-top aliases", func(t *testing.T) {
+		assert.Equal(t, PointyTopEast, SMinus)
+		assert.Equal(t, PointyTopSouthEast, RPlus)
+		assert.Equal(t, PointyTopSouthWest, QMinus)
+		assert.Equal(t, PointyTopWest, SPlus)
+		assert.Equal(t, PointyTopNorthWest, RMinus)
+		assert.Equal(t, PointyTopNorthEast, QPlus)
+	})
 }
 
 func TestDirectionFromAngle(t *testing.T) {
 	t.Run("round-trips with Angle", func(t *testing.T) {
 		for _, direction := range Directions() {
-			assert.Equal(t, DirectionFromAngle(direction.Angle()), direction, direction.String())
-			assert.Equal(t, DirectionFromAngle(direction.Angle()+2*geom.Pi), direction, direction.String())
+			assert.Equal(t, DirectionFromAngle(direction.Angle()), direction, direction.String()+": ")
+			assert.Equal(t, DirectionFromAngle(direction.Angle()+2*geom.Pi), direction, direction.String()+": ")
 		}
 	})
 	t.Run("rounds to the nearest direction", func(t *testing.T) {
@@ -79,7 +95,7 @@ func TestDirection_Opposite(t *testing.T) {
 	})
 	t.Run("the offsets cancel", func(t *testing.T) {
 		for _, direction := range Directions() {
-			assert.Equal(t, direction.Offset().Add(direction.Opposite().Offset()), ints.Vector{}, direction.String())
+			assert.Equal(t, direction.Offset().Add(direction.Opposite().Offset()), ints.Vector{}, direction.String()+": ")
 		}
 	})
 	t.Run("none is its own opposite", func(t *testing.T) {
@@ -143,29 +159,13 @@ func TestDirection_Offset(t *testing.T) {
 	t.Run("none steps nowhere", func(t *testing.T) {
 		assert.Equal(t, DirectionNone.Offset(), ints.Vector{})
 	})
-	t.Run("flat-top aliases", func(t *testing.T) {
-		assert.Equal(t, FlatTopSouthEast, SMinus)
-		assert.Equal(t, FlatTopSouth, RPlus)
-		assert.Equal(t, FlatTopSouthWest, QMinus)
-		assert.Equal(t, FlatTopNorthWest, SPlus)
-		assert.Equal(t, FlatTopNorth, RMinus)
-		assert.Equal(t, FlatTopNorthEast, QPlus)
-	})
-	t.Run("pointy-top aliases", func(t *testing.T) {
-		assert.Equal(t, PointyTopEast, SMinus)
-		assert.Equal(t, PointyTopSouthEast, RPlus)
-		assert.Equal(t, PointyTopSouthWest, QMinus)
-		assert.Equal(t, PointyTopWest, SPlus)
-		assert.Equal(t, PointyTopNorthWest, RMinus)
-		assert.Equal(t, PointyTopNorthEast, QPlus)
-	})
 }
 
 func TestDirection_Hex(t *testing.T) {
 	t.Run("the offset as a hex", func(t *testing.T) {
 		for _, direction := range Directions() {
 			offset := direction.Offset()
-			hextest.AssertHex(t, direction.Hex(), Pt(offset.X, offset.Y), direction.String())
+			hextest.AssertHex(t, direction.Hex(), Pt(offset.X, offset.Y), direction.String()+": ")
 		}
 	})
 	t.Run("none is the zero hex", func(t *testing.T) {
@@ -190,7 +190,7 @@ func TestDirection_Angle(t *testing.T) {
 			x := geom.Sqrt3 * (float64(v.X) + float64(v.Y)/2)
 			y := 1.5 * float64(v.Y)
 
-			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle(), geom.Delta, direction.String())
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle(), geom.Delta, direction.String()+": ")
 		}
 	})
 	t.Run("a flat-top layout adds a twelfth of a turn", func(t *testing.T) {
@@ -199,7 +199,7 @@ func TestDirection_Angle(t *testing.T) {
 			x := 1.5 * float64(v.X)
 			y := geom.Sqrt3 * (float64(v.Y) + float64(v.X)/2)
 
-			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle()+geom.Pi/6, geom.Delta, direction.String())
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle()+geom.Pi/6, geom.Delta, direction.String()+": ")
 		}
 	})
 	t.Run("none has no angle", func(t *testing.T) {
@@ -213,7 +213,7 @@ func TestDirection_IsNone(t *testing.T) {
 	})
 	t.Run("the six are not none", func(t *testing.T) {
 		for _, direction := range Directions() {
-			assert.False(t, direction.IsNone(), direction.String())
+			assert.False(t, direction.IsNone(), direction.String()+": ")
 		}
 	})
 	t.Run("out-of-range values wrap rather than being none", func(t *testing.T) {

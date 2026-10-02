@@ -44,6 +44,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Direction.Angle`, `DirectionFromAngle` and the README direction table state that their angles are those of a pointy-top layout, which a flat-top layout turns by π/6
 - `DoubleWidth` and `DoubleHeight` state that they address only cells whose column and row share a parity, and that `From` maps any other coordinate to a cell beside it
 - The conventions moved from the README into the package documentation, the spec on pkg.go.dev
+- The README no longer lists planned features, and a map-based line of sight is no longer planned: blockers in a map are filtered by the caller, as the README's visibility section shows
 
 ### Fixed
 - `FractionalHex.Lerp`, and through it `Hex.Lerp` and `Hex.Line`, give the same bits on every architecture: `geom.Lerp` in geometry v1.15.0 rounds its product before adding it, so arm64 and amd64 v3 no longer fuse it into a multiply-add, which could pick a different hex there

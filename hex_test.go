@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"math"
 	"slices"
 	"testing"
 
@@ -50,7 +51,7 @@ func TestHex_Length(t *testing.T) {
 	})
 	t.Run("counts the rings of a spiral", func(t *testing.T) {
 		for _, h := range testHexZero.Spiral(3) {
-			assert.True(t, h.Length() <= 3, h.String())
+			assert.True(t, h.Length() <= 3, h.String()+": ")
 		}
 	})
 }
@@ -91,6 +92,14 @@ func TestHex_Lerp(t *testing.T) {
 			assert.Equal(t, a.DistanceTo(h)+h.DistanceTo(b), a.DistanceTo(b))
 		}
 	})
+	t.Run("panics for a non-finite t", func(t *testing.T) {
+		assert.Panics(t, func() {
+			sinkHex = a.Lerp(b, math.NaN())
+		})
+		assert.Panics(t, func() {
+			sinkHex = a.Lerp(b, math.Inf(1))
+		})
+	})
 }
 
 func TestHex_Turn(t *testing.T) {
@@ -112,7 +121,7 @@ func TestHex_Turn(t *testing.T) {
 	t.Run("agrees with turning the direction", func(t *testing.T) {
 		for _, direction := range Directions() {
 			for steps := -6; steps <= 6; steps++ {
-				hextest.AssertHex(t, direction.Hex().Turn(steps), direction.Turn(steps).Hex(), direction.String())
+				hextest.AssertHex(t, direction.Hex().Turn(steps), direction.Turn(steps).Hex(), direction.String()+": ")
 			}
 		}
 	})
@@ -396,7 +405,7 @@ func TestHex_DistanceTo(t *testing.T) {
 	})
 	t.Run("symmetric", func(t *testing.T) {
 		for _, h := range testHexZero.Spiral(3) {
-			assert.Equal(t, testHex.DistanceTo(h), h.DistanceTo(testHex), h.String())
+			assert.Equal(t, testHex.DistanceTo(h), h.DistanceTo(testHex), h.String()+": ")
 		}
 	})
 }
@@ -431,7 +440,7 @@ func TestHex_Line(t *testing.T) {
 			for _, target := range testHexZero.Spiral(4) {
 				back := target.Line(source)
 				slices.Reverse(back)
-				assert.Equal(t, source.Line(target), back, source.String()+" to "+target.String())
+				assert.Equal(t, source.Line(target), back, source.String()+" to "+target.String()+": ")
 			}
 		}
 	})
@@ -484,7 +493,7 @@ func TestHex_HasLineOfSight(t *testing.T) {
 		line := testHexZero.Line(target)
 		for _, h := range testHexZero.Range(5) {
 			between := slices.Contains(line[1:len(line)-1], h)
-			assert.Equal(t, testHexZero.HasLineOfSight(target, []Hex{h}), !between, h.String())
+			assert.Equal(t, testHexZero.HasLineOfSight(target, []Hex{h}), !between, h.String()+": ")
 		}
 	})
 	t.Run("sees the same both ways", func(t *testing.T) {
@@ -492,7 +501,7 @@ func TestHex_HasLineOfSight(t *testing.T) {
 			for _, target := range testHexZero.Spiral(3) {
 				for _, h := range testHexZero.Spiral(3) {
 					blocking := []Hex{h}
-					assert.Equal(t, source.HasLineOfSight(target, blocking), target.HasLineOfSight(source, blocking), source.String()+" to "+target.String()+" past "+h.String())
+					assert.Equal(t, source.HasLineOfSight(target, blocking), target.HasLineOfSight(source, blocking), source.String()+" to "+target.String()+" past "+h.String()+": ")
 				}
 			}
 		}
@@ -538,7 +547,7 @@ func TestHex_FieldOfView(t *testing.T) {
 		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
 		visible := testHexZero.FieldOfView(candidates, blocking)
 		for _, candidate := range candidates {
-			assert.Equal(t, slices.Contains(visible, candidate), testHexZero.HasLineOfSight(candidate, blocking), candidate.String())
+			assert.Equal(t, slices.Contains(visible, candidate), testHexZero.HasLineOfSight(candidate, blocking), candidate.String()+": ")
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
@@ -639,7 +648,7 @@ func TestHex_To(t *testing.T) {
 	for _, system := range CoordinateSystems() {
 		t.Run(system.String(), func(t *testing.T) {
 			for _, h := range testHex.Spiral(2) {
-				assert.Equal(t, h.To(system), system.To(h), h.String())
+				assert.Equal(t, h.To(system), system.To(h), h.String()+": ")
 			}
 		})
 	}

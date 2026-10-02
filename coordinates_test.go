@@ -67,7 +67,7 @@ var testConversions = []struct {
 	{
 		hex:          Pt(-1, 1),
 		offsetOddR:   geom.Pt(-1, 1),
-		offsetEvenR:  geom.Pt(-0, 1),
+		offsetEvenR:  geom.Pt(0, 1),
 		offsetOddQ:   geom.Pt(-1, 0),
 		offsetEvenQ:  geom.Pt(-1, 1),
 		doubleWidth:  geom.Pt(-1, 1),
@@ -84,16 +84,16 @@ var testConversions = []struct {
 	},
 }
 
-var offsetOddRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetOddRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
-var offsetEvenRDirectionOddRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}}
-var offsetEvenRDirectionEvenRow = [6]ints.Vector{{X: 1, Y: 0}, {X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetOddQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
-var offsetOddQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetEvenQDirectionOddCol = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 0}, {X: -1, Y: -1}, {X: 0, Y: -1}, {X: 1, Y: -1}}
-var offsetEvenQDirectionEvenCol = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 0}}
-var doubleWidthDirection = [6]ints.Vector{{X: 2, Y: 0}, {X: 1, Y: 1}, {X: -1, Y: 1}, {X: -2, Y: 0}, {X: -1, Y: -1}, {X: 1, Y: -1}}
-var doubleHeightDirection = [6]ints.Vector{{X: 1, Y: 1}, {X: 0, Y: 2}, {X: -1, Y: 1}, {X: -1, Y: -1}, {X: 0, Y: -2}, {X: 1, Y: -1}}
+var offsetOddRDirectionOddRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddRDirectionEvenRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionOddRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionEvenRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddQDirectionOddCol = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var offsetOddQDirectionEvenCol = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionOddCol = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionEvenCol = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var doubleWidthDirection = [6]ints.Vector{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
+var doubleHeightDirection = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
 
 func TestCoordinateSystems(t *testing.T) {
 	t.Run("the seven in order", func(t *testing.T) {
@@ -197,7 +197,7 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			for _, h := range testHexZero.Spiral(8) {
 				index := system.To(h)
-				assert.Equal(t, system.Offsets(index), deriveOffsets(system, index), system.String()+" at "+index.String())
+				assert.Equal(t, system.Offsets(index), deriveOffsets(system, index), system.String()+" at "+index.String()+": ")
 			}
 		}
 	})
@@ -216,7 +216,7 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 			for _, index := range indexes {
 				offsets := system.Offsets(index)
 				for i, direction := range Directions() {
-					assert.Equal(t, system.Offset(index, direction), offsets[i], system.String())
+					assert.Equal(t, system.Offset(index, direction), offsets[i], system.String()+": ")
 				}
 			}
 		}
@@ -224,14 +224,14 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	t.Run("out-of-range directions wrap", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			for _, index := range indexes {
-				assert.Equal(t, system.Offset(index, Direction(6)), system.Offset(index, SMinus), system.String())
-				assert.Equal(t, system.Offset(index, Direction(-2)), system.Offset(index, RMinus), system.String())
+				assert.Equal(t, system.Offset(index, Direction(6)), system.Offset(index, SMinus), system.String()+": ")
+				assert.Equal(t, system.Offset(index, Direction(-2)), system.Offset(index, RMinus), system.String()+": ")
 			}
 		}
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), ints.Vector{}, system.String())
+			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), ints.Vector{}, system.String()+": ")
 		}
 	})
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
@@ -284,7 +284,7 @@ func TestCoordinateSystem_From(t *testing.T) {
 	t.Run("round-trips with To", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			for _, h := range testHex.Spiral(4) {
-				assert.Equal(t, system.From(system.To(h)), h, system.String()+" at "+h.String())
+				assert.Equal(t, system.From(system.To(h)), h, system.String()+" at "+h.String()+": ")
 			}
 		}
 	})
@@ -294,7 +294,7 @@ func TestCoordinateSystem_From(t *testing.T) {
 				for y := -3; y <= 3; y++ {
 					index := geom.Pt(x, y)
 					cell := system.To(system.From(index))
-					assert.True(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y) <= 1, system.String()+" at "+index.String())
+					assert.True(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y) <= 1, system.String()+" at "+index.String()+": ")
 				}
 			}
 		}
@@ -303,8 +303,8 @@ func TestCoordinateSystem_From(t *testing.T) {
 		for x := -3; x <= 3; x++ {
 			for y := -3; y <= 3; y++ {
 				index := geom.Pt(x, y)
-				assert.Equal(t, DoubleWidth.From(geom.Pt(x+2, y)), DoubleWidth.From(index).Add(Pt(1, 0)), index.String())
-				assert.Equal(t, DoubleHeight.From(geom.Pt(x, y+2)), DoubleHeight.From(index).Add(Pt(0, 1)), index.String())
+				assert.Equal(t, DoubleWidth.From(geom.Pt(x+2, y)), DoubleWidth.From(index).Add(Pt(1, 0)), index.String()+": ")
+				assert.Equal(t, DoubleHeight.From(geom.Pt(x, y+2)), DoubleHeight.From(index).Add(Pt(0, 1)), index.String()+": ")
 			}
 		}
 	})
@@ -322,7 +322,7 @@ func TestCoordinateSystem_IsNone(t *testing.T) {
 	})
 	t.Run("the seven are not none", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.False(t, system.IsNone(), system.String())
+			assert.False(t, system.IsNone(), system.String()+": ")
 		}
 	})
 }

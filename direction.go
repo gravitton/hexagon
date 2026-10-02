@@ -58,6 +58,12 @@ const (
 	PointyTopNorthEast = QPlus
 )
 
+// Directions lists the six directions ordered by increasing angle from SMinus.
+// It returns a fresh array, so a caller cannot alter the list.
+func Directions() [6]Direction {
+	return [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus}
+}
+
 // directionOffsets lists the axial neighbor vector of each direction, indexed by direction.
 var directionOffsets = [6]ints.Vector{
 	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
@@ -66,12 +72,6 @@ var directionOffsets = [6]ints.Vector{
 	geom.Vec(-1, 0), // +S, flat-top NW, pointy-top W
 	geom.Vec(0, -1), // -R, flat-top N,  pointy-top NW
 	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE
-}
-
-// Directions lists the six directions ordered by increasing angle from SMinus.
-// It returns a fresh array, so a caller cannot alter the list.
-func Directions() [6]Direction {
-	return [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus}
 }
 
 // DirectionFromAngle returns the direction nearest to the given angle in radians in a

@@ -212,15 +212,6 @@ hextest.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp: ")
 
 Full reference: [pkg.go.dev][link-go-dev-reference].
 
-## Planned
-
-- **The traversals as `iter.Seq`** – `Range`, `Ring` and `Spiral` walked without a buffer at all.
-- **Map-based line of sight** – a `func(Hex) bool` blocker for large grids, where the `[]Hex` form
-  is O(n×m).
-- **`Hex.Region`** – a set type with union, intersection and border, for area queries over a grid.
-- **`FieldOfView` shadow casting** – the current pass traces one line per candidate; symmetric
-  shadow casting is both faster and better behaved at the edges.
-
 ## Not planned, by design
 
 This package is the coordinate math alone: a hex knows its neighbors, its distances and its
