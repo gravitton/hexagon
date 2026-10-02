@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"math"
 	"testing"
 
 	"github.com/gravitton/assert"
@@ -130,6 +131,20 @@ func TestFractionalHex_Round(t *testing.T) {
 		hextest.AssertHex(t, FracPt(10.50000001, 16.5000001).Round(), Pt(10, 17))
 		hextest.AssertHex(t, FracPt(10.500001, 16.500000001).Round(), Pt(11, 16))
 	})
+	t.Run("panics for a non-finite coordinate", func(t *testing.T) {
+		assert.Panics(t, func() {
+			sinkHex = FracPt(math.NaN(), 0).Round()
+		})
+		assert.Panics(t, func() {
+			sinkHex = FracPt(0, math.Inf(-1)).Round()
+		})
+	})
+}
+
+func BenchmarkFractionalHex_Round(b *testing.B) {
+	for b.Loop() {
+		sinkHex = testFracHex.Round()
+	}
 }
 
 func TestFractionalHex_Point(t *testing.T) {

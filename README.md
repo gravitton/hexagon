@@ -130,6 +130,9 @@ Six named directions in cube space, with flat-top and pointy-top aliases:
 | 4     | `240°` | `RMinus` | `FlatTopNorth`     | `PointyTopNorthWest` |
 | 5     | `300°` | `QPlus`  | `FlatTopNorthEast` | `PointyTopNorthEast` |
 
+The angles, `Angle` and `DirectionFromAngle` follow the pointy-top layout. In a flat-top layout every
+direction lies 30° further along, so take π/6 off a flat-top angle before `DirectionFromAngle`.
+
 ### Coordinate systems
 
 ```go
@@ -224,8 +227,9 @@ order, but an arbitrary one in space, following neither distance nor angle. `Fra
 compares within `geom.Epsilon` for `float64`.
 
 **Degenerate inputs.** A negative radius returns `nil` from `Range`, `Ring` and `Spiral`; a zero
-radius returns the center alone; a line from a hex to itself is that one hex. The only panic is a
-`CoordinateSystem` outside the seven passed to `Offsets`, `Offset`, `To` or `From`.
+radius returns the center alone; a line from a hex to itself is that one hex. The only panics are a
+`CoordinateSystem` outside the seven passed to `Offsets`, `Offset`, `To` or `From`, and a NaN or
+infinite coordinate passed to `FractionalHex.Round`, which has no hex.
 
 **Methods.** Both hex types have `Equal`, `String`, JSON with the one-character keys `q` and `r`,
 and a conversion to the other (`Hex.Float`, `FractionalHex.Round`). Both enums have `IsNone`,

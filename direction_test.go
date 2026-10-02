@@ -124,6 +124,11 @@ func TestDirection_Turn(t *testing.T) {
 			assert.Equal(t, direction.Turn(2).Turn(-2), direction)
 		}
 	})
+	t.Run("any step count, without overflow", func(t *testing.T) {
+		assert.Equal(t, QPlus.Turn(math.MaxInt), QPlus.Turn(math.MaxInt%6))
+		assert.Equal(t, QPlus.Turn(math.MinInt), QPlus.Turn(math.MinInt%6))
+		assert.Equal(t, Direction(math.MaxInt).Turn(1), Direction(math.MaxInt%6).Turn(1))
+	})
 	t.Run("none turns to itself", func(t *testing.T) {
 		assert.Equal(t, DirectionNone.Turn(1), DirectionNone)
 	})
@@ -189,14 +194,22 @@ func TestDirection_Angle(t *testing.T) {
 		assert.EqualDelta(t, Direction(6).Angle(), 0, geom.Delta)
 		assert.EqualDelta(t, Direction(-2).Angle(), 4*geom.Pi/3, geom.Delta)
 	})
-	t.Run("increases with the angle of the offset in pixel space", func(t *testing.T) {
-		// pointy-top mapping; flat-top differs only by a constant rotation
-		for i, direction := range Directions() {
+	t.Run("is the angle of the offset in a pointy-top layout", func(t *testing.T) {
+		for _, direction := range Directions() {
 			v := direction.Offset()
 			x := geom.Sqrt3 * (float64(v.X) + float64(v.Y)/2)
 			y := 1.5 * float64(v.Y)
 
-			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), geom.NormalizeAngle(float64(i)*geom.Pi/3), geom.Delta, direction.String())
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle(), geom.Delta, direction.String())
+		}
+	})
+	t.Run("a flat-top layout adds a twelfth of a turn", func(t *testing.T) {
+		for _, direction := range Directions() {
+			v := direction.Offset()
+			x := 1.5 * float64(v.X)
+			y := geom.Sqrt3 * (float64(v.Y) + float64(v.X)/2)
+
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle()+geom.Pi/6, geom.Delta, direction.String())
 		}
 	})
 	t.Run("none has no angle", func(t *testing.T) {

@@ -35,10 +35,14 @@ const (
 
 	// DoubleWidth is a pointy-top system that doubles the column axis: col = 2q+r, row = r.
 	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
+	// It addresses only the cells whose col and row share a parity; From maps any other
+	// coordinate to a cell beside it.
 	DoubleWidth
 
 	// DoubleHeight is a flat-top system that doubles the row axis: col = q, row = 2r+q.
 	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
+	// It addresses only the cells whose col and row share a parity; From maps any other
+	// coordinate to a cell beside it.
 	DoubleHeight
 
 	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so

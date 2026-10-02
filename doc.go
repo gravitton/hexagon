@@ -23,7 +23,9 @@
 //
 // CoordinateSystem.Offsets, Offset, To and From panic for a system outside the seven,
 // CoordinateSystemNone included, as geom panics for an unknown Orientation: the absence of a
-// layout has nothing to convert. These are the only panics: every other guard returns a value
+// layout has nothing to convert. FractionalHex.Round panics for a NaN or infinite coordinate
+// through geom.Cast, and Hex.Lerp with it for a NaN or infinite t: a non-finite position lies
+// on no hex. These are the only panics: every other guard returns a value
 // the type can express, such as DirectionNone, nil from Range for a negative radius, or the hex
 // itself from Neighbor for DirectionNone.
 //

@@ -20,6 +20,9 @@ import (
 // clockwise as drawn on a screen with Y pointing down. A negative step is therefore
 // counterclockwise on screen. Any other value wraps into [SMinus, QPlus]; only
 // DirectionNone stands outside the six.
+//
+// The angles are those of a pointy-top layout, where SMinus runs along the X axis. In a
+// flat-top layout every direction lies a twelfth of a turn, π/6, further along.
 type Direction int
 
 const (
@@ -71,8 +74,9 @@ func Directions() [6]Direction {
 	return [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus}
 }
 
-// DirectionFromAngle returns the direction nearest to the given angle in radians,
-// or DirectionNone for NaN and ±Inf.
+// DirectionFromAngle returns the direction nearest to the given angle in radians in a
+// pointy-top layout, or DirectionNone for NaN and ±Inf. An angle measured in a flat-top
+// layout needs π/6 taken off first.
 func DirectionFromAngle(angle float64) Direction {
 	if math.IsNaN(angle) || math.IsInf(angle, 0) {
 		return DirectionNone
@@ -112,7 +116,7 @@ func (d Direction) Turn(steps int) Direction {
 		return DirectionNone
 	}
 
-	return geom.Mod(d+Direction(steps), 6)
+	return geom.Mod(d.normalize()+Direction(geom.Mod(steps, 6)), 6)
 }
 
 // Offset returns the axial neighbor offset vector for the given direction,
@@ -133,8 +137,9 @@ func (d Direction) Hex() Hex {
 	return Hex{offset.X, offset.Y}
 }
 
-// Angle returns the angle of the direction in radians, in [0, 2π), the order the constants
-// follow: SMinus is 0 and QPlus is 5π/3. It is NaN for DirectionNone, which has no angle.
+// Angle returns the angle of the direction in radians in a pointy-top layout, in [0, 2π), the
+// order the constants follow: SMinus is 0 and QPlus is 5π/3. A flat-top layout adds π/6.
+// It is NaN for DirectionNone, which has no angle.
 // Angle and [DirectionFromAngle] round-trip for every direction, DirectionNone included.
 func (d Direction) Angle() float64 {
 	if d.IsNone() {

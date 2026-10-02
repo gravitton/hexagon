@@ -58,7 +58,8 @@ func (h Hex) Multiply(factor int) Hex {
 
 // Lerp creates a new Hex at the interpolated position between h and hex, rounded to the
 // nearest hex. It interpolates through [FractionalHex], so the result is a hex the straight
-// line from h to hex passes through.
+// line from h to hex passes through. It panics for a NaN or infinite t, as
+// [FractionalHex.Round] does.
 func (h Hex) Lerp(hex Hex, t float64) Hex {
 	return h.Float().Lerp(hex.Float(), t).Round()
 }
@@ -198,7 +199,8 @@ func (h Hex) DistanceTo(hex Hex) int {
 }
 
 // Line returns the sequence of hexes that connects h to target in a straight line, both ends
-// included. The line is nudged off the hex boundaries, so it never lands on a tie.
+// included. The line is nudged off the hex boundaries, so it never lands on a tie, except far
+// enough from the origin that float64 can no longer resolve the nudge.
 func (h Hex) Line(target Hex) []Hex {
 	return h.AppendLine(make([]Hex, 0, h.DistanceTo(target)+1), target)
 }
@@ -242,7 +244,7 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 // slice, so a caller reusing dst allocates nothing once it has room.
 func (h Hex) AppendFieldOfView(dst []Hex, candidates []Hex, blocking []Hex) []Hex {
 	for _, candidate := range candidates {
-		if h.DistanceTo(candidate) <= 1 || h.HasLineOfSight(candidate, blocking) {
+		if h.HasLineOfSight(candidate, blocking) {
 			dst = append(dst, candidate)
 		}
 	}

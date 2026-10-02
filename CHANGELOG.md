@@ -21,6 +21,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - **breaking** `Hex.Neighbors` returns a `[6]Hex` array rather than a slice, so it allocates nothing
 - **breaking** `Hex` and `FractionalHex` have JSON tags, so a hex is stored as `{"q":1,"r":-2}` with the one-character keys `geom` uses
 - **breaking** The assertions moved to the new `hextest` package as `hextest.AssertHex` and `hextest.AssertFractionalHex`, so the main package no longer imports a test library itself. They take the expected value rather than loose `q, r` coordinates, take `assert.Testing` rather than `*testing.T`, return whether the assertion held and prefix their messages per field, like every `geomtest.Assert*` helper. `AssertFracHex` is renamed `AssertFractionalHex` and compares through `geomtest.AssertNumber`, within `geom.EpsilonRelative`, so the tolerance holds at any magnitude
+- **breaking** `FractionalHex.Round`, and `Hex.Lerp` through it, convert through `geom.Cast` and so panic for a NaN or infinite coordinate, where they returned a platform-dependent hex
 
 ### Added
 - `DirectionNone` and `Direction.IsNone` – the absence of a direction, matching `geom.Direction`: it steps nowhere (`Offset` and `Hex` give a zero step, `Hex.Neighbor` returns the hex itself, `CoordinateSystem.Offset` gives the zero vector), turns to itself and has no angle
@@ -40,9 +41,13 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Spiral` allocates once rather than once per ring, and `HasLineOfSight` walks the line without building it, so a line-of-sight test allocates nothing and `FieldOfView` allocates only its result
 - `Hex.Neighbor` steps by `Direction.Hex`, so a direction has one lattice step and the two cannot disagree
 - A `CoordinateSystem` outside the seven panics with `hex: unknown coordinate system` and the value, as `geom` panics on an unknown `Orientation`
+- `Direction.Angle`, `DirectionFromAngle` and the README direction table state that their angles are those of a pointy-top layout, which a flat-top layout turns by π/6
+- `DoubleWidth` and `DoubleHeight` state that they address only cells whose column and row share a parity, and that `From` maps any other coordinate to a cell beside it
 
 ### Fixed
 - `FractionalHex.Lerp`, and through it `Hex.Lerp` and `Hex.Line`, give the same bits on every architecture: `geom.Lerp` in geometry v1.15.0 rounds its product before adding it, so arm64 and amd64 v3 no longer fuse it into a multiply-add, which could pick a different hex there
+
+- `Direction.Turn` no longer overflows for a step count or a direction value near the limits of `int`
 
 ### Removed
 - The indirect `github.com/gravitton/x` dependency, which geometry v1.15.0 dropped
