@@ -1,4 +1,4 @@
-package hex
+package hex_test
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
+	. "github.com/gravitton/hexagon"
 )
 
 func TestCoordinateSystems(t *testing.T) {
@@ -213,22 +214,6 @@ func TestCoordinateSystem_Conversion(t *testing.T) {
 		hexPoint := geom.Pt(test.hex.Q, test.hex.R)
 
 		t.Run(test.hex.String(), func(t *testing.T) {
-			assert.Equal(t, toAxial(test.hex), hexPoint)
-			assert.Equal(t, toOffsetOddR(test.hex), test.offsetOddR)
-			assert.Equal(t, toOffsetEvenR(test.hex), test.offsetEvenR)
-			assert.Equal(t, toOffsetOddQ(test.hex), test.offsetOddQ)
-			assert.Equal(t, toOffsetEvenQ(test.hex), test.offsetEvenQ)
-			assert.Equal(t, toDoubleWidth(test.hex), test.doubleWidth)
-			assert.Equal(t, toDoubleHeight(test.hex), test.doubleHeight)
-
-			assert.Equal(t, fromAxial(hexPoint), test.hex)
-			assert.Equal(t, fromOffsetOddR(test.offsetOddR), test.hex)
-			assert.Equal(t, fromOffsetEvenR(test.offsetEvenR), test.hex)
-			assert.Equal(t, fromOffsetOddQ(test.offsetOddQ), test.hex)
-			assert.Equal(t, fromOffsetEvenQ(test.offsetEvenQ), test.hex)
-			assert.Equal(t, fromDoubleWidth(test.doubleWidth), test.hex)
-			assert.Equal(t, fromDoubleHeight(test.doubleHeight), test.hex)
-
 			assert.Equal(t, Axial.To(test.hex), hexPoint)
 			assert.Equal(t, OffsetOddR.To(test.hex), test.offsetOddR)
 			assert.Equal(t, OffsetEvenR.To(test.hex), test.offsetEvenR)
@@ -292,11 +277,11 @@ func TestCoordinateSystem_OffsetsSyncWithDirection(t *testing.T) {
 // deriveOffsets computes the neighbor offsets for a system straight from Directions and the
 // coordinate conversion, which is the definition the literal tables cache.
 func deriveOffsets(index ints.Point, system CoordinateSystem) [6]ints.Vector {
-	hex := system.From(index)
+	h := system.From(index)
 
 	var offsets [6]ints.Vector
 	for i, direction := range Directions() {
-		neighbor := system.To(hex.Neighbor(direction))
+		neighbor := system.To(h.Neighbor(direction))
 		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
 	}
 

@@ -1,4 +1,4 @@
-package hex
+package hex_test
 
 import (
 	"encoding/json"
@@ -6,16 +6,18 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
+	. "github.com/gravitton/hexagon"
+	"github.com/gravitton/hexagon/hextest"
 )
 
-var testFracHex = FractionalHex{10.9, -1.2}
+var testFracHex = FracPt(10.9, -1.2)
 
 // tenth is 0.1 read at run time: a test pinning exact bits takes an operand from it, since the
 // compiler folds literal arithmetic into a constant without fusing.
 var tenth = 0.1
 
 func TestFractionalHex_Constructor(t *testing.T) {
-	AssertFractionalHex(t, FracPt(10.9, -1.2), FractionalHex{Q: 10.9, R: -1.2})
+	hextest.AssertFractionalHex(t, FracPt(10.9, -1.2), FractionalHex{Q: 10.9, R: -1.2})
 }
 
 func TestFractionalHex_S(t *testing.T) {
@@ -49,28 +51,28 @@ func TestFractionalHex_Length(t *testing.T) {
 }
 
 func TestFractionalHex_Add(t *testing.T) {
-	AssertFractionalHex(t, testFracHex.Add(FracPt(0.1, 1.2)), FracPt(11, 0))
+	hextest.AssertFractionalHex(t, testFracHex.Add(FracPt(0.1, 1.2)), FracPt(11, 0))
 }
 
 func TestFractionalHex_Subtract(t *testing.T) {
-	AssertFractionalHex(t, testFracHex.Subtract(FracPt(0.9, -0.2)), FracPt(10, -1))
+	hextest.AssertFractionalHex(t, testFracHex.Subtract(FracPt(0.9, -0.2)), FracPt(10, -1))
 }
 
 func TestFractionalHex_Multiply(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
-		AssertFractionalHex(t, testFracHex.Multiply(2), FracPt(21.8, -2.4))
+		hextest.AssertFractionalHex(t, testFracHex.Multiply(2), FracPt(21.8, -2.4))
 	})
 	t.Run("zero", func(t *testing.T) {
-		AssertFractionalHex(t, testFracHex.Multiply(0), FracPt(0, 0))
+		hextest.AssertFractionalHex(t, testFracHex.Multiply(0), FracPt(0, 0))
 	})
 	t.Run("negative", func(t *testing.T) {
-		AssertFractionalHex(t, testFracHex.Multiply(-1), FracPt(-10.9, 1.2))
+		hextest.AssertFractionalHex(t, testFracHex.Multiply(-1), FracPt(-10.9, 1.2))
 	})
 }
 
 func TestFractionalHex_Lerp(t *testing.T) {
 	t.Run("interpolates both coordinates", func(t *testing.T) {
-		AssertFractionalHex(t, testFracHex.Lerp(FracPt(12, 0), 0.1), FracPt(11.01, -1.08))
+		hextest.AssertFractionalHex(t, testFracHex.Lerp(FracPt(12, 0), 0.1), FracPt(11.01, -1.08))
 	})
 	t.Run("rounds the product before adding", func(t *testing.T) {
 		lerp := FracPt(tenth, tenth).Lerp(FracPt(0.2, 0.2), 0.1)
@@ -121,12 +123,12 @@ func TestFractionalHex_IsZero(t *testing.T) {
 
 func TestFractionalHex_Round(t *testing.T) {
 	t.Run("nearest hex", func(t *testing.T) {
-		AssertHex(t, FracPt(10.9, 16.2).Round(), Pt(11, 16))
-		AssertHex(t, FracPt(10.5001, 16.4999).Round(), Pt(11, 16))
+		hextest.AssertHex(t, FracPt(10.9, 16.2).Round(), Pt(11, 16))
+		hextest.AssertHex(t, FracPt(10.5001, 16.4999).Round(), Pt(11, 16))
 	})
 	t.Run("keeps the cube constraint near a corner", func(t *testing.T) {
-		AssertHex(t, FracPt(10.50000001, 16.5000001).Round(), Pt(10, 17))
-		AssertHex(t, FracPt(10.500001, 16.500000001).Round(), Pt(11, 16))
+		hextest.AssertHex(t, FracPt(10.50000001, 16.5000001).Round(), Pt(10, 17))
+		hextest.AssertHex(t, FracPt(10.500001, 16.500000001).Round(), Pt(11, 16))
 	})
 }
 
@@ -145,5 +147,5 @@ func TestFractionalHex_JSON(t *testing.T) {
 
 	var decoded FractionalHex
 	assert.NoError(t, json.Unmarshal(data, &decoded))
-	AssertFractionalHex(t, decoded, testFracHex)
+	hextest.AssertFractionalHex(t, decoded, testFracHex)
 }

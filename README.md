@@ -193,11 +193,14 @@ json.Marshal(hex.OffsetOddR) // "OffsetOddR"
 
 ### Testing
 
-One assertion per type, comparing with the tolerance of the asserted type:
+The `hextest` package has one assertion per type, comparing with the tolerance of the asserted
+type, so the helpers stay out of the main package:
 
 ```go
-hex.AssertHex(t, got, hex.Pt(2, -1))
-hex.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp")
+import "github.com/gravitton/hexagon/hextest"
+
+hextest.AssertHex(t, got, hex.Pt(2, -1))
+hextest.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp")
 ```
 
 Full reference: [pkg.go.dev][link-go-dev-reference].

@@ -1,4 +1,4 @@
-package hex
+package hex_test
 
 import (
 	"encoding/json"
@@ -7,11 +7,13 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
+	. "github.com/gravitton/hexagon"
+	"github.com/gravitton/hexagon/hextest"
 )
 
 var (
-	testHex     = Hex{-1, 3}
-	testHexZero = Hex{0, 0}
+	testHex     = Pt(-1, 3)
+	testHexZero = Pt(0, 0)
 )
 
 var (
@@ -21,7 +23,7 @@ var (
 )
 
 func TestHex_Constructor(t *testing.T) {
-	AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
+	hextest.AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
 }
 
 func TestHex_S(t *testing.T) {
@@ -54,23 +56,23 @@ func TestHex_Length(t *testing.T) {
 }
 
 func TestHex_Add(t *testing.T) {
-	AssertHex(t, testHex.Add(Pt(3, -2)), Pt(2, 1))
+	hextest.AssertHex(t, testHex.Add(Pt(3, -2)), Pt(2, 1))
 }
 
 func TestHex_Subtract(t *testing.T) {
-	AssertHex(t, testHex.Subtract(Pt(3, -2)), Pt(-4, 5))
+	hextest.AssertHex(t, testHex.Subtract(Pt(3, -2)), Pt(-4, 5))
 }
 
 func TestHex_Multiply(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
-		AssertHex(t, testHex.Multiply(3), Pt(-3, 9))
+		hextest.AssertHex(t, testHex.Multiply(3), Pt(-3, 9))
 	})
 	t.Run("zero", func(t *testing.T) {
-		AssertHex(t, testHex.Multiply(0), testHexZero)
+		hextest.AssertHex(t, testHex.Multiply(0), testHexZero)
 	})
 	t.Run("negative", func(t *testing.T) {
-		AssertHex(t, testHex.Multiply(-1), Pt(1, -3))
-		AssertHex(t, testHex.Multiply(-2), Pt(2, -6))
+		hextest.AssertHex(t, testHex.Multiply(-1), Pt(1, -3))
+		hextest.AssertHex(t, testHex.Multiply(-2), Pt(2, -6))
 	})
 }
 
@@ -79,9 +81,9 @@ func TestHex_Lerp(t *testing.T) {
 	b := Pt(4, -2)
 
 	t.Run("ends and midpoint", func(t *testing.T) {
-		AssertHex(t, a.Lerp(b, 0), a)
-		AssertHex(t, a.Lerp(b, 1), b)
-		AssertHex(t, a.Lerp(b, 0.5), Pt(2, -1))
+		hextest.AssertHex(t, a.Lerp(b, 0), a)
+		hextest.AssertHex(t, a.Lerp(b, 1), b)
+		hextest.AssertHex(t, a.Lerp(b, 0.5), Pt(2, -1))
 	})
 	t.Run("stays on the straight line between the two hexes", func(t *testing.T) {
 		for i := range 11 {
@@ -95,22 +97,22 @@ func TestHex_Turn(t *testing.T) {
 	h := Pt(3, 0)
 
 	t.Run("zero and six steps are the identity", func(t *testing.T) {
-		AssertHex(t, h.Turn(0), h)
-		AssertHex(t, h.Turn(6), h)
+		hextest.AssertHex(t, h.Turn(0), h)
+		hextest.AssertHex(t, h.Turn(6), h)
 	})
 	t.Run("one step forward", func(t *testing.T) {
-		AssertHex(t, h.Turn(1), Pt(-h.R, h.Q+h.R))
+		hextest.AssertHex(t, h.Turn(1), Pt(-h.R, h.Q+h.R))
 	})
 	t.Run("one step back", func(t *testing.T) {
-		AssertHex(t, h.Turn(-1), Pt(h.Q+h.R, -h.Q))
+		hextest.AssertHex(t, h.Turn(-1), Pt(h.Q+h.R, -h.Q))
 	})
 	t.Run("there and back returns to the start", func(t *testing.T) {
-		AssertHex(t, h.Turn(1).Turn(-1), h)
+		hextest.AssertHex(t, h.Turn(1).Turn(-1), h)
 	})
 	t.Run("agrees with turning the direction", func(t *testing.T) {
 		for _, direction := range Directions() {
 			for steps := -6; steps <= 6; steps++ {
-				AssertHex(t, direction.Hex().Turn(steps), direction.Turn(steps).Hex(), direction.String())
+				hextest.AssertHex(t, direction.Hex().Turn(steps), direction.Turn(steps).Hex(), direction.String())
 			}
 		}
 	})
@@ -121,8 +123,8 @@ func TestHex_TurnAround(t *testing.T) {
 	h := Pt(3, 0)
 
 	t.Run("zero and six steps are the identity", func(t *testing.T) {
-		AssertHex(t, h.TurnAround(center, 0), h)
-		AssertHex(t, h.TurnAround(center, 6), h)
+		hextest.AssertHex(t, h.TurnAround(center, 0), h)
+		hextest.AssertHex(t, h.TurnAround(center, 6), h)
 	})
 	t.Run("keeps the distance from the center", func(t *testing.T) {
 		for steps := 1; steps <= 5; steps++ {
@@ -130,80 +132,80 @@ func TestHex_TurnAround(t *testing.T) {
 		}
 	})
 	t.Run("there and back returns to the start", func(t *testing.T) {
-		AssertHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
+		hextest.AssertHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
 	})
 	t.Run("around the origin is Turn", func(t *testing.T) {
-		AssertHex(t, h.TurnAround(testHexZero, 1), h.Turn(1))
-		AssertHex(t, h.TurnAround(testHexZero, -1), h.Turn(-1))
+		hextest.AssertHex(t, h.TurnAround(testHexZero, 1), h.Turn(1))
+		hextest.AssertHex(t, h.TurnAround(testHexZero, -1), h.Turn(-1))
 	})
 }
 
 func TestHex_ReflectQ(t *testing.T) {
 	t.Run("swaps r and s", func(t *testing.T) {
-		AssertHex(t, Pt(0, 0).ReflectQ(), Pt(0, 0))
-		AssertHex(t, Pt(1, 0).ReflectQ(), Pt(1, -1))
-		AssertHex(t, Pt(2, 0).ReflectQ(), Pt(2, -2))
-		AssertHex(t, Pt(2, -2).ReflectQ(), Pt(2, 0))
+		hextest.AssertHex(t, Pt(0, 0).ReflectQ(), Pt(0, 0))
+		hextest.AssertHex(t, Pt(1, 0).ReflectQ(), Pt(1, -1))
+		hextest.AssertHex(t, Pt(2, 0).ReflectQ(), Pt(2, -2))
+		hextest.AssertHex(t, Pt(2, -2).ReflectQ(), Pt(2, 0))
 	})
 	t.Run("keeps q", func(t *testing.T) {
 		assert.Equal(t, testHex.ReflectQ().Q, testHex.Q)
 	})
 	t.Run("twice is the identity", func(t *testing.T) {
-		AssertHex(t, testHex.ReflectQ().ReflectQ(), testHex)
+		hextest.AssertHex(t, testHex.ReflectQ().ReflectQ(), testHex)
 	})
 }
 
 func TestHex_ReflectR(t *testing.T) {
 	t.Run("swaps q and s", func(t *testing.T) {
-		AssertHex(t, Pt(0, 0).ReflectR(), Pt(0, 0))
-		AssertHex(t, Pt(1, 0).ReflectR(), Pt(-1, 0))
-		AssertHex(t, Pt(2, 0).ReflectR(), Pt(-2, 0))
-		AssertHex(t, Pt(-2, 0).ReflectR(), Pt(2, 0))
+		hextest.AssertHex(t, Pt(0, 0).ReflectR(), Pt(0, 0))
+		hextest.AssertHex(t, Pt(1, 0).ReflectR(), Pt(-1, 0))
+		hextest.AssertHex(t, Pt(2, 0).ReflectR(), Pt(-2, 0))
+		hextest.AssertHex(t, Pt(-2, 0).ReflectR(), Pt(2, 0))
 	})
 	t.Run("keeps r", func(t *testing.T) {
 		assert.Equal(t, testHex.ReflectR().R, testHex.R)
 	})
 	t.Run("twice is the identity", func(t *testing.T) {
-		AssertHex(t, testHex.ReflectR().ReflectR(), testHex)
+		hextest.AssertHex(t, testHex.ReflectR().ReflectR(), testHex)
 	})
 }
 
 func TestHex_ReflectS(t *testing.T) {
 	t.Run("swaps q and r", func(t *testing.T) {
-		AssertHex(t, Pt(0, 0).ReflectS(), Pt(0, 0))
-		AssertHex(t, Pt(1, 0).ReflectS(), Pt(0, 1))
-		AssertHex(t, Pt(3, -1).ReflectS(), Pt(-1, 3))
-		AssertHex(t, Pt(-1, 3).ReflectS(), Pt(3, -1))
+		hextest.AssertHex(t, Pt(0, 0).ReflectS(), Pt(0, 0))
+		hextest.AssertHex(t, Pt(1, 0).ReflectS(), Pt(0, 1))
+		hextest.AssertHex(t, Pt(3, -1).ReflectS(), Pt(-1, 3))
+		hextest.AssertHex(t, Pt(-1, 3).ReflectS(), Pt(3, -1))
 	})
 	t.Run("keeps s", func(t *testing.T) {
 		assert.Equal(t, testHex.ReflectS().S(), testHex.S())
 	})
 	t.Run("twice is the identity", func(t *testing.T) {
-		AssertHex(t, testHex.ReflectS().ReflectS(), testHex)
+		hextest.AssertHex(t, testHex.ReflectS().ReflectS(), testHex)
 	})
 }
 
 func TestHex_Neighbor(t *testing.T) {
 	t.Run("one step in each direction", func(t *testing.T) {
-		AssertHex(t, testHex.Neighbor(SMinus), Pt(0, 3))
-		AssertHex(t, testHex.Neighbor(RPlus), Pt(-1, 4))
-		AssertHex(t, testHex.Neighbor(QMinus), Pt(-2, 4))
-		AssertHex(t, testHex.Neighbor(SPlus), Pt(-2, 3))
-		AssertHex(t, testHex.Neighbor(RMinus), Pt(-1, 2))
-		AssertHex(t, testHex.Neighbor(QPlus), Pt(0, 2))
+		hextest.AssertHex(t, testHex.Neighbor(SMinus), Pt(0, 3))
+		hextest.AssertHex(t, testHex.Neighbor(RPlus), Pt(-1, 4))
+		hextest.AssertHex(t, testHex.Neighbor(QMinus), Pt(-2, 4))
+		hextest.AssertHex(t, testHex.Neighbor(SPlus), Pt(-2, 3))
+		hextest.AssertHex(t, testHex.Neighbor(RMinus), Pt(-1, 2))
+		hextest.AssertHex(t, testHex.Neighbor(QPlus), Pt(0, 2))
 	})
 	t.Run("out-of-range directions wrap", func(t *testing.T) {
-		AssertHex(t, testHex.Neighbor(Direction(6)), Pt(0, 3))
-		AssertHex(t, testHex.Neighbor(Direction(-2)), Pt(-1, 2))
+		hextest.AssertHex(t, testHex.Neighbor(Direction(6)), Pt(0, 3))
+		hextest.AssertHex(t, testHex.Neighbor(Direction(-2)), Pt(-1, 2))
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
-		AssertHex(t, testHex.Neighbor(DirectionNone), testHex)
+		hextest.AssertHex(t, testHex.Neighbor(DirectionNone), testHex)
 	})
 }
 
 func TestHex_Neighbors(t *testing.T) {
 	t.Run("by increasing angle", func(t *testing.T) {
-		assert.Equal(t, testHex.Neighbors(), [6]Hex{{0, 3}, {-1, 4}, {-2, 4}, {-2, 3}, {-1, 2}, {0, 2}})
+		assert.Equal(t, testHex.Neighbors(), [6]Hex{Pt(0, 3), Pt(-1, 4), Pt(-2, 4), Pt(-2, 3), Pt(-1, 2), Pt(0, 2)})
 	})
 	t.Run("every neighbor is one step away", func(t *testing.T) {
 		for _, neighbor := range testHex.Neighbors() {
@@ -222,10 +224,10 @@ func TestHex_Range(t *testing.T) {
 		assert.Equal(t, testHexZero.Range(-1), nil)
 	})
 	t.Run("zero radius is the center", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Range(0), []Hex{{0, 0}})
+		assert.Equal(t, testHexZero.Range(0), []Hex{Pt(0, 0)})
 	})
 	t.Run("radius one", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
+		assert.Equal(t, testHexZero.Range(1), []Hex{Pt(-1, 0), Pt(-1, 1), Pt(0, -1), Pt(0, 0), Pt(0, 1), Pt(1, -1), Pt(1, 0)})
 	})
 	t.Run("counts and fills its capacity", func(t *testing.T) {
 		for _, n := range []int{1, 2, 3, 5, 10, 20} {
@@ -269,10 +271,10 @@ func TestHex_Ring(t *testing.T) {
 		assert.Equal(t, testHexZero.Ring(-1), nil)
 	})
 	t.Run("zero radius is the center", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Ring(0), []Hex{{0, 0}})
+		assert.Equal(t, testHexZero.Ring(0), []Hex{Pt(0, 0)})
 	})
 	t.Run("radius one from the SMinus corner", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Ring(1), []Hex{{1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}})
+		assert.Equal(t, testHexZero.Ring(1), []Hex{Pt(1, 0), Pt(0, 1), Pt(-1, 1), Pt(-1, 0), Pt(0, -1), Pt(1, -1)})
 	})
 	t.Run("radius one is the neighbors in order", func(t *testing.T) {
 		neighbors := testHex.Neighbors()
@@ -314,10 +316,10 @@ func TestHex_Spiral(t *testing.T) {
 		assert.Equal(t, testHexZero.Spiral(-1), nil)
 	})
 	t.Run("zero radius is the center", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Spiral(0), []Hex{{0, 0}})
+		assert.Equal(t, testHexZero.Spiral(0), []Hex{Pt(0, 0)})
 	})
 	t.Run("radius one is the center and its ring", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Spiral(1), []Hex{{0, 0}, {1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}})
+		assert.Equal(t, testHexZero.Spiral(1), []Hex{Pt(0, 0), Pt(1, 0), Pt(0, 1), Pt(-1, 1), Pt(-1, 0), Pt(0, -1), Pt(1, -1)})
 	})
 	t.Run("holds the hexes of Range", func(t *testing.T) {
 		for _, n := range []int{1, 2, 3, 5} {
@@ -365,14 +367,14 @@ func TestHex_DistanceTo(t *testing.T) {
 
 func TestHex_Line(t *testing.T) {
 	t.Run("straight lines from the origin", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Line(Pt(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
-		assert.Equal(t, testHexZero.Line(Pt(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
-		assert.Equal(t, testHexZero.Line(Pt(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
-		assert.Equal(t, testHexZero.Line(Pt(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
-		assert.Equal(t, testHexZero.Line(Pt(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+		assert.Equal(t, testHexZero.Line(Pt(3, 0)), []Hex{Pt(0, 0), Pt(1, 0), Pt(2, 0), Pt(3, 0)})
+		assert.Equal(t, testHexZero.Line(Pt(2, -1)), []Hex{Pt(0, 0), Pt(1, 0), Pt(2, -1)})
+		assert.Equal(t, testHexZero.Line(Pt(-2, 1)), []Hex{Pt(0, 0), Pt(-1, 1), Pt(-2, 1)})
+		assert.Equal(t, testHexZero.Line(Pt(4, -2)), []Hex{Pt(0, 0), Pt(1, 0), Pt(2, -1), Pt(3, -1), Pt(4, -2)})
+		assert.Equal(t, testHexZero.Line(Pt(-4, 2)), []Hex{Pt(0, 0), Pt(-1, 1), Pt(-2, 1), Pt(-3, 2), Pt(-4, 2)})
 	})
 	t.Run("to itself is one hex", func(t *testing.T) {
-		assert.Equal(t, testHexZero.Line(testHexZero), []Hex{{0, 0}})
+		assert.Equal(t, testHexZero.Line(testHexZero), []Hex{Pt(0, 0)})
 		assert.Equal(t, testHex.Line(testHex), []Hex{testHex})
 	})
 	t.Run("steps between neighbors from end to end", func(t *testing.T) {
@@ -536,11 +538,11 @@ func TestHex_Point(t *testing.T) {
 
 func TestHex_Float(t *testing.T) {
 	t.Run("same coordinates", func(t *testing.T) {
-		AssertFractionalHex(t, testHex.Float(), FracPt(-1, 3))
+		hextest.AssertFractionalHex(t, testHex.Float(), FracPt(-1, 3))
 	})
 	t.Run("round-trips through Round", func(t *testing.T) {
 		for _, h := range testHexZero.Spiral(2) {
-			AssertHex(t, h.Float().Round(), h)
+			hextest.AssertHex(t, h.Float().Round(), h)
 		}
 	})
 }
@@ -556,5 +558,5 @@ func TestHex_JSON(t *testing.T) {
 
 	var decoded Hex
 	assert.NoError(t, json.Unmarshal(data, &decoded))
-	AssertHex(t, decoded, testHex)
+	hextest.AssertHex(t, decoded, testHex)
 }

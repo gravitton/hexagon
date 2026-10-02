@@ -1,4 +1,4 @@
-package hex
+package hex_test
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
+	. "github.com/gravitton/hexagon"
+	"github.com/gravitton/hexagon/hextest"
 )
 
 var axialDirection = [6]ints.Vector{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: -1, Y: 1}, {X: -1, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: -1}}
@@ -168,11 +170,11 @@ func TestDirection_Hex(t *testing.T) {
 	t.Run("the offset as a hex", func(t *testing.T) {
 		for _, direction := range Directions() {
 			offset := direction.Offset()
-			AssertHex(t, direction.Hex(), Pt(offset.X, offset.Y), direction.String())
+			hextest.AssertHex(t, direction.Hex(), Pt(offset.X, offset.Y), direction.String())
 		}
 	})
 	t.Run("none is the zero hex", func(t *testing.T) {
-		AssertHex(t, DirectionNone.Hex(), testHexZero)
+		hextest.AssertHex(t, DirectionNone.Hex(), testHexZero)
 	})
 }
 
