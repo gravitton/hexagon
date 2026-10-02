@@ -1,6 +1,7 @@
 package hex
 
 import (
+	"encoding/json"
 	"slices"
 	"testing"
 
@@ -11,12 +12,16 @@ import (
 var (
 	testHex     = Hex{-1, 3}
 	testHexZero = Hex{0, 0}
-	testFracHex = FractionalHex{10.9, -1.2}
+)
+
+var (
+	sinkHex   Hex
+	sinkHexes []Hex
+	sinkBool  bool
 )
 
 func TestHex_Constructor(t *testing.T) {
-	AssertHex(t, testHex, -1, 3)
-	AssertHex(t, Pt(1, -2), 1, -2)
+	AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
 }
 
 func TestHex_S(t *testing.T) {
@@ -36,345 +41,443 @@ func TestHex_QRS(t *testing.T) {
 	assert.Equal(t, s, -2)
 }
 
+func TestHex_Length(t *testing.T) {
+	t.Run("steps from the origin", func(t *testing.T) {
+		assert.Equal(t, testHex.Length(), 3)
+		assert.Equal(t, testHexZero.Length(), 0)
+	})
+	t.Run("counts the rings of a spiral", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.True(t, h.Length() <= 3, h.String())
+		}
+	})
+}
+
 func TestHex_Add(t *testing.T) {
-	AssertHex(t, testHex.Add(Pt(3, -2)), 2, 1)
+	AssertHex(t, testHex.Add(Pt(3, -2)), Pt(2, 1))
 }
 
 func TestHex_Subtract(t *testing.T) {
-	AssertHex(t, testHex.Subtract(Pt(3, -2)), -4, 5)
+	AssertHex(t, testHex.Subtract(Pt(3, -2)), Pt(-4, 5))
 }
 
 func TestHex_Multiply(t *testing.T) {
-	AssertHex(t, testHex.Multiply(3), -3, 9)
-	AssertHex(t, testHex.Multiply(0), 0, 0)
-	AssertHex(t, testHex.Multiply(-1), 1, -3)
-	AssertHex(t, testHex.Multiply(-2), 2, -6)
+	t.Run("positive", func(t *testing.T) {
+		AssertHex(t, testHex.Multiply(3), Pt(-3, 9))
+	})
+	t.Run("zero", func(t *testing.T) {
+		AssertHex(t, testHex.Multiply(0), testHexZero)
+	})
+	t.Run("negative", func(t *testing.T) {
+		AssertHex(t, testHex.Multiply(-1), Pt(1, -3))
+		AssertHex(t, testHex.Multiply(-2), Pt(2, -6))
+	})
 }
 
-func TestHex_Length(t *testing.T) {
-	assert.Equal(t, testHex.Length(), 3)
+func TestHex_Lerp(t *testing.T) {
+	a := Pt(0, 0)
+	b := Pt(4, -2)
+
+	t.Run("ends and midpoint", func(t *testing.T) {
+		AssertHex(t, a.Lerp(b, 0), a)
+		AssertHex(t, a.Lerp(b, 1), b)
+		AssertHex(t, a.Lerp(b, 0.5), Pt(2, -1))
+	})
+	t.Run("stays on the straight line between the two hexes", func(t *testing.T) {
+		for i := range 11 {
+			h := a.Lerp(b, float64(i)/10)
+			assert.Equal(t, a.DistanceTo(h)+h.DistanceTo(b), a.DistanceTo(b))
+		}
+	})
 }
 
-func TestHex_DistanceTo(t *testing.T) {
-	assert.Equal(t, testHex.DistanceTo(Pt(0, 3)), 1)
-	assert.Equal(t, testHex.DistanceTo(Pt(1, 6)), 5)
-
-	a := Pt(3, -2)
-	b := Pt(-1, 5)
-	assert.Equal(t, a.DistanceTo(b), b.DistanceTo(a))
-}
-
-func TestHex_Rotate(t *testing.T) {
+func TestHex_Turn(t *testing.T) {
 	h := Pt(3, 0)
 
-	// 0 steps is identity
-	AssertHex(t, h.Rotate(0), h.Q, h.R)
-
-	// 6 steps is identity
-	AssertHex(t, h.Rotate(6), h.Q, h.R)
-
-	// one step forward: (q,r) → (-r, q+r)
-	AssertHex(t, h.Rotate(1), -h.R, h.Q+h.R)
-
-	// one step back: (q,r) → (q+r, -q)
-	AssertHex(t, h.Rotate(-1), h.Q+h.R, -h.Q)
-
-	// rotating there and back returns to start
-	AssertHex(t, h.Rotate(1).Rotate(-1), h.Q, h.R)
-
-	// rotating a direction offset agrees with rotating the direction itself
-	for _, direction := range Directions {
-		for steps := -6; steps <= 6; steps++ {
-			rotated := direction.Rotate(steps).Hex()
-			AssertHex(t, direction.Hex().Rotate(steps), rotated.Q, rotated.R, direction.String())
+	t.Run("zero and six steps are the identity", func(t *testing.T) {
+		AssertHex(t, h.Turn(0), h)
+		AssertHex(t, h.Turn(6), h)
+	})
+	t.Run("one step forward", func(t *testing.T) {
+		AssertHex(t, h.Turn(1), Pt(-h.R, h.Q+h.R))
+	})
+	t.Run("one step back", func(t *testing.T) {
+		AssertHex(t, h.Turn(-1), Pt(h.Q+h.R, -h.Q))
+	})
+	t.Run("there and back returns to the start", func(t *testing.T) {
+		AssertHex(t, h.Turn(1).Turn(-1), h)
+	})
+	t.Run("agrees with turning the direction", func(t *testing.T) {
+		for _, direction := range Directions() {
+			for steps := -6; steps <= 6; steps++ {
+				AssertHex(t, direction.Hex().Turn(steps), direction.Turn(steps).Hex(), direction.String())
+			}
 		}
-	}
+	})
 }
 
-func TestHex_RotateAround(t *testing.T) {
+func TestHex_TurnAround(t *testing.T) {
 	center := Pt(1, 1)
 	h := Pt(3, 0)
 
-	// 0 steps is identity
-	AssertHex(t, h.RotateAround(center, 0), h.Q, h.R)
-
-	// 6 steps is identity
-	AssertHex(t, h.RotateAround(center, 6), h.Q, h.R)
-
-	// distance from center is preserved after rotation
-	dist := center.DistanceTo(h)
-	for steps := 1; steps <= 5; steps++ {
-		assert.Equal(t, center.DistanceTo(h.RotateAround(center, steps)), dist)
-	}
-
-	// rotating there and back returns to start
-	AssertHex(t, h.RotateAround(center, 1).RotateAround(center, -1), h.Q, h.R)
-
-	// RotateAround origin equals Rotate
-	AssertHex(t, h.RotateAround(testHexZero, 1), h.Rotate(1).Q, h.Rotate(1).R)
-	AssertHex(t, h.RotateAround(testHexZero, -1), h.Rotate(-1).Q, h.Rotate(-1).R)
+	t.Run("zero and six steps are the identity", func(t *testing.T) {
+		AssertHex(t, h.TurnAround(center, 0), h)
+		AssertHex(t, h.TurnAround(center, 6), h)
+	})
+	t.Run("keeps the distance from the center", func(t *testing.T) {
+		for steps := 1; steps <= 5; steps++ {
+			assert.Equal(t, center.DistanceTo(h.TurnAround(center, steps)), center.DistanceTo(h))
+		}
+	})
+	t.Run("there and back returns to the start", func(t *testing.T) {
+		AssertHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
+	})
+	t.Run("around the origin is Turn", func(t *testing.T) {
+		AssertHex(t, h.TurnAround(testHexZero, 1), h.Turn(1))
+		AssertHex(t, h.TurnAround(testHexZero, -1), h.Turn(-1))
+	})
 }
 
 func TestHex_ReflectQ(t *testing.T) {
-	// double reflection is identity
-	h := Pt(2, 1)
-	AssertHex(t, h.ReflectQ().ReflectQ(), h.Q, h.R)
-
-	// q coordinate is preserved
-	assert.Equal(t, h.ReflectQ().Q, h.Q)
-
-	// specific cases
-	AssertHex(t, Pt(0, 0).ReflectQ(), 0, 0)
-	AssertHex(t, Pt(1, 0).ReflectQ(), 1, -1) // r' = -q-r = -1
-	AssertHex(t, Pt(2, 0).ReflectQ(), 2, -2)
-	AssertHex(t, Pt(2, -2).ReflectQ(), 2, 0) // symmetric with Coord(2,0)
+	t.Run("swaps r and s", func(t *testing.T) {
+		AssertHex(t, Pt(0, 0).ReflectQ(), Pt(0, 0))
+		AssertHex(t, Pt(1, 0).ReflectQ(), Pt(1, -1))
+		AssertHex(t, Pt(2, 0).ReflectQ(), Pt(2, -2))
+		AssertHex(t, Pt(2, -2).ReflectQ(), Pt(2, 0))
+	})
+	t.Run("keeps q", func(t *testing.T) {
+		assert.Equal(t, testHex.ReflectQ().Q, testHex.Q)
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		AssertHex(t, testHex.ReflectQ().ReflectQ(), testHex)
+	})
 }
 
 func TestHex_ReflectR(t *testing.T) {
-	// double reflection is identity
-	h := Pt(2, 1)
-	AssertHex(t, h.ReflectR().ReflectR(), h.Q, h.R)
-
-	// r coordinate is preserved
-	assert.Equal(t, h.ReflectR().R, h.R)
-
-	// specific cases
-	AssertHex(t, Pt(0, 0).ReflectR(), 0, 0)
-	AssertHex(t, Pt(1, 0).ReflectR(), -1, 0) // q' = -q-r = -1
-	AssertHex(t, Pt(2, 0).ReflectR(), -2, 0)
-	AssertHex(t, Pt(-2, 0).ReflectR(), 2, 0) // symmetric with Coord(2,0)
+	t.Run("swaps q and s", func(t *testing.T) {
+		AssertHex(t, Pt(0, 0).ReflectR(), Pt(0, 0))
+		AssertHex(t, Pt(1, 0).ReflectR(), Pt(-1, 0))
+		AssertHex(t, Pt(2, 0).ReflectR(), Pt(-2, 0))
+		AssertHex(t, Pt(-2, 0).ReflectR(), Pt(2, 0))
+	})
+	t.Run("keeps r", func(t *testing.T) {
+		assert.Equal(t, testHex.ReflectR().R, testHex.R)
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		AssertHex(t, testHex.ReflectR().ReflectR(), testHex)
+	})
 }
 
 func TestHex_ReflectS(t *testing.T) {
-	// double reflection is identity
-	h := Pt(2, 1)
-	AssertHex(t, h.ReflectS().ReflectS(), h.Q, h.R)
-
-	// s coordinate is preserved
-	assert.Equal(t, h.ReflectS().S(), h.S())
-
-	// specific cases: q and r are swapped
-	AssertHex(t, Pt(0, 0).ReflectS(), 0, 0)
-	AssertHex(t, Pt(1, 0).ReflectS(), 0, 1)
-	AssertHex(t, Pt(3, -1).ReflectS(), -1, 3)
-	AssertHex(t, Pt(-1, 3).ReflectS(), 3, -1) // symmetric with Coord(3,-1)
-}
-
-func TestHex_Neighbors(t *testing.T) {
-	assert.Equal(t, testHex.Neighbors(), []Hex{{0, 3}, {-1, 4}, {-2, 4}, {-2, 3}, {-1, 2}, {0, 2}})
+	t.Run("swaps q and r", func(t *testing.T) {
+		AssertHex(t, Pt(0, 0).ReflectS(), Pt(0, 0))
+		AssertHex(t, Pt(1, 0).ReflectS(), Pt(0, 1))
+		AssertHex(t, Pt(3, -1).ReflectS(), Pt(-1, 3))
+		AssertHex(t, Pt(-1, 3).ReflectS(), Pt(3, -1))
+	})
+	t.Run("keeps s", func(t *testing.T) {
+		assert.Equal(t, testHex.ReflectS().S(), testHex.S())
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		AssertHex(t, testHex.ReflectS().ReflectS(), testHex)
+	})
 }
 
 func TestHex_Neighbor(t *testing.T) {
-	AssertHex(t, testHex.Neighbor(SMinus), 0, 3)
-	AssertHex(t, testHex.Neighbor(QPlus), 0, 2)
-	AssertHex(t, testHex.Neighbor(RMinus), -1, 2)
-	AssertHex(t, testHex.Neighbor(SPlus), -2, 3)
-	AssertHex(t, testHex.Neighbor(QMinus), -2, 4)
-	AssertHex(t, testHex.Neighbor(RPlus), -1, 4)
+	t.Run("one step in each direction", func(t *testing.T) {
+		AssertHex(t, testHex.Neighbor(SMinus), Pt(0, 3))
+		AssertHex(t, testHex.Neighbor(RPlus), Pt(-1, 4))
+		AssertHex(t, testHex.Neighbor(QMinus), Pt(-2, 4))
+		AssertHex(t, testHex.Neighbor(SPlus), Pt(-2, 3))
+		AssertHex(t, testHex.Neighbor(RMinus), Pt(-1, 2))
+		AssertHex(t, testHex.Neighbor(QPlus), Pt(0, 2))
+	})
+	t.Run("out-of-range directions wrap", func(t *testing.T) {
+		AssertHex(t, testHex.Neighbor(Direction(6)), Pt(0, 3))
+		AssertHex(t, testHex.Neighbor(Direction(-2)), Pt(-1, 2))
+	})
+	t.Run("none steps nowhere", func(t *testing.T) {
+		AssertHex(t, testHex.Neighbor(DirectionNone), testHex)
+	})
+}
 
-	// out-of-range directions wrap, negatives included
-	AssertHex(t, testHex.Neighbor(Direction(6)), 0, 3)
-	AssertHex(t, testHex.Neighbor(Direction(-1)), 0, 2)
+func TestHex_Neighbors(t *testing.T) {
+	t.Run("by increasing angle", func(t *testing.T) {
+		assert.Equal(t, testHex.Neighbors(), [6]Hex{{0, 3}, {-1, 4}, {-2, 4}, {-2, 3}, {-1, 2}, {0, 2}})
+	})
+	t.Run("every neighbor is one step away", func(t *testing.T) {
+		for _, neighbor := range testHex.Neighbors() {
+			assert.Equal(t, testHex.DistanceTo(neighbor), 1)
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHex = testHex.Neighbors()[0]
+		}), 0.0)
+	})
 }
 
 func TestHex_Range(t *testing.T) {
-	assert.Equal(t, testHexZero.Range(-1), nil)
-	assert.Equal(t, testHexZero.Range(0), []Hex{{-0, 0}})
-	assert.Equal(t, testHexZero.Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
-	assert.Equal(t, len(testHexZero.Range(2)), 19)
-	assert.Equal(t, len(testHexZero.Range(3)), 37)
+	t.Run("negative radius is nil", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Range(-1), nil)
+	})
+	t.Run("zero radius is the center", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Range(0), []Hex{{0, 0}})
+	})
+	t.Run("radius one", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Range(1), []Hex{{-1, 0}, {-1, 1}, {0, -1}, {0, 0}, {0, 1}, {1, -1}, {1, 0}})
+	})
+	t.Run("counts and fills its capacity", func(t *testing.T) {
+		for _, n := range []int{1, 2, 3, 5, 10, 20} {
+			hexes := testHex.Range(n)
+			assert.Equal(t, len(hexes), 1+3*n*(n+1))
+			assert.Equal(t, cap(hexes), len(hexes))
+		}
+	})
+	t.Run("every hex is within the radius", func(t *testing.T) {
+		for _, h := range testHex.Range(3) {
+			assert.True(t, testHex.DistanceTo(h) <= 3)
+		}
+	})
+	t.Run("ordered like Compare", func(t *testing.T) {
+		assert.True(t, slices.IsSortedFunc(testHex.Range(3), Hex.Compare))
+	})
+	t.Run("allocates once", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHex.Range(3)
+		}), 1.0)
+	})
 }
 
-func TestHex_Range_Large(t *testing.T) {
-	for _, n := range []int{5, 10, 20} {
-		expected := 1 + 3*n*(n+1)
-		assert.Equal(t, len(testHexZero.Range(n)), expected)
-	}
+func TestHex_AppendRange(t *testing.T) {
+	t.Run("appends after dst", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendRange([]Hex{testHexZero}, 1), append([]Hex{testHexZero}, testHex.Range(1)...))
+	})
+	t.Run("negative radius appends nothing", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendRange([]Hex{testHexZero}, -1), []Hex{testHexZero})
+	})
+	t.Run("allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, 37)
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHex.AppendRange(buffer, 3)
+		}), 0.0)
+	})
 }
 
 func TestHex_Ring(t *testing.T) {
-	// negative radius returns nil
-	assert.Equal(t, testHexZero.Ring(-1), nil)
+	t.Run("negative radius is nil", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Ring(-1), nil)
+	})
+	t.Run("zero radius is the center", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Ring(0), []Hex{{0, 0}})
+	})
+	t.Run("radius one from the SMinus corner", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Ring(1), []Hex{{1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}})
+	})
+	t.Run("radius one is the neighbors in order", func(t *testing.T) {
+		neighbors := testHex.Neighbors()
+		assert.Equal(t, testHex.Ring(1), neighbors[:])
+	})
+	t.Run("counts and fills its capacity", func(t *testing.T) {
+		for _, radius := range []int{1, 2, 3, 5, 10} {
+			ring := testHex.Ring(radius)
+			assert.Equal(t, len(ring), 6*radius)
+			assert.Equal(t, cap(ring), len(ring))
+		}
+	})
+	t.Run("every hex is at the radius", func(t *testing.T) {
+		for _, h := range testHex.Ring(3) {
+			assert.Equal(t, testHex.DistanceTo(h), 3)
+		}
+	})
+	t.Run("allocates once", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHex.Ring(3)
+		}), 1.0)
+	})
+}
 
-	// radius 0 returns just the center
-	assert.Equal(t, testHexZero.Ring(0), []Hex{{0, 0}})
-
-	// radius 1: 6 hexes all at distance 1
-	ring1 := testHexZero.Ring(1)
-	assert.Equal(t, len(ring1), 6)
-	// specific increasing-angle order starting from the SMinus corner
-	assert.Equal(t, ring1, []Hex{{1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}})
-
-	// radius 1 is exactly the neighbor set, in the same order
-	assert.Equal(t, ring1, testHexZero.Neighbors())
-	assert.Equal(t, testHex.Ring(1), testHex.Neighbors())
-	for _, h := range ring1 {
-		assert.Equal(t, testHexZero.DistanceTo(h), 1)
-	}
-
-	// radius 2: 12 hexes all at distance 2
-	ring2 := testHexZero.Ring(2)
-	assert.Equal(t, len(ring2), 12)
-	for _, h := range ring2 {
-		assert.Equal(t, testHexZero.DistanceTo(h), 2)
-	}
-
-	// count is always 6 * radius for radius >= 1
-	for _, radius := range []int{3, 5, 10} {
-		assert.Equal(t, len(testHexZero.Ring(radius)), 6*radius)
-	}
-
-	// non-origin center
-	center := Pt(2, -3)
-	ring := center.Ring(1)
-	assert.Equal(t, len(ring), 6)
-	for _, h := range ring {
-		assert.Equal(t, center.DistanceTo(h), 1)
-	}
+func TestHex_AppendRing(t *testing.T) {
+	t.Run("appends after dst", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, 2), append([]Hex{testHexZero}, testHex.Ring(2)...))
+	})
+	t.Run("zero radius appends the center", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, 0), []Hex{testHexZero, testHex})
+	})
+	t.Run("negative radius appends nothing", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, -1), []Hex{testHexZero})
+	})
 }
 
 func TestHex_Spiral(t *testing.T) {
-	assert.Equal(t, testHexZero.Spiral(-1), nil)
-	assert.Equal(t, testHexZero.Spiral(0), []Hex{{0, 0}})
+	t.Run("negative radius is nil", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Spiral(-1), nil)
+	})
+	t.Run("zero radius is the center", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Spiral(0), []Hex{{0, 0}})
+	})
+	t.Run("radius one is the center and its ring", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Spiral(1), []Hex{{0, 0}, {1, 0}, {0, 1}, {-1, 1}, {-1, 0}, {0, -1}, {1, -1}})
+	})
+	t.Run("holds the hexes of Range", func(t *testing.T) {
+		for _, n := range []int{1, 2, 3, 5} {
+			spiral := testHex.Spiral(n)
+			assert.Equal(t, cap(spiral), len(spiral))
 
-	// radius 1: center + ring1 = 7 hexes
-	spiral1 := testHexZero.Spiral(1)
-	assert.Equal(t, len(spiral1), 7)
-	assert.Equal(t, spiral1[0], testHexZero) // center comes first
+			slices.SortFunc(spiral, Hex.Compare)
+			assert.Equal(t, spiral, testHex.Range(n))
+		}
+	})
+	t.Run("nearest first", func(t *testing.T) {
+		spiral := testHex.Spiral(3)
+		for i := 1; i < len(spiral); i++ {
+			assert.True(t, testHex.DistanceTo(spiral[i-1]) <= testHex.DistanceTo(spiral[i]))
+		}
+	})
+	t.Run("allocates once", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHex.Spiral(3)
+		}), 1.0)
+	})
+}
 
-	// radius 2: 1 + 6 + 12 = 19 hexes, same count as Range(2)
-	spiral2 := testHexZero.Spiral(2)
-	assert.Equal(t, len(spiral2), len(testHexZero.Range(2)))
+func TestHex_AppendSpiral(t *testing.T) {
+	t.Run("appends after dst", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendSpiral([]Hex{testHexZero}, 2), append([]Hex{testHexZero}, testHex.Spiral(2)...))
+	})
+	t.Run("negative radius appends nothing", func(t *testing.T) {
+		assert.Equal(t, testHex.AppendSpiral([]Hex{testHexZero}, -1), []Hex{testHexZero})
+	})
+}
 
-	// each hex in the spiral is within the radius
-	for _, h := range spiral2 {
-		assert.True(t, testHexZero.DistanceTo(h) <= 2)
-	}
-
-	// count matches Range for several radii
-	for _, n := range []int{3, 5} {
-		assert.Equal(t, len(testHexZero.Spiral(n)), len(testHexZero.Range(n)))
-	}
+func TestHex_DistanceTo(t *testing.T) {
+	t.Run("steps between hexes", func(t *testing.T) {
+		assert.Equal(t, testHex.DistanceTo(Pt(0, 3)), 1)
+		assert.Equal(t, testHex.DistanceTo(Pt(1, 6)), 5)
+		assert.Equal(t, testHex.DistanceTo(testHex), 0)
+	})
+	t.Run("symmetric", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.Equal(t, testHex.DistanceTo(h), h.DistanceTo(testHex), h.String())
+		}
+	})
 }
 
 func TestHex_Line(t *testing.T) {
-	assert.Equal(t, testHexZero.Line(Pt(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
-	assert.Equal(t, testHexZero.Line(Pt(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
-	assert.Equal(t, testHexZero.Line(Pt(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
-	assert.Equal(t, testHexZero.Line(Pt(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
-	assert.Equal(t, testHexZero.Line(Pt(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+	t.Run("straight lines from the origin", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Line(Pt(3, 0)), []Hex{{0, 0}, {1, 0}, {2, 0}, {3, 0}})
+		assert.Equal(t, testHexZero.Line(Pt(2, -1)), []Hex{{0, 0}, {1, 0}, {2, -1}})
+		assert.Equal(t, testHexZero.Line(Pt(-2, 1)), []Hex{{0, 0}, {-1, 1}, {-2, 1}})
+		assert.Equal(t, testHexZero.Line(Pt(4, -2)), []Hex{{0, 0}, {1, 0}, {2, -1}, {3, -1}, {4, -2}})
+		assert.Equal(t, testHexZero.Line(Pt(-4, 2)), []Hex{{0, 0}, {-1, 1}, {-2, 1}, {-3, 2}, {-4, 2}})
+	})
+	t.Run("to itself is one hex", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Line(testHexZero), []Hex{{0, 0}})
+		assert.Equal(t, testHex.Line(testHex), []Hex{testHex})
+	})
+	t.Run("steps between neighbors from end to end", func(t *testing.T) {
+		for _, target := range testHex.Spiral(4) {
+			line := testHex.Line(target)
+			assert.Equal(t, len(line), testHex.DistanceTo(target)+1)
+			assert.Equal(t, cap(line), len(line))
+			assert.Equal(t, line[0], testHex)
+			assert.Equal(t, line[len(line)-1], target)
 
-	assert.Equal(t, testHexZero.Line(testHexZero), []Hex{{0, 0}})
-	assert.Equal(t, testHex.Line(testHex), []Hex{testHex})
+			for i := 1; i < len(line); i++ {
+				assert.Equal(t, line[i-1].DistanceTo(line[i]), 1)
+			}
+		}
+	})
+}
+
+func TestHex_AppendLine(t *testing.T) {
+	assert.Equal(t, testHex.AppendLine([]Hex{testHexZero}, Pt(2, 0)), append([]Hex{testHexZero}, testHex.Line(Pt(2, 0))...))
 }
 
 func TestHex_HasLineOfSight(t *testing.T) {
-	// Clear line with no blockers
-	assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), nil))
-	assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{}))
-
-	// Same hex always has line of sight to itself
-	assert.True(t, testHexZero.HasLineOfSight(testHexZero, nil))
-
-	// Blocked in the middle
-	assert.False(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(1, 0)}))
-	assert.False(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(2, 0)}))
-
-	// Blocker beyond the target does not affect visibility
-	assert.True(t, testHexZero.HasLineOfSight(Pt(2, 0), []Hex{Pt(3, 0)}))
-
-	// Target in the blocking list is still visible (can see into, not through)
-	assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(3, 0)}))
-
-	// The source hex is never treated as a blocker
-	assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{testHexZero}))
-	assert.True(t, testHexZero.HasLineOfSight(testHexZero, []Hex{testHexZero}))
-
-	// Adjacent hexes have nothing in between
-	assert.True(t, testHexZero.HasLineOfSight(Pt(1, 0), []Hex{testHexZero, Pt(1, 0)}))
+	t.Run("clear without blockers", func(t *testing.T) {
+		assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), nil))
+		assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{}))
+		assert.True(t, testHexZero.HasLineOfSight(testHexZero, nil))
+	})
+	t.Run("blocked between", func(t *testing.T) {
+		assert.False(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(1, 0)}))
+		assert.False(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(2, 0)}))
+	})
+	t.Run("a blocker beyond the target is ignored", func(t *testing.T) {
+		assert.True(t, testHexZero.HasLineOfSight(Pt(2, 0), []Hex{Pt(3, 0)}))
+	})
+	t.Run("the endpoints never block", func(t *testing.T) {
+		assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{Pt(3, 0)}))
+		assert.True(t, testHexZero.HasLineOfSight(Pt(3, 0), []Hex{testHexZero}))
+		assert.True(t, testHexZero.HasLineOfSight(testHexZero, []Hex{testHexZero}))
+		assert.True(t, testHexZero.HasLineOfSight(Pt(1, 0), []Hex{testHexZero, Pt(1, 0)}))
+	})
+	t.Run("blocked exactly by the hexes of Line", func(t *testing.T) {
+		target := Pt(4, -1)
+		line := testHexZero.Line(target)
+		for _, h := range testHexZero.Range(5) {
+			between := slices.Contains(line[1:len(line)-1], h)
+			assert.Equal(t, testHexZero.HasLineOfSight(target, []Hex{h}), !between, h.String())
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		blocking := []Hex{Pt(9, 9)}
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkBool = testHexZero.HasLineOfSight(Pt(4, -1), blocking)
+		}), 0.0)
+	})
 }
 
 func TestHex_FieldOfView(t *testing.T) {
-	assert.Equal(t, len(testHexZero.FieldOfView(nil, nil)), 0)
-	assert.Equal(t, len(testHexZero.FieldOfView([]Hex{}, nil)), 0)
-
 	candidates := testHexZero.Range(3)
 
-	// No blocking: all candidates are visible
-	assert.Equal(t, len(testHexZero.FieldOfView(candidates, nil)), len(candidates))
-	assert.Equal(t, len(testHexZero.FieldOfView(candidates, []Hex{})), len(candidates))
-
-	// Immediate neighbors (distance <= 1) are always visible regardless of blocking
-	blocking := testHexZero.Neighbors()
-	visible := testHexZero.FieldOfView(candidates, blocking)
-	for _, v := range visible {
-		assert.True(t, testHexZero.DistanceTo(v) <= 1)
-	}
-
-	// A gap in the blocking ring allows seeing through it
-	// H(1,0) is left unblocked, making H(2,0) and H(3,0) visible in that direction
-	partialBlocking := []Hex{Pt(0, -1), Pt(1, -1), Pt(-1, 0), Pt(-1, 1), Pt(0, 1)}
-	visible = testHexZero.FieldOfView([]Hex{Pt(2, 0), Pt(3, 0), Pt(0, -2)}, partialBlocking)
-	assert.Equal(t, len(visible), 2)
-	assert.Equal(t, visible[0], Pt(2, 0))
-	assert.Equal(t, visible[1], Pt(3, 0))
+	t.Run("no candidates see nothing", func(t *testing.T) {
+		assert.Equal(t, len(testHexZero.FieldOfView(nil, nil)), 0)
+		assert.Equal(t, len(testHexZero.FieldOfView([]Hex{}, nil)), 0)
+	})
+	t.Run("everything is visible without blockers", func(t *testing.T) {
+		assert.Equal(t, testHexZero.FieldOfView(candidates, nil), candidates)
+		assert.Equal(t, testHexZero.FieldOfView(candidates, []Hex{}), candidates)
+	})
+	t.Run("a closed ring leaves only the ring and the center", func(t *testing.T) {
+		neighbors := testHexZero.Neighbors()
+		for _, v := range testHexZero.FieldOfView(candidates, neighbors[:]) {
+			assert.True(t, testHexZero.DistanceTo(v) <= 1)
+		}
+	})
+	t.Run("a gap in the ring lets the line through", func(t *testing.T) {
+		blocking := []Hex{Pt(0, -1), Pt(1, -1), Pt(-1, 0), Pt(-1, 1), Pt(0, 1)}
+		assert.Equal(t, testHexZero.FieldOfView([]Hex{Pt(2, 0), Pt(3, 0), Pt(0, -2)}, blocking), []Hex{Pt(2, 0), Pt(3, 0)})
+	})
+	t.Run("agrees with HasLineOfSight", func(t *testing.T) {
+		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
+		visible := testHexZero.FieldOfView(candidates, blocking)
+		for _, candidate := range candidates {
+			assert.Equal(t, slices.Contains(visible, candidate), testHexZero.HasLineOfSight(candidate, blocking), candidate.String())
+		}
+	})
 }
 
-func TestHex_Point(t *testing.T) {
-	assert.Equal(t, testHex.Point(), geom.Pt(-1, 3))
-	assert.Equal(t, testHexZero.Point(), geom.Pt(0, 0))
+func TestHex_AppendFieldOfView(t *testing.T) {
+	candidates := []Hex{Pt(2, 0), Pt(3, 0)}
+
+	t.Run("appends the visible after dst", func(t *testing.T) {
+		assert.Equal(t, testHexZero.AppendFieldOfView([]Hex{testHex}, candidates, nil), []Hex{testHex, Pt(2, 0), Pt(3, 0)})
+	})
+	t.Run("appends nothing when all are blocked", func(t *testing.T) {
+		assert.Equal(t, testHexZero.AppendFieldOfView([]Hex{testHex}, candidates, []Hex{Pt(1, 0)}), []Hex{testHex})
+	})
 }
 
-func TestHex_IsZero(t *testing.T) {
-	assert.True(t, testHexZero.IsZero())
-	assert.False(t, testHex.IsZero())
-	assert.False(t, Pt(0, 1).IsZero())
-	assert.False(t, Pt(1, 0).IsZero())
-}
-
-func TestHex_String(t *testing.T) {
-	assert.Equal(t, testHex.String(), "(-1,3)")
-}
-
-func TestFractionalHex_New(t *testing.T) {
-	AssertFracHex(t, testFracHex, 10.9, -1.2)
-	AssertFracHex(t, FracPt(-1.2, -2.5), -1.2, -2.5)
-}
-
-func TestFractionalHex_S(t *testing.T) {
-	assert.EqualDelta(t, testFracHex.S(), -9.7, geom.Delta)
-}
-
-func TestFractionalHex_QR(t *testing.T) {
-	q, r := testFracHex.QR()
-	assert.EqualDelta(t, q, 10.9, geom.Delta)
-	assert.EqualDelta(t, r, -1.2, geom.Delta)
-}
-
-func TestFractionalHex_QRS(t *testing.T) {
-	q, r, s := testFracHex.QRS()
-	assert.EqualDelta(t, q, 10.9, geom.Delta)
-	assert.EqualDelta(t, r, -1.2, geom.Delta)
-	assert.EqualDelta(t, s, -9.7, geom.Delta)
-}
-
-func TestFractionalHex_Point(t *testing.T) {
-	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
-}
-
-func TestFractionalHex_Lerp(t *testing.T) {
-	AssertFracHex(t, testFracHex.Lerp(FracPt(12, 0), 0.1), 11.01, -1.08)
-}
-
-func TestFractionalHex_Round(t *testing.T) {
-	AssertHex(t, FracPt(10.9, 16.2).Round(), 11, 16)
-	AssertHex(t, FracPt(10.5001, 16.4999).Round(), 11, 16)
-	AssertHex(t, FracPt(10.50000001, 16.5000001).Round(), 10, 17)
-	AssertHex(t, FracPt(10.500001, 16.500000001).Round(), 11, 16)
-}
-
-func TestFractionalHex_String(t *testing.T) {
-	assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
+func TestHex_Equal(t *testing.T) {
+	t.Run("same coordinates", func(t *testing.T) {
+		assert.True(t, testHex.Equal(Pt(-1, 3)))
+	})
+	t.Run("one coordinate differs", func(t *testing.T) {
+		assert.False(t, testHex.Equal(Pt(-1, 4)))
+		assert.False(t, testHex.Equal(Pt(1, 3)))
+	})
 }
 
 func TestHex_Compare(t *testing.T) {
@@ -414,4 +517,44 @@ func TestHex_Compare(t *testing.T) {
 		assert.True(t, found)
 		assert.Equal(t, index, 2)
 	})
+}
+
+func TestHex_IsZero(t *testing.T) {
+	t.Run("origin", func(t *testing.T) {
+		assert.True(t, testHexZero.IsZero())
+	})
+	t.Run("any other hex", func(t *testing.T) {
+		assert.False(t, testHex.IsZero())
+		assert.False(t, Pt(0, 1).IsZero())
+		assert.False(t, Pt(1, 0).IsZero())
+	})
+}
+
+func TestHex_Point(t *testing.T) {
+	assert.Equal(t, testHex.Point(), geom.Pt(-1, 3))
+}
+
+func TestHex_Float(t *testing.T) {
+	t.Run("same coordinates", func(t *testing.T) {
+		AssertFractionalHex(t, testHex.Float(), FracPt(-1, 3))
+	})
+	t.Run("round-trips through Round", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			AssertHex(t, h.Float().Round(), h)
+		}
+	})
+}
+
+func TestHex_String(t *testing.T) {
+	assert.Equal(t, testHex.String(), "(-1,3)")
+}
+
+func TestHex_JSON(t *testing.T) {
+	data, err := json.Marshal(testHex)
+	assert.NoError(t, err)
+	assert.Equal(t, string(data), `{"q":-1,"r":3}`)
+
+	var decoded Hex
+	assert.NoError(t, json.Unmarshal(data, &decoded))
+	AssertHex(t, decoded, testHex)
 }

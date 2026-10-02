@@ -1,12 +1,44 @@
 package hex
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
 )
+
+func TestCoordinateSystems(t *testing.T) {
+	t.Run("the seven in order", func(t *testing.T) {
+		assert.Equal(t, CoordinateSystems(), [7]CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight})
+	})
+	t.Run("returns a fresh array", func(t *testing.T) {
+		list := CoordinateSystems()
+		list[0] = DoubleWidth
+		assert.Equal(t, CoordinateSystems()[0], Axial)
+	})
+}
+
+func TestParseCoordinateSystem(t *testing.T) {
+	t.Run("round-trips with String", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			parsed, err := ParseCoordinateSystem(system.String())
+			assert.NoError(t, err)
+			assert.Equal(t, parsed, system)
+		}
+	})
+	t.Run("none", func(t *testing.T) {
+		parsed, err := ParseCoordinateSystem("None")
+		assert.NoError(t, err)
+		assert.Equal(t, parsed, CoordinateSystemNone)
+	})
+	t.Run("unknown name", func(t *testing.T) {
+		parsed, err := ParseCoordinateSystem("Cube")
+		assert.Error(t, err)
+		assert.Equal(t, parsed, CoordinateSystemNone)
+	})
+}
 
 func TestCoordinateSystem_Offsets(t *testing.T) {
 	tests := []struct {
@@ -70,29 +102,36 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 			assert.Equal(t, OffsetEvenQ.Offsets(test.index), test.offsetEvenQ)
 			assert.Equal(t, DoubleWidth.Offsets(test.index), test.doubleWidth)
 			assert.Equal(t, DoubleHeight.Offsets(test.index), test.doubleHeight)
-
-			for system, offsets := range map[CoordinateSystem][6]ints.Vector{
-				Axial:        test.axial,
-				OffsetOddR:   test.offsetOddR,
-				OffsetEvenR:  test.offsetEvenR,
-				OffsetOddQ:   test.offsetOddQ,
-				OffsetEvenQ:  test.offsetEvenQ,
-				DoubleWidth:  test.doubleWidth,
-				DoubleHeight: test.doubleHeight,
-			} {
-				assert.Equal(t, system.Offset(test.index, SMinus), offsets[0])
-				assert.Equal(t, system.Offset(test.index, RPlus), offsets[1])
-				assert.Equal(t, system.Offset(test.index, QMinus), offsets[2])
-				assert.Equal(t, system.Offset(test.index, SPlus), offsets[3])
-				assert.Equal(t, system.Offset(test.index, RMinus), offsets[4])
-				assert.Equal(t, system.Offset(test.index, QPlus), offsets[5])
-
-				// out-of-range directions wrap, negatives included
-				assert.Equal(t, system.Offset(test.index, Direction(6)), offsets[0])
-				assert.Equal(t, system.Offset(test.index, Direction(-1)), offsets[5])
-			}
 		})
 	}
+}
+
+func TestCoordinateSystem_Offset(t *testing.T) {
+	indexes := []ints.Point{geom.Pt(0, 0), geom.Pt(1, 1), geom.Pt(3, 2), geom.Pt(-2, -3)}
+
+	t.Run("reads Offsets by direction", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, index := range indexes {
+				offsets := system.Offsets(index)
+				for i, direction := range Directions() {
+					assert.Equal(t, system.Offset(index, direction), offsets[i], system.String())
+				}
+			}
+		}
+	})
+	t.Run("out-of-range directions wrap", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, index := range indexes {
+				assert.Equal(t, system.Offset(index, Direction(6)), system.Offset(index, SMinus), system.String())
+				assert.Equal(t, system.Offset(index, Direction(-2)), system.Offset(index, RMinus), system.String())
+			}
+		}
+	})
+	t.Run("none steps nowhere", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), ints.Vector{}, system.String())
+		}
+	})
 }
 
 func TestCoordinateSystem_Conversion(t *testing.T) {
@@ -256,7 +295,7 @@ func deriveOffsets(index ints.Point, system CoordinateSystem) [6]ints.Vector {
 	hex := system.From(index)
 
 	var offsets [6]ints.Vector
-	for i, direction := range Directions {
+	for i, direction := range Directions() {
 		neighbor := system.To(hex.Neighbor(direction))
 		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
 	}
@@ -295,13 +334,49 @@ func TestCoordinateSystem_Unsupported(t *testing.T) {
 	})
 }
 
+func TestCoordinateSystem_IsNone(t *testing.T) {
+	t.Run("none and every value outside the seven", func(t *testing.T) {
+		assert.True(t, CoordinateSystemNone.IsNone())
+		assert.True(t, CoordinateSystem(99).IsNone())
+	})
+	t.Run("the seven are not none", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.False(t, system.IsNone(), system.String())
+		}
+	})
+}
+
 func TestCoordinateSystem_String(t *testing.T) {
-	assert.Equal(t, Axial.String(), "Axial")
-	assert.Equal(t, OffsetOddR.String(), "OffsetOddR")
-	assert.Equal(t, OffsetEvenR.String(), "OffsetEvenR")
-	assert.Equal(t, OffsetOddQ.String(), "OffsetOddQ")
-	assert.Equal(t, OffsetEvenQ.String(), "OffsetEvenQ")
-	assert.Equal(t, DoubleWidth.String(), "DoubleWidth")
-	assert.Equal(t, DoubleHeight.String(), "DoubleHeight")
-	assert.Equal(t, CoordinateSystem(99).String(), "CoordinateSystem(99)")
+	t.Run("the constant names", func(t *testing.T) {
+		assert.Equal(t, Axial.String(), "Axial")
+		assert.Equal(t, OffsetOddR.String(), "OffsetOddR")
+		assert.Equal(t, OffsetEvenR.String(), "OffsetEvenR")
+		assert.Equal(t, OffsetOddQ.String(), "OffsetOddQ")
+		assert.Equal(t, OffsetEvenQ.String(), "OffsetEvenQ")
+		assert.Equal(t, DoubleWidth.String(), "DoubleWidth")
+		assert.Equal(t, DoubleHeight.String(), "DoubleHeight")
+	})
+	t.Run("none and every value outside the seven", func(t *testing.T) {
+		assert.Equal(t, CoordinateSystemNone.String(), "None")
+		assert.Equal(t, CoordinateSystem(99).String(), "None")
+	})
+}
+
+func TestCoordinateSystem_Text(t *testing.T) {
+	t.Run("round-trips through JSON as the name", func(t *testing.T) {
+		systems := CoordinateSystems()
+		for _, system := range append(systems[:], CoordinateSystemNone) {
+			data, err := json.Marshal(system)
+			assert.NoError(t, err)
+			assert.Equal(t, string(data), `"`+system.String()+`"`)
+
+			var decoded CoordinateSystem
+			assert.NoError(t, json.Unmarshal(data, &decoded))
+			assert.Equal(t, decoded, system)
+		}
+	})
+	t.Run("unknown name fails", func(t *testing.T) {
+		var decoded CoordinateSystem
+		assert.Error(t, json.Unmarshal([]byte(`"Cube"`), &decoded))
+	})
 }

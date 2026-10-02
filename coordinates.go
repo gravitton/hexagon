@@ -40,7 +40,33 @@ const (
 	// DoubleHeight is a flat-top system that doubles the row axis: col = q, row = 2r+q.
 	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
 	DoubleHeight
+
+	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so
+	// Offsets, To and From have nothing to convert for it and panic.
+	CoordinateSystemNone CoordinateSystem = -1
 )
+
+// CoordinateSystems lists the seven coordinate systems in order. It returns a fresh array, so
+// a caller cannot alter the list.
+func CoordinateSystems() [7]CoordinateSystem {
+	return [7]CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight}
+}
+
+// ParseCoordinateSystem returns the coordinate system with the given name, as String prints it,
+// and an error for any other string. "None" parses to CoordinateSystemNone.
+func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
+	if name == CoordinateSystemNone.String() {
+		return CoordinateSystemNone, nil
+	}
+
+	for _, system := range CoordinateSystems() {
+		if system.String() == name {
+			return system, nil
+		}
+	}
+
+	return CoordinateSystemNone, fmt.Errorf("hex: unknown coordinate system %q", name)
+}
 
 // Offsets returns the 6 neighbor offsets for the given coordinate index in this system,
 // indexed by [Direction]. For offset systems this accounts for row/column parity.
@@ -61,13 +87,18 @@ func (s CoordinateSystem) Offsets(index ints.Point) [6]ints.Vector {
 	case Axial:
 		return directionOffsets
 	default:
-		panic("unsupported coordinate system")
+		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
 	}
 }
 
 // Offset returns the neighbor offset vector for the given coordinate index and direction
-// in this system. Out-of-range directions wrap into [SMinus, QPlus].
+// in this system. Out-of-range directions wrap into [SMinus, QPlus], and [DirectionNone]
+// gives the zero vector.
 func (s CoordinateSystem) Offset(index ints.Point, direction Direction) ints.Vector {
+	if direction.IsNone() {
+		return ints.Vector{}
+	}
+
 	return s.Offsets(index)[direction.normalize()]
 }
 
@@ -89,7 +120,7 @@ func (s CoordinateSystem) To(hex Hex) ints.Point {
 	case Axial:
 		return toAxial(hex)
 	default:
-		panic("unsupported coordinate system")
+		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
 	}
 }
 
@@ -111,7 +142,19 @@ func (s CoordinateSystem) From(index ints.Point) Hex {
 	case Axial:
 		return fromAxial(index)
 	default:
-		panic("unsupported coordinate system")
+		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
+	}
+}
+
+// IsNone reports whether the coordinate system is none of the seven. Like geom.Orientation, a
+// CoordinateSystem outside the constants is not normalized, so every such value counts as
+// CoordinateSystemNone.
+func (s CoordinateSystem) IsNone() bool {
+	switch s {
+	case Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight:
+		return false
+	default:
+		return true
 	}
 }
 
@@ -133,8 +176,27 @@ func (s CoordinateSystem) String() string {
 	case DoubleHeight:
 		return "DoubleHeight"
 	default:
-		return fmt.Sprintf("CoordinateSystem(%d)", int(s))
+		return "None"
 	}
+}
+
+// MarshalText implements encoding.TextMarshaler with the name String prints, so a coordinate
+// system is stored as "OffsetOddR" in JSON and as a map key rather than as its number.
+func (s CoordinateSystem) MarshalText() ([]byte, error) {
+	return []byte(s.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler, the inverse of MarshalText through
+// ParseCoordinateSystem.
+func (s *CoordinateSystem) UnmarshalText(text []byte) error {
+	system, err := ParseCoordinateSystem(string(text))
+	if err != nil {
+		return err
+	}
+
+	*s = system
+
+	return nil
 }
 
 // toAxial returns the axial (q,r) as an ints.Point.
