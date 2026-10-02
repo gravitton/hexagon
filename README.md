@@ -227,12 +227,9 @@ compares within `geom.Epsilon` for `float64`.
 radius returns the center alone; a line from a hex to itself is that one hex. The only panic is a
 `CoordinateSystem` outside the seven passed to `Offsets`, `Offset`, `To` or `From`.
 
-**Methods.** Every type has `Equal`, `String` and a conversion out (`Point`, `Float`, `Round`).
-Each file lists its methods in the same order, and the tests follow it: constructors, properties
-(`S`, `Length`), arithmetic (`Add`, `Multiply`, `Lerp`), geometry (`Turn`, `Reflect*`),
-neighborhood (`Neighbors`, `Range`, `Ring`), relations (`DistanceTo`, `Line`), equality and
-state (`Equal`, `IsZero`), conversions (`To`, `Point`, `Float`), and `String` with text
-marshalling last.
+**Methods.** Both hex types have `Equal`, `String`, JSON with the one-character keys `q` and `r`,
+and a conversion to the other (`Hex.Float`, `FractionalHex.Round`). Both enums have `IsNone`,
+`String`, a `Parse*` function and text marshalling by name.
 
 ## Planned
 

@@ -42,7 +42,7 @@ const (
 	DoubleHeight
 
 	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so
-	// Offsets, To and From have nothing to convert for it and panic.
+	// Offsets, Offset, To and From have nothing to convert for it and panic.
 	CoordinateSystemNone CoordinateSystem = -1
 )
 

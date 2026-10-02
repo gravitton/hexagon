@@ -288,7 +288,7 @@ func (h Hex) To(system CoordinateSystem) ints.Point {
 	return system.To(h)
 }
 
-// Point returns (q,r) as a [ints.Point].
+// Point returns (q,r) as an [ints.Point].
 func (h Hex) Point() ints.Point {
 	return geom.Pt(h.Q, h.R)
 }

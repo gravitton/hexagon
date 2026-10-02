@@ -459,6 +459,12 @@ func TestHex_FieldOfView(t *testing.T) {
 			assert.Equal(t, slices.Contains(visible, candidate), testHexZero.HasLineOfSight(candidate, blocking), candidate.String())
 		}
 	})
+	t.Run("allocates once", func(t *testing.T) {
+		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHexZero.FieldOfView(candidates, blocking)
+		}), 1.0)
+	})
 }
 
 func TestHex_AppendFieldOfView(t *testing.T) {

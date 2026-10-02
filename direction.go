@@ -8,11 +8,12 @@ import (
 	"github.com/gravitton/geometry/types/ints"
 )
 
-// Direction represents one of the six neighbor directions around a hex.
-// The named constants follow cube coordinate axes:
-// - Q+ increments q and compensates by decrementing r.
-// - R+ increments r and compensates by decrementing s (-q-r).
-// - S+ increments s (-q-r) and compensates by decrementing q.
+// Direction represents one of the six neighbor directions around a hex. The named constants
+// follow the cube coordinate axes, each step raising one coordinate and lowering another:
+//
+//   - QPlus raises q and lowers r, QMinus the reverse.
+//   - RPlus raises r and lowers s, RMinus the reverse.
+//   - SPlus raises s and lowers q, SMinus the reverse.
 //
 // Directions are numbered by increasing angle in pixel space, matching geom.Direction:
 // counterclockwise in the standard math convention where Y grows upward, which appears
@@ -96,13 +97,14 @@ func ParseDirection(name string) (Direction, error) {
 	return DirectionNone, fmt.Errorf("hex: unknown direction %q", name)
 }
 
-// Opposite returns the direction directly opposite to d (rotated 180°, three steps away).
+// Opposite returns the direction directly opposite to d, half a turn away, and DirectionNone
+// for DirectionNone.
 func (d Direction) Opposite() Direction {
 	return d.Turn(3)
 }
 
 // Turn advances d by steps sixths of a turn of increasing angle, the same sense as a
-// positive geom.Direction step: counterclockwise in math coordinates, clockwise as drawn
+// positive geom.Direction.Turn step: counterclockwise in math coordinates, clockwise as drawn
 // on a screen with Y pointing down. Negative steps go the other way.
 // Turn(3) is equivalent to Opposite(), and DirectionNone turns to itself.
 func (d Direction) Turn(steps int) Direction {
