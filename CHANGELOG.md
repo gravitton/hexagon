@@ -37,6 +37,10 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Float` – the `FractionalHex` of a hex, the counterpart of `FractionalHex.Round`
 - `FractionalHex.Length`, `DistanceTo`, `Add`, `Subtract`, `Multiply` and `IsZero` – the arithmetic `Hex` has, without rounding to a hex
 - `FractionalHex.Turn`, `TurnAround`, `ReflectQ`, `ReflectR` and `ReflectS` – the cube-space geometry `Hex` has, for a sub-hex position; a turn permutes and negates the cube coordinates directly, so it carries one rounding at most however many steps it takes
+- Runnable examples on pkg.go.dev for the constructors, `Turn`, `Neighbor`, `Range`, `Ring`, `Spiral`, `Line`, line of sight, `Compare`, the coordinate conversions, `DirectionFromAngle` and `FractionalHex.Round`
+- Fuzz tests for `ParseHex`, `Hex.Line`, `FractionalHex.Round`, `DirectionFromAngle` and the `CoordinateSystem` round-trip, whose seeds run with every `go test`
+- Benchmarks for the `Append` forms, `Hex.Lerp`, `Turn`, `DistanceTo`, `ParseHex`, `FractionalHex.Lerp` and `Turn`, `DirectionFromAngle` and `CoordinateSystem.Offsets`, `To` and `From`
+- Tests pinning that `Directions`, `CoordinateSystems`, `CoordinateSystem.Offsets`, `Offset`, `To` and `From`, `Hex.Lerp` and `FractionalHex.Round` allocate nothing, and property tests tying `Turn`, the reflections, `Ring`, `Range`, `DistanceTo`, `FieldOfView` and the offset tables to one another
 
 ### Changed
 - Require `geometry` v1.15.0 and `assert` v1.6.0

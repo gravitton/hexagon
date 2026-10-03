@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"slices"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
+	"github.com/gravitton/geometry/types/ints"
 	. "github.com/gravitton/hexagon"
 	"github.com/gravitton/hexagon/hextest"
 )
@@ -19,9 +21,17 @@ var (
 )
 
 var (
-	sinkHex   Hex
-	sinkHexes []Hex
-	sinkBool  bool
+	sinkHex        Hex
+	sinkHexes      []Hex
+	sinkBool       bool
+	sinkInt        int
+	sinkFracHex    FractionalHex
+	sinkDirection  Direction
+	sinkDirections [6]Direction
+	sinkSystems    [7]CoordinateSystem
+	sinkPoint      ints.Point
+	sinkVector     ints.Vector
+	sinkVectors    [6]ints.Vector
 )
 
 func TestHex_Constructor(t *testing.T) {
@@ -66,6 +76,32 @@ func TestParseHex(t *testing.T) {
 	})
 }
 
+func BenchmarkParseHex(b *testing.B) {
+	for b.Loop() {
+		sinkHex, _ = ParseHex("(-12,345)")
+	}
+}
+
+func FuzzParseHex(f *testing.F) {
+	for _, seed := range []string{"(-1,3)", "(0,0)", "(+1,-0)", "(1.5,2)", "(1,2,3)", "((1,2))", "( 1,2)", "", "(99999999999999999999,1)"} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, s string) {
+		message := strconv.Quote(s) + ": "
+
+		h, err := ParseHex(s)
+		if err != nil {
+			hextest.AssertHex(t, h, testHexZero, message)
+			return
+		}
+
+		parsed, err := ParseHex(h.String())
+		assert.NoError(t, err, message)
+		hextest.AssertHex(t, parsed, h, message)
+	})
+}
+
 func TestHex_S(t *testing.T) {
 	assert.Equal(t, testHex.S(), -2)
 }
@@ -96,11 +132,31 @@ func TestHex_Length(t *testing.T) {
 }
 
 func TestHex_Add(t *testing.T) {
-	hextest.AssertHex(t, testHex.Add(Pt(3, -2)), Pt(2, 1))
+	t.Run("vector sum", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.Add(Pt(3, -2)), Pt(2, 1))
+	})
+	t.Run("commutative", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			hextest.AssertHex(t, testHex.Add(h), h.Add(testHex), h.String()+": ")
+		}
+	})
+	t.Run("the origin changes nothing", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.Add(testHexZero), testHex)
+	})
 }
 
 func TestHex_Subtract(t *testing.T) {
-	hextest.AssertHex(t, testHex.Subtract(Pt(3, -2)), Pt(-4, 5))
+	t.Run("vector difference", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.Subtract(Pt(3, -2)), Pt(-4, 5))
+	})
+	t.Run("undoes Add", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			hextest.AssertHex(t, testHex.Add(h).Subtract(h), testHex, h.String()+": ")
+		}
+	})
+	t.Run("of itself is the origin", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.Subtract(testHex), testHexZero)
+	})
 }
 
 func TestHex_Multiply(t *testing.T) {
@@ -113,6 +169,13 @@ func TestHex_Multiply(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.Multiply(-1), Pt(1, -3))
 		hextest.AssertHex(t, testHex.Multiply(-2), Pt(2, -6))
+	})
+	t.Run("scales the length", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			for factor := -3; factor <= 3; factor++ {
+				assert.Equal(t, h.Multiply(factor).Length(), geom.Abs(factor)*h.Length(), h.String()+" by "+strconv.Itoa(factor)+": ")
+			}
+		}
 	})
 }
 
@@ -139,6 +202,19 @@ func TestHex_Lerp(t *testing.T) {
 			sinkHex = a.Lerp(b, math.Inf(1))
 		})
 	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHex = a.Lerp(b, 0.3)
+		}), 0.0)
+	})
+}
+
+func BenchmarkHex_Lerp(b *testing.B) {
+	target := Pt(10, -4)
+
+	for b.Loop() {
+		sinkHex = testHexZero.Lerp(target, 0.3)
+	}
 }
 
 func TestHex_Turn(t *testing.T) {
@@ -164,6 +240,30 @@ func TestHex_Turn(t *testing.T) {
 			}
 		}
 	})
+	t.Run("keeps the length", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			for steps := -6; steps <= 6; steps++ {
+				assert.Equal(t, h.Turn(steps).Length(), h.Length(), h.String()+" by "+strconv.Itoa(steps)+": ")
+			}
+		}
+	})
+	t.Run("steps add up", func(t *testing.T) {
+		for first := -6; first <= 6; first++ {
+			for second := -6; second <= 6; second++ {
+				hextest.AssertHex(t, testHex.Turn(first).Turn(second), testHex.Turn(first+second), strconv.Itoa(first)+" then "+strconv.Itoa(second)+": ")
+			}
+		}
+	})
+	t.Run("any step count, without overflow", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.Turn(math.MaxInt), testHex.Turn(math.MaxInt%6))
+		hextest.AssertHex(t, testHex.Turn(math.MinInt), testHex.Turn(math.MinInt%6))
+	})
+}
+
+func BenchmarkHex_Turn(b *testing.B) {
+	for b.Loop() {
+		sinkHex = testHex.Turn(5)
+	}
 }
 
 func TestHex_TurnAround(t *testing.T) {
@@ -186,6 +286,19 @@ func TestHex_TurnAround(t *testing.T) {
 		hextest.AssertHex(t, h.TurnAround(testHexZero, 1), h.Turn(1))
 		hextest.AssertHex(t, h.TurnAround(testHexZero, -1), h.Turn(-1))
 	})
+	t.Run("the center stays put", func(t *testing.T) {
+		for steps := -6; steps <= 6; steps++ {
+			hextest.AssertHex(t, center.TurnAround(center, steps), center, strconv.Itoa(steps)+": ")
+		}
+	})
+	t.Run("a step carries the ring one side along", func(t *testing.T) {
+		for _, radius := range []int{1, 2, 3} {
+			ring := center.Ring(radius)
+			for i, on := range ring {
+				hextest.AssertHex(t, on.TurnAround(center, 1), ring[(i+radius)%len(ring)], on.String()+": ")
+			}
+		}
+	})
 }
 
 func TestHex_ReflectQ(t *testing.T) {
@@ -200,6 +313,16 @@ func TestHex_ReflectQ(t *testing.T) {
 	})
 	t.Run("twice is the identity", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.ReflectQ().ReflectQ(), testHex)
+	})
+	t.Run("keeps the length", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.Equal(t, h.ReflectQ().Length(), h.Length(), h.String()+": ")
+		}
+	})
+	t.Run("followed by ReflectR is a third of a turn", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			hextest.AssertHex(t, h.ReflectQ().ReflectR(), h.Turn(4), h.String()+": ")
+		}
 	})
 }
 
@@ -216,6 +339,16 @@ func TestHex_ReflectR(t *testing.T) {
 	t.Run("twice is the identity", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.ReflectR().ReflectR(), testHex)
 	})
+	t.Run("keeps the length", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.Equal(t, h.ReflectR().Length(), h.Length(), h.String()+": ")
+		}
+	})
+	t.Run("followed by ReflectS is a third of a turn", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			hextest.AssertHex(t, h.ReflectR().ReflectS(), h.Turn(4), h.String()+": ")
+		}
+	})
 }
 
 func TestHex_ReflectS(t *testing.T) {
@@ -230,6 +363,16 @@ func TestHex_ReflectS(t *testing.T) {
 	})
 	t.Run("twice is the identity", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.ReflectS().ReflectS(), testHex)
+	})
+	t.Run("keeps the length", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.Equal(t, h.ReflectS().Length(), h.Length(), h.String()+": ")
+		}
+	})
+	t.Run("followed by ReflectQ is a third of a turn", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			hextest.AssertHex(t, h.ReflectS().ReflectQ(), h.Turn(4), h.String()+": ")
+		}
 	})
 }
 
@@ -248,6 +391,11 @@ func TestHex_Neighbor(t *testing.T) {
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.Neighbor(DirectionNone), testHex)
+	})
+	t.Run("the opposite direction steps back", func(t *testing.T) {
+		for _, direction := range Directions() {
+			hextest.AssertHex(t, testHex.Neighbor(direction).Neighbor(direction.Opposite()), testHex, direction.String()+": ")
+		}
 	})
 }
 
@@ -295,6 +443,12 @@ func TestHex_Range(t *testing.T) {
 			assert.True(t, testHex.DistanceTo(h) <= 3)
 		}
 	})
+	t.Run("holds exactly the hexes within the radius", func(t *testing.T) {
+		hexes := testHex.Range(3)
+		for _, h := range testHex.Spiral(5) {
+			assert.Equal(t, slices.Contains(hexes, h), testHex.DistanceTo(h) <= 3, h.String()+": ")
+		}
+	})
 	t.Run("ordered like Compare", func(t *testing.T) {
 		assert.True(t, slices.IsSortedFunc(testHex.Range(3), Hex.Compare))
 	})
@@ -326,6 +480,14 @@ func TestHex_AppendRange(t *testing.T) {
 	})
 }
 
+func BenchmarkHex_AppendRange(b *testing.B) {
+	buffer := make([]Hex, 0, 331)
+
+	for b.Loop() {
+		sinkHexes = testHex.AppendRange(buffer, 10)
+	}
+}
+
 func TestHex_Ring(t *testing.T) {
 	t.Run("negative radius is nil", func(t *testing.T) {
 		assert.Equal(t, testHexZero.Ring(-1), nil)
@@ -347,9 +509,16 @@ func TestHex_Ring(t *testing.T) {
 			assert.Equal(t, cap(ring), len(ring))
 		}
 	})
-	t.Run("every hex is at the radius", func(t *testing.T) {
-		for _, h := range testHex.Ring(3) {
-			assert.Equal(t, testHex.DistanceTo(h), 3)
+	t.Run("holds exactly the hexes at the radius", func(t *testing.T) {
+		ring := testHex.Ring(3)
+		for _, h := range testHex.Range(5) {
+			assert.Equal(t, slices.Contains(ring, h), testHex.DistanceTo(h) == 3, h.String()+": ")
+		}
+	})
+	t.Run("steps between neighbors and closes on itself", func(t *testing.T) {
+		ring := testHex.Ring(3)
+		for i, h := range ring {
+			assert.Equal(t, h.DistanceTo(ring[(i+1)%len(ring)]), 1, h.String()+": ")
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
@@ -381,6 +550,14 @@ func TestHex_AppendRing(t *testing.T) {
 			sinkHexes = testHex.AppendRing(buffer, 3)
 		}), 0.0)
 	})
+}
+
+func BenchmarkHex_AppendRing(b *testing.B) {
+	buffer := make([]Hex, 0, 60)
+
+	for b.Loop() {
+		sinkHexes = testHex.AppendRing(buffer, 10)
+	}
 }
 
 func TestHex_Spiral(t *testing.T) {
@@ -436,6 +613,14 @@ func TestHex_AppendSpiral(t *testing.T) {
 	})
 }
 
+func BenchmarkHex_AppendSpiral(b *testing.B) {
+	buffer := make([]Hex, 0, 331)
+
+	for b.Loop() {
+		sinkHexes = testHex.AppendSpiral(buffer, 10)
+	}
+}
+
 func TestHex_DistanceTo(t *testing.T) {
 	t.Run("steps between hexes", func(t *testing.T) {
 		assert.Equal(t, testHex.DistanceTo(Pt(0, 3)), 1)
@@ -447,6 +632,25 @@ func TestHex_DistanceTo(t *testing.T) {
 			assert.Equal(t, testHex.DistanceTo(h), h.DistanceTo(testHex), h.String()+": ")
 		}
 	})
+	t.Run("unchanged by moving both hexes", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(3) {
+			assert.Equal(t, testHex.Add(h).DistanceTo(h), testHex.Length(), h.String()+": ")
+		}
+	})
+	t.Run("never longer through a third hex", func(t *testing.T) {
+		target := Pt(2, -3)
+		for _, via := range testHexZero.Spiral(4) {
+			assert.True(t, testHex.DistanceTo(target) <= testHex.DistanceTo(via)+via.DistanceTo(target), via.String()+": ")
+		}
+	})
+}
+
+func BenchmarkHex_DistanceTo(b *testing.B) {
+	target := Pt(10, -4)
+
+	for b.Loop() {
+		sinkInt = testHex.DistanceTo(target)
+	}
 }
 
 func TestHex_Line(t *testing.T) {
@@ -496,6 +700,39 @@ func BenchmarkHex_Line(b *testing.B) {
 	}
 }
 
+func FuzzHex_Line(f *testing.F) {
+	f.Add(0, 0, 4, -2)
+	f.Add(-1, 3, 3, -3)
+	f.Add(7, -12, 0, 0)
+	f.Add(-1000000, 999999, -40, 17)
+
+	f.Fuzz(func(t *testing.T, q, r, stepQ, stepR int) {
+		if max(geom.Abs(q), geom.Abs(r)) > 1e6 || max(geom.Abs(stepQ), geom.Abs(stepR)) > 60 {
+			t.Skip()
+		}
+
+		source := Pt(q, r)
+		target := source.Add(Pt(stepQ, stepR))
+		line := source.Line(target)
+		distance := source.DistanceTo(target)
+		message := source.String() + " to " + target.String() + ": "
+
+		assert.Equal(t, len(line), distance+1, message)
+		assert.Equal(t, line[0], source, message)
+		assert.Equal(t, line[distance], target, message)
+
+		for i, h := range line {
+			assert.Equal(t, source.DistanceTo(h), i, message)
+			assert.Equal(t, h.DistanceTo(target), distance-i, message)
+			assert.Equal(t, source.HasLineOfSight(target, []Hex{h}), i == 0 || i == distance, message)
+		}
+
+		back := target.Line(source)
+		slices.Reverse(back)
+		assert.Equal(t, line, back, message)
+	})
+}
+
 func TestHex_AppendLine(t *testing.T) {
 	t.Run("appends after dst", func(t *testing.T) {
 		assert.Equal(t, testHex.AppendLine([]Hex{testHexZero}, Pt(2, 0)), append([]Hex{testHexZero}, testHex.Line(Pt(2, 0))...))
@@ -506,6 +743,14 @@ func TestHex_AppendLine(t *testing.T) {
 			sinkHexes = testHexZero.AppendLine(buffer, Pt(4, -1))
 		}), 0.0)
 	})
+}
+
+func BenchmarkHex_AppendLine(b *testing.B) {
+	buffer := make([]Hex, 0, 11)
+
+	for b.Loop() {
+		sinkHexes = testHexZero.AppendLine(buffer, Pt(10, -4))
+	}
 }
 
 func TestHex_HasLineOfSight(t *testing.T) {
@@ -589,6 +834,25 @@ func TestHex_FieldOfView(t *testing.T) {
 			assert.Equal(t, slices.Contains(visible, candidate), testHexZero.HasLineOfSight(candidate, blocking), candidate.String()+": ")
 		}
 	})
+	t.Run("keeps the order of the candidates", func(t *testing.T) {
+		visible := testHexZero.FieldOfView(candidates, []Hex{Pt(1, 0), Pt(-1, 2)})
+		next := 0
+		for _, candidate := range candidates {
+			if next < len(visible) && visible[next] == candidate {
+				next++
+			}
+		}
+		assert.Equal(t, next, len(visible))
+	})
+	t.Run("another blocker never shows more", func(t *testing.T) {
+		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
+		visible := testHexZero.FieldOfView(candidates, blocking)
+		for _, blocker := range testHexZero.Ring(2) {
+			for _, seen := range testHexZero.FieldOfView(candidates, append(blocking, blocker)) {
+				assert.True(t, slices.Contains(visible, seen), seen.String()+" past "+blocker.String()+": ")
+			}
+		}
+	})
 	t.Run("allocates once", func(t *testing.T) {
 		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
 		assert.Equal(t, testing.AllocsPerRun(100, func() {
@@ -621,6 +885,16 @@ func TestHex_AppendFieldOfView(t *testing.T) {
 			sinkHexes = testHexZero.AppendFieldOfView(buffer, candidates, nil)
 		}), 0.0)
 	})
+}
+
+func BenchmarkHex_AppendFieldOfView(b *testing.B) {
+	candidates := testHexZero.Range(10)
+	blocking := testHexZero.Ring(5)[:10]
+	buffer := make([]Hex, 0, len(candidates))
+
+	for b.Loop() {
+		sinkHexes = testHexZero.AppendFieldOfView(buffer, candidates, blocking)
+	}
 }
 
 func TestHex_Equal(t *testing.T) {
@@ -658,6 +932,11 @@ func TestHex_Compare(t *testing.T) {
 					}
 				}
 			}
+		}
+	})
+	t.Run("zero exactly when Equal", func(t *testing.T) {
+		for _, h := range testHex.Spiral(2) {
+			assert.Equal(t, testHex.Compare(h) == 0, testHex.Equal(h), h.String()+": ")
 		}
 	})
 	t.Run("sorts", func(t *testing.T) {
@@ -720,4 +999,106 @@ func TestHex_JSON(t *testing.T) {
 	var decoded Hex
 	assert.NoError(t, json.Unmarshal(data, &decoded))
 	hextest.AssertHex(t, decoded, testHex)
+}
+
+func ExamplePt() {
+	h := Pt(-1, 3)
+
+	fmt.Println(h)
+	fmt.Println(h.QRS())
+	// Output:
+	// (-1,3)
+	// -1 3 -2
+}
+
+func ExampleParseHex() {
+	h, err := ParseHex("(-1,3)")
+	fmt.Println(h, err)
+
+	_, err = ParseHex("(1.5,2)")
+	fmt.Println(err != nil)
+	// Output:
+	// (-1,3) <nil>
+	// true
+}
+
+func ExampleHex_Turn() {
+	h := Pt(3, 0)
+
+	fmt.Println(h.Turn(1))
+	fmt.Println(h.Turn(-1))
+	fmt.Println(h.Turn(3))
+	// Output:
+	// (0,3)
+	// (3,-3)
+	// (-3,0)
+}
+
+func ExampleHex_Neighbor() {
+	h := Pt(-1, 3)
+
+	fmt.Println(h.Neighbor(PointyTopEast))
+	fmt.Println(h.Neighbor(FlatTopNorth))
+	fmt.Println(h.Neighbor(DirectionNone))
+	// Output:
+	// (0,3)
+	// (-1,2)
+	// (-1,3)
+}
+
+func ExampleHex_Range() {
+	fmt.Println(Pt(0, 0).Range(1))
+	// Output: [(-1,0) (-1,1) (0,-1) (0,0) (0,1) (1,-1) (1,0)]
+}
+
+func ExampleHex_AppendRange() {
+	buffer := make([]Hex, 0, 7)
+	for _, center := range []Hex{Pt(0, 0), Pt(5, -2)} {
+		buffer = center.AppendRange(buffer[:0], 1)
+		fmt.Println(len(buffer), buffer[0])
+	}
+	// Output:
+	// 7 (-1,0)
+	// 7 (4,-2)
+}
+
+func ExampleHex_Ring() {
+	fmt.Println(Pt(0, 0).Ring(1))
+	// Output: [(1,0) (0,1) (-1,1) (-1,0) (0,-1) (1,-1)]
+}
+
+func ExampleHex_Spiral() {
+	fmt.Println(Pt(0, 0).Spiral(1))
+	// Output: [(0,0) (1,0) (0,1) (-1,1) (-1,0) (0,-1) (1,-1)]
+}
+
+func ExampleHex_Line() {
+	fmt.Println(Pt(0, 0).Line(Pt(4, -2)))
+	// Output: [(0,0) (1,0) (2,-1) (3,-1) (4,-2)]
+}
+
+func ExampleHex_HasLineOfSight() {
+	source, target := Pt(0, 0), Pt(3, 0)
+
+	fmt.Println(source.HasLineOfSight(target, []Hex{Pt(2, 0)}))
+	fmt.Println(source.HasLineOfSight(target, []Hex{Pt(0, 2)}))
+	// Output:
+	// false
+	// true
+}
+
+func ExampleHex_FieldOfView() {
+	walls := []Hex{Pt(1, 0)}
+	candidates := []Hex{Pt(2, 0), Pt(0, 2), Pt(1, 0)}
+
+	fmt.Println(Pt(0, 0).FieldOfView(candidates, walls))
+	// Output: [(0,2) (1,0)]
+}
+
+func ExampleHex_Compare() {
+	hexes := []Hex{Pt(1, 2), Pt(-1, 0), Pt(1, -3)}
+	slices.SortFunc(hexes, Hex.Compare)
+
+	fmt.Println(hexes)
+	// Output: [(-1,0) (1,-3) (1,2)]
 }

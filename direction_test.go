@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"testing"
 
@@ -39,6 +40,11 @@ func TestDirections(t *testing.T) {
 		assert.Equal(t, PointyTopNorthWest, RMinus)
 		assert.Equal(t, PointyTopNorthEast, QPlus)
 	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkDirections = Directions()
+		}), 0.0)
+	})
 }
 
 func TestDirectionFromAngle(t *testing.T) {
@@ -56,6 +62,53 @@ func TestDirectionFromAngle(t *testing.T) {
 		assert.Equal(t, DirectionFromAngle(math.NaN()), DirectionNone)
 		assert.Equal(t, DirectionFromAngle(math.Inf(1)), DirectionNone)
 		assert.Equal(t, DirectionFromAngle(math.Inf(-1)), DirectionNone)
+	})
+	t.Run("holds across the twelfth of a turn either side", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.Equal(t, DirectionFromAngle(direction.Angle()-geom.Pi/6+0.01), direction, direction.String()+": ")
+			assert.Equal(t, DirectionFromAngle(direction.Angle()+geom.Pi/6-0.01), direction, direction.String()+": ")
+		}
+	})
+	t.Run("any number of whole turns away", func(t *testing.T) {
+		for _, direction := range Directions() {
+			for turns := -3; turns <= 3; turns++ {
+				assert.Equal(t, DirectionFromAngle(direction.Angle()+float64(turns)*2*geom.Pi), direction, direction.String()+": ")
+			}
+		}
+	})
+}
+
+func BenchmarkDirectionFromAngle(b *testing.B) {
+	for b.Loop() {
+		sinkDirection = DirectionFromAngle(4.2)
+	}
+}
+
+func FuzzDirectionFromAngle(f *testing.F) {
+	f.Add(0.0)
+	f.Add(geom.Pi)
+	f.Add(-0.1)
+	f.Add(geom.Pi / 6)
+	f.Add(-1e6)
+	f.Add(math.NaN())
+	f.Add(math.Inf(1))
+
+	f.Fuzz(func(t *testing.T, angle float64) {
+		direction := DirectionFromAngle(angle)
+		message := fmt.Sprintf("%v → %s: ", angle, direction)
+
+		if math.IsNaN(angle) || math.IsInf(angle, 0) {
+			assert.Equal(t, direction, DirectionNone, message)
+			return
+		}
+		if math.Abs(angle) > 1e6 {
+			t.Skip()
+		}
+
+		assert.True(t, direction >= SMinus && direction <= QPlus, message)
+
+		gap := geom.NormalizeAngle(angle-direction.Angle()+geom.Pi) - geom.Pi
+		assert.True(t, math.Abs(gap) <= geom.Pi/6+geom.Delta, message)
 	})
 }
 
@@ -130,6 +183,25 @@ func TestDirection_Turn(t *testing.T) {
 			assert.Equal(t, direction.Turn(2).Turn(-2), direction)
 		}
 	})
+	t.Run("steps add up", func(t *testing.T) {
+		for _, direction := range Directions() {
+			for first := -6; first <= 6; first++ {
+				for second := -6; second <= 6; second++ {
+					assert.Equal(t, direction.Turn(first).Turn(second), direction.Turn(first+second), direction.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("a step lands on the hex beside", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.Equal(t, direction.Hex().DistanceTo(direction.Turn(1).Hex()), 1, direction.String()+": ")
+		}
+	})
+	t.Run("a step raises the angle by a sixth of a turn", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.EqualDelta(t, geom.NormalizeAngle(direction.Turn(1).Angle()-direction.Angle()), geom.Pi/3, geom.Delta, direction.String()+": ")
+		}
+	})
 	t.Run("any step count, without overflow", func(t *testing.T) {
 		assert.Equal(t, QPlus.Turn(math.MaxInt), QPlus.Turn(math.MaxInt%6))
 		assert.Equal(t, QPlus.Turn(math.MinInt), QPlus.Turn(math.MinInt%6))
@@ -158,6 +230,22 @@ func TestDirection_Offset(t *testing.T) {
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
 		assert.Equal(t, DirectionNone.Offset(), ints.Vector{})
+	})
+	t.Run("the six cancel out", func(t *testing.T) {
+		sum := ints.Vector{}
+		for _, direction := range Directions() {
+			sum = sum.Add(direction.Offset())
+		}
+		assert.Equal(t, sum, ints.Vector{})
+	})
+	t.Run("every step is one hex long and no two are the same", func(t *testing.T) {
+		directions := Directions()
+		for i, direction := range directions {
+			assert.Equal(t, direction.Hex().Length(), 1, direction.String()+": ")
+			for _, other := range directions[i+1:] {
+				assert.NotEqual(t, direction.Offset(), other.Offset(), direction.String()+" and "+other.String()+": ")
+			}
+		}
 	})
 }
 
@@ -258,4 +346,37 @@ func TestDirection_Text(t *testing.T) {
 		var decoded Direction
 		assert.Error(t, json.Unmarshal([]byte(`"Northwest"`), &decoded))
 	})
+}
+
+func ExampleDirectionFromAngle() {
+	fmt.Println(DirectionFromAngle(0))
+	fmt.Println(DirectionFromAngle(math.Pi))
+	fmt.Println(DirectionFromAngle(math.NaN()))
+	// Output:
+	// SMinus
+	// SPlus
+	// None
+}
+
+func ExampleDirection_Turn() {
+	fmt.Println(SMinus.Turn(1))
+	fmt.Println(SMinus.Turn(-1))
+	fmt.Println(SMinus.Opposite())
+	// Output:
+	// RPlus
+	// QPlus
+	// SPlus
+}
+
+func ExampleDirection_Hex() {
+	for _, direction := range Directions() {
+		fmt.Println(direction, direction.Hex())
+	}
+	// Output:
+	// SMinus (1,0)
+	// RPlus (0,1)
+	// QMinus (-1,1)
+	// SPlus (-1,0)
+	// RMinus (0,-1)
+	// QPlus (1,-1)
 }

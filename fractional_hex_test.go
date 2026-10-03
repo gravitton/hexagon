@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"strconv"
 	"testing"
@@ -86,11 +87,23 @@ func TestFractionalHex_Length(t *testing.T) {
 }
 
 func TestFractionalHex_Add(t *testing.T) {
-	hextest.AssertFractionalHex(t, testFracHex.Add(FracPt(0.1, 1.2)), FracPt(11, 0))
+	t.Run("vector sum", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.Add(FracPt(0.1, 1.2)), FracPt(11, 0))
+	})
+	t.Run("agrees with Hex.Add on whole coordinates", func(t *testing.T) {
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			hextest.AssertFractionalHex(t, testHex.Float().Add(whole.Float()), testHex.Add(whole).Float(), whole.String()+": ")
+		}
+	})
 }
 
 func TestFractionalHex_Subtract(t *testing.T) {
-	hextest.AssertFractionalHex(t, testFracHex.Subtract(FracPt(0.9, -0.2)), FracPt(10, -1))
+	t.Run("vector difference", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.Subtract(FracPt(0.9, -0.2)), FracPt(10, -1))
+	})
+	t.Run("undoes Add", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.Add(FracPt(0.3, -2.7)).Subtract(FracPt(0.3, -2.7)), testFracHex)
+	})
 }
 
 func TestFractionalHex_Multiply(t *testing.T) {
@@ -114,6 +127,25 @@ func TestFractionalHex_Lerp(t *testing.T) {
 		assert.Equal(t, lerp.Q, 0.11000000000000001)
 		assert.Equal(t, lerp.R, 0.11000000000000001)
 	})
+	t.Run("starts at the receiver and ends at the argument", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.Lerp(FracPt(12, 0), 0), testFracHex)
+		hextest.AssertFractionalHex(t, testFracHex.Lerp(FracPt(12, 0), 1), FracPt(12, 0))
+	})
+	t.Run("the distances to both ends add up", func(t *testing.T) {
+		end := FracPt(12, 0)
+		for i := range 11 {
+			h := testFracHex.Lerp(end, float64(i)/10)
+			assert.EqualDelta(t, testFracHex.DistanceTo(h)+h.DistanceTo(end), testFracHex.DistanceTo(end), geom.Delta, strconv.Itoa(i)+": ")
+		}
+	})
+}
+
+func BenchmarkFractionalHex_Lerp(b *testing.B) {
+	end := FracPt(12, 0)
+
+	for b.Loop() {
+		sinkFracHex = testFracHex.Lerp(end, 0.3)
+	}
 }
 
 func TestFractionalHex_Turn(t *testing.T) {
@@ -144,6 +176,28 @@ func TestFractionalHex_Turn(t *testing.T) {
 			}
 		}
 	})
+	t.Run("steps add up", func(t *testing.T) {
+		for first := -6; first <= 6; first++ {
+			for second := -6; second <= 6; second++ {
+				hextest.AssertFractionalHex(t, testFracHex.Turn(first).Turn(second), testFracHex.Turn(first+second), strconv.Itoa(first)+" then "+strconv.Itoa(second)+": ")
+			}
+		}
+	})
+	t.Run("a full turn returns the same bits", func(t *testing.T) {
+		assert.Equal(t, testFracHex.Turn(6), testFracHex)
+		assert.Equal(t, testFracHex.Turn(-12), testFracHex)
+	})
+	t.Run("rounds to the turned hex", func(t *testing.T) {
+		for steps := -6; steps <= 6; steps++ {
+			hextest.AssertHex(t, testFracHex.Turn(steps).Round(), testFracHex.Round().Turn(steps), strconv.Itoa(steps)+": ")
+		}
+	})
+}
+
+func BenchmarkFractionalHex_Turn(b *testing.B) {
+	for b.Loop() {
+		sinkFracHex = testFracHex.Turn(5)
+	}
 }
 
 func TestFractionalHex_TurnAround(t *testing.T) {
@@ -284,12 +338,53 @@ func TestFractionalHex_Round(t *testing.T) {
 			sinkHex = FracPt(0, math.Inf(-1)).Round()
 		})
 	})
+	t.Run("a whole hex rounds to itself", func(t *testing.T) {
+		for _, h := range testHex.Spiral(3) {
+			hextest.AssertHex(t, h.Float().Round(), h)
+		}
+	})
+	t.Run("stays in the hex anywhere short of its edge", func(t *testing.T) {
+		for _, h := range testHex.Spiral(2) {
+			for _, direction := range Directions() {
+				inside := h.Float().Lerp(h.Neighbor(direction).Float(), 0.49)
+				hextest.AssertHex(t, inside.Round(), h, h.String()+" towards "+direction.String()+": ")
+			}
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHex = testFracHex.Round()
+		}), 0.0)
+	})
 }
 
 func BenchmarkFractionalHex_Round(b *testing.B) {
 	for b.Loop() {
 		sinkHex = testFracHex.Round()
 	}
+}
+
+func FuzzFractionalHex_Round(f *testing.F) {
+	f.Add(10.9, -1.2)
+	f.Add(0.5, 0.5)
+	f.Add(-0.5, 0.25)
+	f.Add(1.0/3, 1.0/3)
+	f.Add(-999999.5, 999999.25)
+
+	f.Fuzz(func(t *testing.T, q, r float64) {
+		if math.IsNaN(q) || math.IsNaN(r) || math.Abs(q) > 1e6 || math.Abs(r) > 1e6 {
+			t.Skip()
+		}
+
+		h := FracPt(q, r)
+		rounded := h.Round()
+		message := fmt.Sprintf("(%v,%v) → %s: ", q, r, rounded)
+
+		for _, neighbor := range rounded.Neighbors() {
+			assert.True(t, squaredDistanceOf(h, rounded.Float()) <= squaredDistanceOf(h, neighbor.Float())+geom.Delta, message)
+		}
+		hextest.AssertHex(t, rounded.Float().Round(), rounded, message)
+	})
 }
 
 func TestFractionalHex_Point(t *testing.T) {
@@ -313,4 +408,40 @@ func TestFractionalHex_JSON(t *testing.T) {
 	var decoded FractionalHex
 	assert.NoError(t, json.Unmarshal(data, &decoded))
 	hextest.AssertFractionalHex(t, decoded, testFracHex)
+}
+
+// squaredDistanceOf returns the squared Euclidean distance between two fractional hexes, in
+// units of the distance between two neighboring hex centers.
+func squaredDistanceOf(a, b FractionalHex) float64 {
+	delta := a.Subtract(b)
+
+	return delta.Q*delta.Q + delta.Q*delta.R + delta.R*delta.R
+}
+
+func ExampleFracPt() {
+	fmt.Println(FracPt(1.4, -1.8))
+	// Output: (1.40,-1.80)
+}
+
+func ExampleFractionalHex_Lerp() {
+	fmt.Println(FracPt(0, 0).Lerp(FracPt(3, -1), 0.5))
+	// Output: (1.50,-0.50)
+}
+
+func ExampleFractionalHex_Turn() {
+	h := FracPt(1.5, -0.5)
+
+	fmt.Println(h.Turn(1))
+	fmt.Println(h.TurnAround(FracPt(1, 0), 3))
+	// Output:
+	// (0.50,1.00)
+	// (0.50,0.50)
+}
+
+func ExampleFractionalHex_Round() {
+	fmt.Println(FracPt(1.2, -1.9).Round())
+	fmt.Println(Pt(2, -1).Float().Round())
+	// Output:
+	// (1,-2)
+	// (2,-1)
 }

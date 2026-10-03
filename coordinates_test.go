@@ -2,6 +2,7 @@ package hex_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/gravitton/assert"
@@ -103,6 +104,11 @@ func TestCoordinateSystems(t *testing.T) {
 		list := CoordinateSystems()
 		list[0] = DoubleWidth
 		assert.Equal(t, CoordinateSystems()[0], Axial)
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkSystems = CoordinateSystems()
+		}), 0.0)
 	})
 }
 
@@ -206,6 +212,28 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 			CoordinateSystem(99).Offsets(geom.Pt(0, 0))
 		}, "hex: unknown coordinate system 99")
 	})
+	t.Run("returns a fresh array", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			offsets := system.Offsets(geom.Pt(1, 1))
+			offsets[0] = geom.Vec(9, 9)
+			assert.NotEqual(t, system.Offsets(geom.Pt(1, 1))[0], geom.Vec(9, 9), system.String()+": ")
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkVectors = system.Offsets(geom.Pt(1, 1))
+			}), 0.0, system.String()+": ")
+		}
+	})
+}
+
+func BenchmarkCoordinateSystem_Offsets(b *testing.B) {
+	index := geom.Pt(3, 5)
+
+	for b.Loop() {
+		sinkVectors = OffsetOddR.Offsets(index)
+	}
 }
 
 func TestCoordinateSystem_Offset(t *testing.T) {
@@ -232,6 +260,34 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	t.Run("none steps nowhere", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
 			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), ints.Vector{}, system.String()+": ")
+		}
+	})
+	t.Run("steps to the neighbor of the hex", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, h := range testHex.Spiral(3) {
+				index := system.To(h)
+				for _, direction := range Directions() {
+					assert.Equal(t, system.From(index.Add(system.Offset(index, direction))), h.Neighbor(direction), system.String()+" at "+h.String()+" towards "+direction.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("the opposite direction steps back", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, h := range testHex.Spiral(3) {
+				index := system.To(h)
+				for _, direction := range Directions() {
+					beside := index.Add(system.Offset(index, direction))
+					assert.Equal(t, beside.Add(system.Offset(beside, direction.Opposite())), index, system.String()+" at "+h.String()+" towards "+direction.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkVector = system.Offset(geom.Pt(1, 1), RPlus)
+			}), 0.0, system.String()+": ")
 		}
 	})
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
@@ -265,6 +321,38 @@ func TestCoordinateSystem_To(t *testing.T) {
 			CoordinateSystem(99).To(testHexZero)
 		}, "hex: unknown coordinate system 99")
 	})
+	t.Run("no two hexes share a coordinate", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			seen := map[ints.Point]Hex{}
+			for _, h := range testHex.Spiral(4) {
+				index := system.To(h)
+				other, taken := seen[index]
+				assert.False(t, taken, system.String()+" at "+h.String()+" and "+other.String()+": ")
+				seen[index] = h
+			}
+		}
+	})
+	t.Run("a double system keeps col and row of one parity", func(t *testing.T) {
+		for _, system := range []CoordinateSystem{DoubleWidth, DoubleHeight} {
+			for _, h := range testHex.Spiral(4) {
+				index := system.To(h)
+				assert.Equal(t, (index.X+index.Y)&1, 0, system.String()+" at "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkPoint = system.To(testHex)
+			}), 0.0, system.String()+": ")
+		}
+	})
+}
+
+func BenchmarkCoordinateSystem_To(b *testing.B) {
+	for b.Loop() {
+		sinkPoint = OffsetOddR.To(testHex)
+	}
 }
 
 func TestCoordinateSystem_From(t *testing.T) {
@@ -312,6 +400,49 @@ func TestCoordinateSystem_From(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystem(99).From(geom.Pt(0, 0))
 		}, "hex: unknown coordinate system 99")
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkHex = system.From(geom.Pt(3, 5))
+			}), 0.0, system.String()+": ")
+		}
+	})
+}
+
+func BenchmarkCoordinateSystem_From(b *testing.B) {
+	index := geom.Pt(3, 5)
+
+	for b.Loop() {
+		sinkHex = OffsetOddR.From(index)
+	}
+}
+
+func FuzzCoordinateSystem_From(f *testing.F) {
+	f.Add(0, 0)
+	f.Add(-1, 3)
+	f.Add(7, -12)
+	f.Add(-999999, 1000000)
+
+	f.Fuzz(func(t *testing.T, q, r int) {
+		if max(geom.Abs(q), geom.Abs(r)) > 1e6 {
+			t.Skip()
+		}
+
+		h := Pt(q, r)
+		for _, system := range CoordinateSystems() {
+			index := system.To(h)
+			message := system.String() + " at " + h.String() + ": "
+
+			assert.Equal(t, system.From(index), h, message)
+			assert.Equal(t, system.Offsets(index), deriveOffsets(system, index), message)
+		}
+
+		mixed := geom.Pt(q, r)
+		for _, system := range []CoordinateSystem{DoubleWidth, DoubleHeight} {
+			cell := system.To(system.From(mixed))
+			assert.True(t, geom.Abs(cell.X-mixed.X)+geom.Abs(cell.Y-mixed.Y) <= 1, system.String()+" from "+mixed.String()+": ")
+		}
 	})
 }
 
@@ -374,4 +505,34 @@ func deriveOffsets(system CoordinateSystem, index ints.Point) [6]ints.Vector {
 	}
 
 	return offsets
+}
+
+func ExampleCoordinateSystem_Offset() {
+	fmt.Println(OffsetOddR.Offset(geom.Pt(0, 0), PointyTopNorthWest))
+	fmt.Println(OffsetOddR.Offset(geom.Pt(0, 1), PointyTopNorthWest))
+	// Output:
+	// ⟨-1,-1⟩
+	// ⟨0,-1⟩
+}
+
+func ExampleCoordinateSystem_To() {
+	for _, system := range CoordinateSystems() {
+		fmt.Println(system, system.To(Pt(1, 0)))
+	}
+	// Output:
+	// Axial (1,0)
+	// OffsetOddR (1,0)
+	// OffsetEvenR (1,0)
+	// OffsetOddQ (1,0)
+	// OffsetEvenQ (1,1)
+	// DoubleWidth (2,0)
+	// DoubleHeight (1,1)
+}
+
+func ExampleCoordinateSystem_From() {
+	fmt.Println(OffsetEvenQ.From(geom.Pt(1, 1)))
+	fmt.Println(DoubleWidth.From(geom.Pt(2, 0)))
+	// Output:
+	// (1,0)
+	// (1,0)
 }
