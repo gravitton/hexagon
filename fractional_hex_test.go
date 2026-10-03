@@ -321,6 +321,10 @@ func TestFractionalHex_IsZero(t *testing.T) {
 	})
 }
 
+func TestFractionalHex_Point(t *testing.T) {
+	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
+}
+
 func TestFractionalHex_Round(t *testing.T) {
 	t.Run("nearest hex", func(t *testing.T) {
 		hextest.AssertHex(t, FracPt(10.9, 16.2).Round(), Pt(11, 16))
@@ -385,10 +389,6 @@ func FuzzFractionalHex_Round(f *testing.F) {
 		}
 		hextest.AssertHex(t, rounded.Float().Round(), rounded, message)
 	})
-}
-
-func TestFractionalHex_Point(t *testing.T) {
-	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
 }
 
 func TestFractionalHex_String(t *testing.T) {

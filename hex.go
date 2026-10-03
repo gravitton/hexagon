@@ -150,6 +150,25 @@ func (h Hex) Neighbors() [6]Hex {
 	return neighbors
 }
 
+// DiagonalNeighbor returns the hex two steps from h that lies between two neighbors: the one
+// reached by a step in the given direction and a step in the direction after it, a twelfth of a
+// turn past the direction itself. It returns h itself for [DirectionNone].
+func (h Hex) DiagonalNeighbor(direction Direction) Hex {
+	return h.Neighbor(direction).Neighbor(direction.Turn(1))
+}
+
+// DiagonalNeighbors returns the six diagonal neighbors around h, ordered by increasing angle
+// like [Directions], each a twelfth of a turn past the neighbor of the same index. It returns an
+// array, so it allocates nothing.
+func (h Hex) DiagonalNeighbors() [6]Hex {
+	var neighbors [6]Hex
+	for i, direction := range Directions() {
+		neighbors[i] = h.DiagonalNeighbor(direction)
+	}
+
+	return neighbors
+}
+
 // Range returns the set of hexes within radius n around h, inclusive of h, ordered by q and
 // then by r like [Hex.Compare]. It returns nil for a negative radius and h alone for zero.
 func (h Hex) Range(n int) []Hex {
@@ -230,6 +249,23 @@ func (h Hex) AppendSpiral(dst []Hex, radius int) []Hex {
 // DistanceTo returns the hex distance between h and the given hex.
 func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()
+}
+
+// DirectionTo returns the direction from h towards target: the direction of a neighbor, and for
+// a hex further away the direction nearest to it. It compares the cube coordinates, so it is
+// exact at any distance. A target exactly between two directions, as a diagonal neighbor is,
+// takes the one of lower angle, the direction [Hex.DiagonalNeighbor] names it by. It returns
+// [DirectionNone] for h itself.
+func (h Hex) DirectionTo(target Hex) Direction {
+	delta := target.Subtract(h)
+	for _, direction := range Directions() {
+		q, r, s := delta.Turn(-int(direction)).QRS()
+		if q >= r && r > s {
+			return direction
+		}
+	}
+
+	return DirectionNone
 }
 
 // Line returns the sequence of hexes that connects h to target in a straight line, both ends

@@ -302,6 +302,45 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	})
 }
 
+func TestCoordinateSystem_Neighbor(t *testing.T) {
+	t.Run("steps by the offset of the row", func(t *testing.T) {
+		assert.Equal(t, OffsetOddR.Neighbor(geom.Pt(0, 0), PointyTopNorthWest), geom.Pt(-1, -1))
+		assert.Equal(t, OffsetOddR.Neighbor(geom.Pt(0, 1), PointyTopNorthWest), geom.Pt(0, 0))
+		assert.Equal(t, DoubleWidth.Neighbor(geom.Pt(2, 0), PointyTopEast), geom.Pt(4, 0))
+	})
+	t.Run("the coordinate of the neighboring hex", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, h := range testHex.Spiral(3) {
+				for _, direction := range Directions() {
+					assert.Equal(t, system.Neighbor(system.To(h), direction), system.To(h.Neighbor(direction)), system.String()+" at "+h.String()+" towards "+direction.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("out-of-range directions wrap", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, system.Neighbor(geom.Pt(1, 1), Direction(6)), system.Neighbor(geom.Pt(1, 1), SMinus), system.String()+": ")
+		}
+	})
+	t.Run("none steps nowhere", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, system.Neighbor(geom.Pt(1, 1), DirectionNone), geom.Pt(1, 1), system.String()+": ")
+		}
+	})
+	t.Run("panics for a system outside the seven", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			CoordinateSystemNone.Neighbor(geom.Pt(0, 0), DirectionNone)
+		}, "hex: unknown coordinate system -1")
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkPoint = system.Neighbor(geom.Pt(1, 1), RPlus)
+			}), 0.0, system.String()+": ")
+		}
+	})
+}
+
 func TestCoordinateSystem_To(t *testing.T) {
 	t.Run("the seven systems", func(t *testing.T) {
 		for _, test := range testConversions {
@@ -513,6 +552,14 @@ func ExampleCoordinateSystem_Offset() {
 	// Output:
 	// ⟨-1,-1⟩
 	// ⟨0,-1⟩
+}
+
+func ExampleCoordinateSystem_Neighbor() {
+	fmt.Println(OffsetOddR.Neighbor(geom.Pt(0, 0), PointyTopNorthWest))
+	fmt.Println(OffsetOddR.Neighbor(geom.Pt(0, 1), PointyTopNorthWest))
+	// Output:
+	// (-1,-1)
+	// (0,0)
 }
 
 func ExampleCoordinateSystem_To() {

@@ -421,6 +421,71 @@ func BenchmarkHex_Neighbors(b *testing.B) {
 	}
 }
 
+func TestHex_DiagonalNeighbor(t *testing.T) {
+	t.Run("two steps between two neighbors", func(t *testing.T) {
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(SMinus), Pt(1, 1))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(RPlus), Pt(-1, 2))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(QMinus), Pt(-2, 1))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(SPlus), Pt(-1, -1))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(RMinus), Pt(1, -2))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(QPlus), Pt(2, -1))
+	})
+	t.Run("beside the neighbor of the direction and of the one after", func(t *testing.T) {
+		for _, direction := range Directions() {
+			diagonal := testHex.DiagonalNeighbor(direction)
+			assert.Equal(t, testHex.DistanceTo(diagonal), 2, direction.String()+": ")
+			assert.Equal(t, testHex.Neighbor(direction).DistanceTo(diagonal), 1, direction.String()+": ")
+			assert.Equal(t, testHex.Neighbor(direction.Turn(1)).DistanceTo(diagonal), 1, direction.String()+": ")
+		}
+	})
+	t.Run("a turn carries it to the next diagonal", func(t *testing.T) {
+		for _, direction := range Directions() {
+			hextest.AssertHex(t, testHex.DiagonalNeighbor(direction).TurnAround(testHex, 1), testHex.DiagonalNeighbor(direction.Turn(1)), direction.String()+": ")
+		}
+	})
+	t.Run("the opposite direction steps back", func(t *testing.T) {
+		for _, direction := range Directions() {
+			hextest.AssertHex(t, testHex.DiagonalNeighbor(direction).DiagonalNeighbor(direction.Opposite()), testHex, direction.String()+": ")
+		}
+	})
+	t.Run("out-of-range directions wrap", func(t *testing.T) {
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(Direction(6)), Pt(1, 1))
+		hextest.AssertHex(t, testHexZero.DiagonalNeighbor(Direction(-2)), Pt(1, -2))
+	})
+	t.Run("none steps nowhere", func(t *testing.T) {
+		hextest.AssertHex(t, testHex.DiagonalNeighbor(DirectionNone), testHex)
+	})
+}
+
+func TestHex_DiagonalNeighbors(t *testing.T) {
+	t.Run("by increasing angle", func(t *testing.T) {
+		assert.Equal(t, testHexZero.DiagonalNeighbors(), [6]Hex{Pt(1, 1), Pt(-1, 2), Pt(-2, 1), Pt(-1, -1), Pt(1, -2), Pt(2, -1)})
+	})
+	t.Run("reads DiagonalNeighbor by direction", func(t *testing.T) {
+		diagonals := testHex.DiagonalNeighbors()
+		for i, direction := range Directions() {
+			hextest.AssertHex(t, diagonals[i], testHex.DiagonalNeighbor(direction), direction.String()+": ")
+		}
+	})
+	t.Run("every other hex of the second ring, from the second", func(t *testing.T) {
+		ring := testHex.Ring(2)
+		for i, diagonal := range testHex.DiagonalNeighbors() {
+			hextest.AssertHex(t, diagonal, ring[2*i+1])
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHex = testHex.DiagonalNeighbors()[0]
+		}), 0.0)
+	})
+}
+
+func BenchmarkHex_DiagonalNeighbors(b *testing.B) {
+	for b.Loop() {
+		sinkHex = testHex.DiagonalNeighbors()[0]
+	}
+}
+
 func TestHex_Range(t *testing.T) {
 	t.Run("negative radius is nil", func(t *testing.T) {
 		assert.Equal(t, testHexZero.Range(-1), nil)
@@ -650,6 +715,68 @@ func BenchmarkHex_DistanceTo(b *testing.B) {
 
 	for b.Loop() {
 		sinkInt = testHex.DistanceTo(target)
+	}
+}
+
+func TestHex_DirectionTo(t *testing.T) {
+	t.Run("the direction of a neighbor", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.Equal(t, testHex.DirectionTo(testHex.Neighbor(direction)), direction, direction.String()+": ")
+		}
+	})
+	t.Run("the nearest direction of a distant hex", func(t *testing.T) {
+		assert.Equal(t, testHexZero.DirectionTo(Pt(5, -1)), SMinus)
+		assert.Equal(t, testHexZero.DirectionTo(Pt(5, 1)), SMinus)
+		assert.Equal(t, testHexZero.DirectionTo(Pt(1, 5)), RPlus)
+		assert.Equal(t, testHexZero.DirectionTo(Pt(-4, -1)), SPlus)
+		assert.Equal(t, testHexZero.DirectionTo(Pt(3, -7)), RMinus)
+	})
+	t.Run("a diagonal takes the direction it is named by", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.Equal(t, testHex.DirectionTo(testHex.DiagonalNeighbor(direction)), direction, direction.String()+": ")
+		}
+	})
+	t.Run("the hex itself has no direction", func(t *testing.T) {
+		assert.Equal(t, testHex.DirectionTo(testHex), DirectionNone)
+	})
+	t.Run("the same along the whole ray", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(4) {
+			for _, factor := range []int{2, 7, 1000} {
+				assert.Equal(t, testHexZero.DirectionTo(h.Multiply(factor)), testHexZero.DirectionTo(h), h.String()+" by "+strconv.Itoa(factor)+": ")
+			}
+		}
+	})
+	t.Run("turns with the target", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(4)[1:] {
+			for steps := -6; steps <= 6; steps++ {
+				assert.Equal(t, testHexZero.DirectionTo(h.Turn(steps)), testHexZero.DirectionTo(h).Turn(steps), h.String()+" by "+strconv.Itoa(steps)+": ")
+			}
+		}
+	})
+	t.Run("within a twelfth of a turn of the angle to the target", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(4)[1:] {
+			x := geom.Sqrt3 * (float64(h.Q) + float64(h.R)/2)
+			y := 1.5 * float64(h.R)
+			gap := geom.NormalizeAngle(math.Atan2(y, x)-testHexZero.DirectionTo(h).Angle()+geom.Pi) - geom.Pi
+
+			assert.True(t, math.Abs(gap) <= geom.Pi/6+geom.Delta, h.String()+": ")
+		}
+	})
+	t.Run("the first step of the line is that way or beside it", func(t *testing.T) {
+		for _, h := range testHex.Spiral(4)[1:] {
+			first := testHex.DirectionTo(testHex.Line(h)[1])
+			towards := testHex.DirectionTo(h)
+
+			assert.True(t, first == towards || first == towards.Turn(1) || first == towards.Turn(-1), h.String()+": ")
+		}
+	})
+}
+
+func BenchmarkHex_DirectionTo(b *testing.B) {
+	target := Pt(10, -4)
+
+	for b.Loop() {
+		sinkDirection = testHex.DirectionTo(target)
 	}
 }
 
@@ -1046,6 +1173,11 @@ func ExampleHex_Neighbor() {
 	// (-1,3)
 }
 
+func ExampleHex_DiagonalNeighbors() {
+	fmt.Println(Pt(0, 0).DiagonalNeighbors())
+	// Output: [(1,1) (-1,2) (-2,1) (-1,-1) (1,-2) (2,-1)]
+}
+
 func ExampleHex_Range() {
 	fmt.Println(Pt(0, 0).Range(1))
 	// Output: [(-1,0) (-1,1) (0,-1) (0,0) (0,1) (1,-1) (1,0)]
@@ -1070,6 +1202,18 @@ func ExampleHex_Ring() {
 func ExampleHex_Spiral() {
 	fmt.Println(Pt(0, 0).Spiral(1))
 	// Output: [(0,0) (1,0) (0,1) (-1,1) (-1,0) (0,-1) (1,-1)]
+}
+
+func ExampleHex_DirectionTo() {
+	h := Pt(0, 0)
+
+	fmt.Println(h.DirectionTo(Pt(1, 0)))
+	fmt.Println(h.DirectionTo(Pt(-4, -1)))
+	fmt.Println(h.DirectionTo(h))
+	// Output:
+	// SMinus
+	// SPlus
+	// None
 }
 
 func ExampleHex_Line() {

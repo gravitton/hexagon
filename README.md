@@ -71,8 +71,10 @@ hex.ParseHex("(1,-2)") // the string back to the hex
 ```go
 h := hex.Pt(0, 0)
 
-h.Neighbors()         // all 6 adjacent hexes as an array, by increasing angle
-h.Neighbor(hex.QPlus) // one specific neighbor
+h.Neighbors()                // all 6 adjacent hexes as an array, by increasing angle
+h.Neighbor(hex.QPlus)        // one specific neighbor
+h.DiagonalNeighbors()        // the 6 hexes two steps away, each between two neighbors
+h.DirectionTo(hex.Pt(4, -1)) // SMinus, the direction nearest to another hex
 
 h.Range(2)  // all hexes within radius 2 (filled disc)
 h.Ring(2)   // hexes at exactly distance 2 (perimeter)
@@ -164,8 +166,9 @@ The offset systems need parity-aware neighbor offsets. Ask the system for them â
 row and column parity:
 
 ```go
-hex.OffsetOddR.Offsets(index)                   // all 6, indexed by Direction
-hex.OffsetOddR.Offset(index, hex.PointyTopEast) // just one
+hex.OffsetOddR.Offsets(index)                     // all 6, indexed by Direction
+hex.OffsetOddR.Offset(index, hex.PointyTopEast)   // just one
+hex.OffsetOddR.Neighbor(index, hex.PointyTopEast) // the coordinate that offset steps to
 ```
 
 `Direction.Offset()` is the axial case of the same thing, equal to `hex.Axial.Offset(index, direction)`.

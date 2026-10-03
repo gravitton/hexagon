@@ -46,7 +46,7 @@ const (
 	DoubleHeight
 
 	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so
-	// Offsets, Offset, To and From have nothing to convert for it and panic.
+	// Offsets, Offset, Neighbor, To and From have nothing to convert for it and panic.
 	CoordinateSystemNone CoordinateSystem = -1
 )
 
@@ -105,6 +105,14 @@ func (s CoordinateSystem) Offset(index ints.Point, direction Direction) ints.Vec
 	}
 
 	return offsets[direction.normalize()]
+}
+
+// Neighbor returns the coordinate beside index in the given direction in this system, the step
+// by [CoordinateSystem.Offset]. Out-of-range directions wrap into [SMinus, QPlus], and
+// [DirectionNone] gives index itself. It panics for a system outside the seven, whatever the
+// direction.
+func (s CoordinateSystem) Neighbor(index ints.Point, direction Direction) ints.Point {
+	return index.Add(s.Offset(index, direction))
 }
 
 // To converts an axial hex into this coordinate system as an ints.Point.

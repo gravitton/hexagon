@@ -130,6 +130,11 @@ func (h FractionalHex) IsZero() bool {
 	return h.Equal(FractionalHex{})
 }
 
+// Point returns the axial (q,r) as a floats.Point.
+func (h FractionalHex) Point() floats.Point {
+	return geom.Pt(h.Q, h.R)
+}
+
 // Round converts a FractionalHex to the nearest Hex while preserving q+r+s=0.
 // It is the [Hex] conversion of a fractional hex, the counterpart of [Hex.Float].
 // It converts through [geom.Cast], so it panics for a NaN or infinite coordinate, which has
@@ -150,11 +155,6 @@ func (h FractionalHex) Round() Hex {
 	}
 
 	return Hex{geom.Cast[int](q), geom.Cast[int](r)}
-}
-
-// Point returns the axial (q,r) as a floats.Point.
-func (h FractionalHex) Point() floats.Point {
-	return geom.Pt(h.Q, h.R)
 }
 
 // String returns a compact representation of the fractional hex as (q,r), each coordinate

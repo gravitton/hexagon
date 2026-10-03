@@ -37,6 +37,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Float` – the `FractionalHex` of a hex, the counterpart of `FractionalHex.Round`
 - `FractionalHex.Length`, `DistanceTo`, `Add`, `Subtract`, `Multiply` and `IsZero` – the arithmetic `Hex` has, without rounding to a hex
 - `FractionalHex.Turn`, `TurnAround`, `ReflectQ`, `ReflectR` and `ReflectS` – the cube-space geometry `Hex` has, for a sub-hex position; a turn permutes and negates the cube coordinates directly, so it carries one rounding at most however many steps it takes
+- `Hex.DiagonalNeighbor(direction)` and `DiagonalNeighbors()` – the six hexes two steps away that lie between two neighbors, each named by the direction it follows by a twelfth of a turn, so no second enum is needed
+- `Hex.DirectionTo(target)` – the direction of a neighbor, or the nearest one for a distant hex, compared in cube coordinates so it is exact at any distance; a target exactly on a diagonal takes the direction of lower angle, and the hex itself gives `DirectionNone`
+- `CoordinateSystem.Neighbor(index, direction)` – the coordinate beside an index in any of the seven systems, the step every offset-system caller wrote as `index.Add(system.Offset(index, direction))`
 - Runnable examples on pkg.go.dev for the constructors, `Turn`, `Neighbor`, `Range`, `Ring`, `Spiral`, `Line`, line of sight, `Compare`, the coordinate conversions, `DirectionFromAngle` and `FractionalHex.Round`
 - Fuzz tests for `ParseHex`, `Hex.Line`, `FractionalHex.Round`, `DirectionFromAngle` and the `CoordinateSystem` round-trip, whose seeds run with every `go test`
 - Benchmarks for the `Append` forms, `Hex.Lerp`, `Turn`, `DistanceTo`, `ParseHex`, `FractionalHex.Lerp` and `Turn`, `DirectionFromAngle` and `CoordinateSystem.Offsets`, `To` and `From`

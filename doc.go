@@ -39,15 +39,17 @@
 // Only a method whose result is a slice allocates, once, with the exact capacity of the result:
 // Range, Ring, Spiral, Line and FieldOfView. Each has an Append form that appends to a buffer the
 // caller reuses, as strconv.AppendInt does, so a loop allocates nothing once the buffer has room.
-// Neighbors returns an array, and HasLineOfSight walks the line without building it.
+// Neighbors and DiagonalNeighbors return an array, and HasLineOfSight walks the line without
+// building it.
 //
 // # Panics
 //
 // Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring and
 // Spiral, a zero radius gives the center alone, a line from a hex to itself is that one hex, and
-// DirectionNone gives the hex itself from Neighbor.
+// DirectionNone gives the hex itself from Neighbor and DiagonalNeighbor, and is the answer of
+// DirectionTo for the hex itself.
 //
-// CoordinateSystem.Offsets, Offset, To and From panic for a system outside the seven,
+// CoordinateSystem.Offsets, Offset, Neighbor, To and From panic for a system outside the seven,
 // CoordinateSystemNone included, as geom panics for an unknown Orientation: the absence of a
 // layout has nothing to convert. FractionalHex.Round panics for a NaN or infinite coordinate
 // through geom.Cast, and Hex.Lerp with it for a NaN or infinite t: a non-finite position lies
