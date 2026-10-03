@@ -20,6 +20,18 @@ func FracPt(q, r float64) FractionalHex {
 	return FractionalHex{q, r}
 }
 
+// ParseFractionalHex parses a fractional hex in the form "(q,r)", the form String prints, each
+// coordinate a float [geom.Parse] accepts. String keeps two decimals, so a parsed value
+// reprints the same string rather than restoring every bit.
+func ParseFractionalHex(s string) (FractionalHex, error) {
+	q, r, err := parseCoordinates[float64](s, "fractional hex")
+	if err != nil {
+		return FractionalHex{}, err
+	}
+
+	return FractionalHex{q, r}, nil
+}
+
 // S returns the implied s coordinate (-q - r).
 func (h FractionalHex) S() float64 {
 	return -h.Q - h.R
@@ -102,7 +114,8 @@ func (h FractionalHex) Point() floats.Point {
 	return geom.Pt(h.Q, h.R)
 }
 
-// String returns a compact representation of the fractional hex as (q,r) with 2 decimals.
+// String returns a compact representation of the fractional hex as (q,r), each coordinate
+// formatted by [geom.String] with two decimals.
 func (h FractionalHex) String() string {
-	return fmt.Sprintf("(%.2f,%.2f)", h.Q, h.R)
+	return fmt.Sprintf("(%s,%s)", geom.String(h.Q), geom.String(h.R))
 }

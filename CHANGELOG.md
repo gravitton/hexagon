@@ -30,6 +30,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `ParseDirection(name)`, `Direction.MarshalText` and `UnmarshalText` – a direction is stored as `"QPlus"` in JSON and as a map key rather than as its number, like `geom.Direction`; `"None"` parses to `DirectionNone`
 - `CoordinateSystemNone`, `CoordinateSystem.IsNone`, `ParseCoordinateSystem`, `MarshalText` and `UnmarshalText` – the same for the seven systems, like `geom.Orientation`
 - `CoordinateSystems()` – all seven systems in order, as a fresh array
+- `ParseHex(s)` and `ParseFractionalHex(s)` – read back the `(q,r)` form `String` prints, as `geom.ParsePoint` does, with errors naming the coordinate that failed and wrapping the `strconv` error
 - `Hex.AppendRange`, `AppendRing`, `AppendSpiral`, `AppendLine` and `AppendFieldOfView` – the `Append` form of every slice result, appending to a buffer the caller reuses as `strconv.AppendInt` does, so a loop allocates nothing once the buffer has room; the slice methods are the `Append` form on a buffer of the exact size
 - `Hex.Equal` and `FractionalHex.Equal` – exact for `Hex`, within `geom.Epsilon` for `FractionalHex`
 - `Hex.Lerp(hex, t)` – the hex at the interpolated position, rounded through `FractionalHex`
@@ -47,6 +48,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - The README no longer lists planned features, and a map-based line of sight is no longer planned: blockers in a map are filtered by the caller, as the README's visibility section shows
 
 ### Fixed
+- `FractionalHex.String` formats through `geom.String`, as `geom.Point.String` does, so a coordinate that rounds to zero prints `0.00` rather than `-0.00`
 - `FractionalHex.Lerp`, and through it `Hex.Lerp` and `Hex.Line`, give the same bits on every architecture: `geom.Lerp` in geometry v1.15.0 rounds its product before adding it, so arm64 and amd64 v3 no longer fuse it into a multiply-add, which could pick a different hex there
 - `Direction.Turn` no longer overflows for a step count or a direction value near the limits of `int`
 - `CoordinateSystem.Offset` panics for a system outside the seven with `DirectionNone` too, where it returned the zero vector

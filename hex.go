@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"strings"
 
 	geom "github.com/gravitton/geometry"
 	"github.com/gravitton/geometry/types/ints"
@@ -19,6 +20,39 @@ type Hex struct {
 // Pt is shorthand for Hex{q, r}.
 func Pt(q, r int) Hex {
 	return Hex{q, r}
+}
+
+// ParseHex parses a hex in the form "(q,r)", the form String prints, each coordinate an integer
+// [geom.Parse] accepts. A fractional coordinate is an error, not a rounded hex.
+func ParseHex(s string) (Hex, error) {
+	q, r, err := parseCoordinates[int](s, "hex")
+	if err != nil {
+		return Hex{}, err
+	}
+
+	return Hex{q, r}, nil
+}
+
+// parseCoordinates parses the "(q,r)" form String prints into its two coordinates, naming the
+// type of the value in its errors.
+func parseCoordinates[T geom.Number](s, name string) (T, T, error) {
+	coordinates, opened := strings.CutPrefix(s, "(")
+	coordinates, closed := strings.CutSuffix(coordinates, ")")
+	before, after, separated := strings.Cut(coordinates, ",")
+	if !opened || !closed || !separated {
+		return 0, 0, fmt.Errorf("hex: invalid %s format %q", name, s)
+	}
+
+	q, err := geom.Parse[T](before)
+	if err != nil {
+		return 0, 0, fmt.Errorf("hex: invalid q value: %w", err)
+	}
+	r, err := geom.Parse[T](after)
+	if err != nil {
+		return 0, 0, fmt.Errorf("hex: invalid r value: %w", err)
+	}
+
+	return q, r, nil
 }
 
 // S returns the implied s coordinate (-q - r).
@@ -303,7 +337,7 @@ func (h Hex) Float() FractionalHex {
 
 // String returns a compact representation of the hex as (q,r).
 func (h Hex) String() string {
-	return fmt.Sprintf("(%d,%d)", h.Q, h.R)
+	return fmt.Sprintf("(%s,%s)", geom.String(h.Q), geom.String(h.R))
 }
 
 // areaOf returns the number of hexes within radius n of a hex, the length of Range and Spiral.

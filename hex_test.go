@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math"
 	"slices"
+	"strconv"
 	"testing"
 
 	"github.com/gravitton/assert"
@@ -25,6 +26,44 @@ var (
 
 func TestHex_Constructor(t *testing.T) {
 	hextest.AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
+}
+
+func TestParseHex(t *testing.T) {
+	t.Run("the form String prints", func(t *testing.T) {
+		h, err := ParseHex("(-1,3)")
+		assert.NoError(t, err)
+		hextest.AssertHex(t, h, testHex)
+	})
+	t.Run("rejects fractional values", func(t *testing.T) {
+		_, err := ParseHex("(1.5,2)")
+		assert.ErrorContains(t, err, "hex: invalid q value")
+	})
+	t.Run("the parse error is wrapped", func(t *testing.T) {
+		_, err := ParseHex("(99999999999999999999,1)")
+		assert.ErrorContains(t, err, "hex: invalid q value")
+		assert.ErrorIs(t, err, strconv.ErrRange)
+
+		_, err = ParseHex("(1,b)")
+		assert.ErrorContains(t, err, "hex: invalid r value")
+		assert.ErrorIs(t, err, strconv.ErrSyntax)
+	})
+	t.Run("malformed input", func(t *testing.T) {
+		for _, s := range []string{"", "()", "(1)", "(1,2,3)", "1,2", "(1,2", "1,2)", "((1,2))", "( 1,2)", "(1, 2)"} {
+			_, err := ParseHex(s)
+			assert.Error(t, err, s+": ")
+		}
+	})
+	t.Run("names the type of a malformed value", func(t *testing.T) {
+		_, err := ParseHex("1,2")
+		assert.ErrorContains(t, err, `hex: invalid hex format "1,2"`)
+	})
+	t.Run("round-trips with String", func(t *testing.T) {
+		for _, h := range testHex.Spiral(2) {
+			parsed, err := ParseHex(h.String())
+			assert.NoError(t, err)
+			hextest.AssertHex(t, parsed, h, h.String()+": ")
+		}
+	})
 }
 
 func TestHex_S(t *testing.T) {

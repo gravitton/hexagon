@@ -3,6 +3,7 @@ package hex_test
 import (
 	"encoding/json"
 	"math"
+	"strconv"
 	"testing"
 
 	"github.com/gravitton/assert"
@@ -19,6 +20,39 @@ var tenth = 0.1
 
 func TestFractionalHex_Constructor(t *testing.T) {
 	hextest.AssertFractionalHex(t, FracPt(10.9, -1.2), FractionalHex{Q: 10.9, R: -1.2})
+}
+
+func TestParseFractionalHex(t *testing.T) {
+	t.Run("the form String prints", func(t *testing.T) {
+		h, err := ParseFractionalHex("(10.90,-1.20)")
+		assert.NoError(t, err)
+		hextest.AssertFractionalHex(t, h, testFracHex)
+	})
+	t.Run("accepts whole coordinates", func(t *testing.T) {
+		h, err := ParseFractionalHex("(2,-1)")
+		assert.NoError(t, err)
+		hextest.AssertFractionalHex(t, h, FracPt(2, -1))
+	})
+	t.Run("the parse error is wrapped", func(t *testing.T) {
+		_, err := ParseFractionalHex("(a,1)")
+		assert.ErrorContains(t, err, "hex: invalid q value")
+		assert.ErrorIs(t, err, strconv.ErrSyntax)
+
+		_, err = ParseFractionalHex("(1,1e999)")
+		assert.ErrorContains(t, err, "hex: invalid r value")
+		assert.ErrorIs(t, err, strconv.ErrRange)
+	})
+	t.Run("names the type of a malformed value", func(t *testing.T) {
+		_, err := ParseFractionalHex("(1.5)")
+		assert.ErrorContains(t, err, `hex: invalid fractional hex format "(1.5)"`)
+	})
+	t.Run("reprints the string it parsed", func(t *testing.T) {
+		for _, h := range []FractionalHex{testFracHex, FracPt(0.25, -1.5), FracPt(-0.001, 3.14159)} {
+			parsed, err := ParseFractionalHex(h.String())
+			assert.NoError(t, err)
+			assert.Equal(t, parsed.String(), h.String())
+		}
+	})
 }
 
 func TestFractionalHex_S(t *testing.T) {
@@ -152,7 +186,12 @@ func TestFractionalHex_Point(t *testing.T) {
 }
 
 func TestFractionalHex_String(t *testing.T) {
-	assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
+	t.Run("two decimals", func(t *testing.T) {
+		assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
+	})
+	t.Run("no sign on a value that rounds to zero", func(t *testing.T) {
+		assert.Equal(t, FracPt(-0.001, math.Copysign(0, -1)).String(), "(0.00,0.00)")
+	})
 }
 
 func TestFractionalHex_JSON(t *testing.T) {

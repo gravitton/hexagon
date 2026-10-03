@@ -61,6 +61,9 @@ a.Add(b)       // Hex{1, 1}
 a.Subtract(b)  // Hex{1, -5}
 a.Multiply(2)  // Hex{2, -4}
 a.Lerp(b, 0.5) // the hex halfway along the line to b
+
+a.String()             // "(1,-2)"
+hex.ParseHex("(1,-2)") // the string back to the hex
 ```
 
 ### Neighbors and traversal
@@ -178,7 +181,8 @@ f.Round()                                     // the nearest Hex, preserving q+r
 f.Length()                                    // 1.8, without rounding to a hex
 hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5) // FractionalHex{1.5, -0.5}
 
-hex.Pt(2, -1).Float() // the other way, exactly
+hex.Pt(2, -1).Float()                  // the other way, exactly
+hex.ParseFractionalHex("(1.40,-1.80)") // the form String prints, two decimals
 ```
 
 It also has `Add`, `Subtract`, `Multiply`, `DistanceTo`, `Equal` and `IsZero`, with the tolerance
