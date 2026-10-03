@@ -72,6 +72,49 @@ func (h FractionalHex) Lerp(hex FractionalHex, t float64) FractionalHex {
 	return FractionalHex{geom.Lerp(h.Q, hex.Q, t), geom.Lerp(h.R, hex.R, t)}
 }
 
+// Turn returns the fractional hex rotated by steps×60° around the origin, in the same sense as
+// [Hex.Turn]: clockwise as drawn on a screen with Y pointing down. Negative steps rotate the
+// other way. A sixth-turn permutes and negates the cube coordinates, so the result carries the
+// one rounding of s at most, however many steps it takes.
+func (h FractionalHex) Turn(steps int) FractionalHex {
+	switch geom.Mod(steps, 6) {
+	case 1:
+		return FractionalHex{-h.R, -h.S()}
+	case 2:
+		return FractionalHex{h.S(), h.Q}
+	case 3:
+		return FractionalHex{-h.Q, -h.R}
+	case 4:
+		return FractionalHex{h.R, h.S()}
+	case 5:
+		return FractionalHex{-h.S(), -h.Q}
+	default:
+		return h
+	}
+}
+
+// TurnAround returns the fractional hex rotated by steps×60° around center, in the same sense
+// as [Hex.Turn]: clockwise as drawn on a screen with Y pointing down. Negative steps rotate the
+// other way.
+func (h FractionalHex) TurnAround(center FractionalHex, steps int) FractionalHex {
+	return center.Add(h.Subtract(center).Turn(steps))
+}
+
+// ReflectQ returns the fractional hex reflected across the q-axis (q unchanged, r and s swapped).
+func (h FractionalHex) ReflectQ() FractionalHex {
+	return FractionalHex{h.Q, h.S()}
+}
+
+// ReflectR returns the fractional hex reflected across the r-axis (r unchanged, q and s swapped).
+func (h FractionalHex) ReflectR() FractionalHex {
+	return FractionalHex{h.S(), h.R}
+}
+
+// ReflectS returns the fractional hex reflected across the s-axis (s unchanged, q and r swapped).
+func (h FractionalHex) ReflectS() FractionalHex {
+	return FractionalHex{h.R, h.Q}
+}
+
 // DistanceTo returns the hex distance between h and the given hex, without rounding to a hex.
 func (h FractionalHex) DistanceTo(hex FractionalHex) float64 {
 	return h.Subtract(hex).Length()

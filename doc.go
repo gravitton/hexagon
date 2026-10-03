@@ -18,7 +18,7 @@
 // hold an inconsistent cube triple. Directions are ordered by increasing angle from SMinus
 // (flat-top SE, pointy-top E): counterclockwise in the standard math convention where Y grows
 // upward, which appears clockwise as drawn on a screen with Y pointing down. Direction.Turn,
-// Hex.Turn and Ring all turn that way; negative steps go back.
+// Hex.Turn, FractionalHex.Turn and Ring all turn that way; negative steps go back.
 //
 // # Enums
 //

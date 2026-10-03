@@ -116,6 +116,117 @@ func TestFractionalHex_Lerp(t *testing.T) {
 	})
 }
 
+func TestFractionalHex_Turn(t *testing.T) {
+	h := FracPt(1.5, -0.5)
+
+	t.Run("zero and six steps are the identity", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.Turn(0), h)
+		hextest.AssertFractionalHex(t, h.Turn(6), h)
+	})
+	t.Run("one step forward", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.Turn(1), FracPt(0.5, 1))
+	})
+	t.Run("one step back", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.Turn(-1), FracPt(1, -1.5))
+	})
+	t.Run("there and back returns to the start", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.Turn(1).Turn(-1), testFracHex)
+	})
+	t.Run("keeps the length", func(t *testing.T) {
+		for steps := -6; steps <= 6; steps++ {
+			assert.EqualDelta(t, testFracHex.Turn(steps).Length(), testFracHex.Length(), geom.Delta, strconv.Itoa(steps)+": ")
+		}
+	})
+	t.Run("agrees with Hex.Turn on whole coordinates", func(t *testing.T) {
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			for steps := -6; steps <= 6; steps++ {
+				hextest.AssertFractionalHex(t, whole.Float().Turn(steps), whole.Turn(steps).Float(), whole.String()+" by "+strconv.Itoa(steps)+": ")
+			}
+		}
+	})
+}
+
+func TestFractionalHex_TurnAround(t *testing.T) {
+	center := FracPt(1.25, 0.75)
+	h := FracPt(3.5, -0.5)
+
+	t.Run("zero and six steps are the identity", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.TurnAround(center, 0), h)
+		hextest.AssertFractionalHex(t, h.TurnAround(center, 6), h)
+	})
+	t.Run("keeps the distance from the center", func(t *testing.T) {
+		for steps := 1; steps <= 5; steps++ {
+			assert.EqualDelta(t, center.DistanceTo(h.TurnAround(center, steps)), center.DistanceTo(h), geom.Delta, strconv.Itoa(steps)+": ")
+		}
+	})
+	t.Run("there and back returns to the start", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
+	})
+	t.Run("around the origin is Turn", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, h.TurnAround(FracPt(0, 0), 1), h.Turn(1))
+		hextest.AssertFractionalHex(t, h.TurnAround(FracPt(0, 0), -1), h.Turn(-1))
+	})
+	t.Run("agrees with Hex.TurnAround on whole coordinates", func(t *testing.T) {
+		around := Pt(1, 1)
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			for steps := -6; steps <= 6; steps++ {
+				hextest.AssertFractionalHex(t, whole.Float().TurnAround(around.Float(), steps), whole.TurnAround(around, steps).Float(), whole.String()+" by "+strconv.Itoa(steps)+": ")
+			}
+		}
+	})
+}
+
+func TestFractionalHex_ReflectQ(t *testing.T) {
+	t.Run("swaps r and s", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectQ(), FracPt(10.9, -9.7))
+	})
+	t.Run("keeps q", func(t *testing.T) {
+		assert.Equal(t, testFracHex.ReflectQ().Q, testFracHex.Q)
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectQ().ReflectQ(), testFracHex)
+	})
+	t.Run("agrees with Hex.ReflectQ on whole coordinates", func(t *testing.T) {
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			hextest.AssertFractionalHex(t, whole.Float().ReflectQ(), whole.ReflectQ().Float(), whole.String()+": ")
+		}
+	})
+}
+
+func TestFractionalHex_ReflectR(t *testing.T) {
+	t.Run("swaps q and s", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectR(), FracPt(-9.7, -1.2))
+	})
+	t.Run("keeps r", func(t *testing.T) {
+		assert.Equal(t, testFracHex.ReflectR().R, testFracHex.R)
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectR().ReflectR(), testFracHex)
+	})
+	t.Run("agrees with Hex.ReflectR on whole coordinates", func(t *testing.T) {
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			hextest.AssertFractionalHex(t, whole.Float().ReflectR(), whole.ReflectR().Float(), whole.String()+": ")
+		}
+	})
+}
+
+func TestFractionalHex_ReflectS(t *testing.T) {
+	t.Run("swaps q and r", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectS(), FracPt(-1.2, 10.9))
+	})
+	t.Run("keeps s", func(t *testing.T) {
+		assert.EqualDelta(t, testFracHex.ReflectS().S(), testFracHex.S(), geom.Delta)
+	})
+	t.Run("twice is the identity", func(t *testing.T) {
+		hextest.AssertFractionalHex(t, testFracHex.ReflectS().ReflectS(), testFracHex)
+	})
+	t.Run("agrees with Hex.ReflectS on whole coordinates", func(t *testing.T) {
+		for _, whole := range Pt(0, 0).Spiral(2) {
+			hextest.AssertFractionalHex(t, whole.Float().ReflectS(), whole.ReflectS().Float(), whole.String()+": ")
+		}
+	})
+}
+
 func TestFractionalHex_DistanceTo(t *testing.T) {
 	a := FracPt(1.5, -0.5)
 	b := FracPt(3.5, -0.5)

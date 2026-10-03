@@ -103,20 +103,19 @@ func (h Hex) Lerp(hex Hex, t float64) Hex {
 // [Direction.Turn]: clockwise as drawn on a screen with Y pointing down.
 // Negative steps rotate the other way.
 func (h Hex) Turn(steps int) Hex {
-	return h.TurnAround(Hex{}, steps)
+	steps = geom.Mod(steps, 6)
+	for i := 0; i < steps; i++ {
+		h = Hex{-h.R, h.Q + h.R}
+	}
+
+	return h
 }
 
 // TurnAround returns the hex rotated by steps×60° around center, in the same sense as
 // [Direction.Turn]: clockwise as drawn on a screen with Y pointing down.
 // Negative steps rotate the other way.
 func (h Hex) TurnAround(center Hex, steps int) Hex {
-	relative := h.Subtract(center)
-	steps = geom.Mod(steps, 6)
-	for i := 0; i < steps; i++ {
-		relative = Hex{-relative.R, relative.Q + relative.R}
-	}
-
-	return center.Add(relative)
+	return center.Add(h.Subtract(center).Turn(steps))
 }
 
 // ReflectQ returns the hex reflected across the q-axis (q unchanged, r and s swapped).

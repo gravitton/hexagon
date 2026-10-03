@@ -183,6 +183,10 @@ hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5) // FractionalHex{1.5, -0.5}
 
 hex.Pt(2, -1).Float()                  // the other way, exactly
 hex.ParseFractionalHex("(1.40,-1.80)") // the form String prints, two decimals
+
+
+f.Turn(1)                          // a sub-hex position turns and reflects like a Hex
+f.TurnAround(hex.FracPt(1, 0), -1) // also ReflectQ, ReflectR and ReflectS
 ```
 
 It also has `Add`, `Subtract`, `Multiply`, `DistanceTo`, `Equal` and `IsZero`, with the tolerance

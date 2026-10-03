@@ -36,6 +36,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Lerp(hex, t)` – the hex at the interpolated position, rounded through `FractionalHex`
 - `Hex.Float` – the `FractionalHex` of a hex, the counterpart of `FractionalHex.Round`
 - `FractionalHex.Length`, `DistanceTo`, `Add`, `Subtract`, `Multiply` and `IsZero` – the arithmetic `Hex` has, without rounding to a hex
+- `FractionalHex.Turn`, `TurnAround`, `ReflectQ`, `ReflectR` and `ReflectS` – the cube-space geometry `Hex` has, for a sub-hex position; a turn permutes and negates the cube coordinates directly, so it carries one rounding at most however many steps it takes
 
 ### Changed
 - Require `geometry` v1.15.0 and `assert` v1.6.0
