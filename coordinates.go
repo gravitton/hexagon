@@ -72,7 +72,8 @@ func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
 }
 
 // Offsets returns the 6 neighbor offsets for the given coordinate index in this system,
-// indexed by [Direction]. For offset systems this accounts for row/column parity.
+// indexed by [Direction]. For offset systems this accounts for row/column parity. It panics
+// for a system outside the seven.
 func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 	switch s {
 	case OffsetOddR:
@@ -114,7 +115,8 @@ func (s CoordinateSystem) Neighbor(index geom.Point[int], direction Direction) g
 	return index.Add(s.Offset(index, direction))
 }
 
-// To converts an axial hex into this coordinate system as a geom.Point[int].
+// To converts an axial hex into this coordinate system as a geom.Point[int]. It panics for a
+// system outside the seven.
 func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	switch s {
 	case OffsetOddR:
@@ -136,7 +138,8 @@ func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	}
 }
 
-// From converts a coordinate in this system into an axial Hex.
+// From converts a coordinate in this system into an axial Hex. It panics for a system outside
+// the seven.
 func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 	switch s {
 	case OffsetOddR:

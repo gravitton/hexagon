@@ -16,9 +16,12 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 ### Changed
 - `Hex.Turn` picks the turned hex from the six cases directly, as `FractionalHex.Turn` does, where it looped a sixth-turn at a time; `DirectionTo` and `TurnAround` gain through it
 - `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk only the hexes strictly between the two ends, where they also visited the source and the target, which never block
-- `direction.go` and its tests follow the method order of `geom.Direction` in geometry v1.15.0: `Angle` first, then `Opposite`, `Turn`, `IsNone`, `Offset` and `Hex`
+- `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, as `Range`, `Ring` and `Spiral` do for a negative radius, where they returned an empty slice
+- `RangeSeq` reads its rows from the cube bounds `RangeIntersectionSeq` reads, so a range and the intersection of a range with itself cannot drift apart
+- CI scans the package for fused multiply-adds on arm64 and amd64 v3 against the list in `.github/fused.txt`, which is empty, and measures coverage in a step of its own
 
 ### Fixed
+- `FractionalHex.Multiply` rounds each product before returning it: it inlines into its caller, where `a.Add(b.Multiply(t))` fused into one multiply-add on arm64 and amd64 v3 and gave other bits than on amd64, against the reproducibility the package documents
 - `HasLineOfSight` and the package documentation state the limit of the integer test: it is exact while the square of the distance fits an `int` a few times over, and overflows beyond it
 - The package documentation no longer claims `FieldOfView` and `FieldOfViewFunc` allocate the exact capacity of the result: they allocate room for every candidate
 - Doc comments read "a geom.Point[int]", left as "an" by the rename from `ints.Point`, and the overlong lines in `doc.go`, `direction.go` and `hextest` are wrapped
@@ -77,7 +80,7 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 - `Direction.Angle`, `DirectionFromAngle` and the README direction table state that their angles are those of a pointy-top layout, which a flat-top layout turns by π/6
 - `DoubleWidth` and `DoubleHeight` state that they address only cells whose column and row share a parity, and that `From` maps any other coordinate to a cell beside it
 - The conventions moved from the README into the package documentation, the spec on pkg.go.dev
-- The README no longer lists planned features, and a map-based line of sight is no longer planned: blockers in a map are filtered by the caller, as the README's visibility section shows
+- The README no longer lists planned features
 
 ### Fixed
 - `FractionalHex.String` formats through `geom.String`, as `geom.Point.String` does, so a coordinate that rounds to zero prints `0.00` rather than `-0.00`

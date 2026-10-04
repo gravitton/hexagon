@@ -21,7 +21,8 @@ func FracPt(q, r float64) FractionalHex {
 
 // ParseFractionalHex parses a fractional hex in the form "(q,r)", the form String prints, each
 // coordinate a float [geom.Parse] accepts. String keeps two decimals, so a parsed value
-// reprints the same string rather than restoring every bit.
+// reprints the same string rather than restoring every bit. NaN and the infinities parse, as
+// String prints them, to a fractional hex [FractionalHex.Round] panics for.
 func ParseFractionalHex(s string) (FractionalHex, error) {
 	q, r, err := parseCoordinates[float64](s, "fractional hex")
 	if err != nil {
@@ -56,17 +57,18 @@ func (h FractionalHex) Add(hex FractionalHex) FractionalHex {
 	return FractionalHex{h.Q + hex.Q, h.R + hex.R}
 }
 
-// Subtract creates a new FractionalHex that is the vector difference h - hex.
+// Subtract returns a new FractionalHex that is the vector difference h - hex.
 func (h FractionalHex) Subtract(hex FractionalHex) FractionalHex {
 	return FractionalHex{h.Q - hex.Q, h.R - hex.R}
 }
 
-// Multiply creates a new FractionalHex scaled by the given factor.
+// Multiply returns a new FractionalHex scaled by the given factor. Each product is rounded
+// before it is returned, so a sum it feeds is never fused into a multiply-add.
 func (h FractionalHex) Multiply(factor float64) FractionalHex {
-	return FractionalHex{h.Q * factor, h.R * factor}
+	return FractionalHex{float64(h.Q * factor), float64(h.R * factor)}
 }
 
-// Lerp creates a new FractionalHex in linear interpolation towards given hex.
+// Lerp returns a new FractionalHex in linear interpolation towards given hex.
 func (h FractionalHex) Lerp(hex FractionalHex, t float64) FractionalHex {
 	return FractionalHex{geom.Lerp(h.Q, hex.Q, t), geom.Lerp(h.R, hex.R, t)}
 }

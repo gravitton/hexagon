@@ -1455,8 +1455,8 @@ func TestHex_FieldOfView(t *testing.T) {
 	candidates := testHexZero.Range(3)
 
 	t.Run("no candidates see nothing", func(t *testing.T) {
-		assert.Equal(t, len(testHexZero.FieldOfView(nil, nil)), 0)
-		assert.Equal(t, len(testHexZero.FieldOfView([]Hex{}, nil)), 0)
+		assert.True(t, testHexZero.FieldOfView(nil, nil) == nil)
+		assert.True(t, testHexZero.FieldOfView([]Hex{}, nil) == nil)
 	})
 	t.Run("everything is visible without blockers", func(t *testing.T) {
 		assert.Equal(t, testHexZero.FieldOfView(candidates, nil), candidates)
@@ -1583,7 +1583,8 @@ func TestHex_FieldOfViewFunc(t *testing.T) {
 		assert.Equal(t, testHexZero.FieldOfViewFunc(candidates, nil), candidates)
 	})
 	t.Run("no candidates see nothing", func(t *testing.T) {
-		assert.Equal(t, len(testHexZero.FieldOfViewFunc(nil, among([]Hex{Pt(1, 0)}))), 0)
+		assert.True(t, testHexZero.FieldOfViewFunc(nil, among([]Hex{Pt(1, 0)})) == nil)
+		assert.True(t, testHexZero.FieldOfViewFunc([]Hex{}, nil) == nil)
 	})
 	t.Run("agrees with FieldOfView", func(t *testing.T) {
 		for _, stride := range []int{2, 3, 5, 7, 11} {

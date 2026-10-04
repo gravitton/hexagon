@@ -54,6 +54,12 @@ func TestParseFractionalHex(t *testing.T) {
 			assert.Equal(t, parsed.String(), h.String())
 		}
 	})
+	t.Run("parses the non-finite values String prints", func(t *testing.T) {
+		h, err := ParseFractionalHex(FracPt(math.NaN(), math.Inf(1)).String())
+		assert.NoError(t, err)
+		assert.True(t, math.IsNaN(h.Q))
+		assert.True(t, math.IsInf(h.R, 1))
+	})
 }
 
 func TestFractionalHex_S(t *testing.T) {
@@ -115,6 +121,11 @@ func TestFractionalHex_Multiply(t *testing.T) {
 	})
 	t.Run("negative", func(t *testing.T) {
 		hextest.AssertFractionalHex(t, testFracHex.Multiply(-1), FracPt(-10.9, 1.2))
+	})
+	t.Run("rounds the product before a caller adds it", func(t *testing.T) {
+		sum := FracPt(-0.01, -0.01).Add(FracPt(tenth, tenth).Multiply(tenth))
+		assert.Equal(t, sum.Q, 1.734723475976807e-18)
+		assert.Equal(t, sum.R, 1.734723475976807e-18)
 	})
 }
 

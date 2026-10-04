@@ -36,6 +36,12 @@ jobs:
       - name: Lint
         run: staticcheck ./...
 
+      - name: Fused multiply-add
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          for t in "arm64 v1" "amd64 v3"; do set -- $t; GOARCH=$1 GOAMD64=$2 go test -c -o /dev/null -gcflags=-S . 2>&1 | awk '/ STEXT /{fn=$1} /[ \t](FN?M(ADD|SUB)[DS]|VFN?M(ADD|SUB)[0-9]+S[DS])[ \t]/ && fn ~ /hexagon/ && fn !~ /\.(Test|Benchmark|Example|Fuzz)/ && !/_test\.go/ {match($0, /[a-z_]+\.go:[0-9]+/); print substr($0, RSTART, RLENGTH)}'; done | sort -u | while IFS=: read -r file line; do printf '%s: %s\n' "$file" "$(sed -n "${line}p" "$file" | sed 's/^[[:space:]]*//')"; done | LC_ALL=C sort -u > "$RUNNER_TEMP/fused.txt"
+          diff -u .github/fused.txt "$RUNNER_TEMP/fused.txt"
+
       - name: Security
         run: govulncheck ./...
 
@@ -43,7 +49,10 @@ jobs:
         run: go build -v ./...
 
       - name: Test
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        run: go test -v -race ./...
+
+      - name: Coverage
+        run: go test -coverprofile=coverage.out ./...
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'

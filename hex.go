@@ -101,17 +101,17 @@ func (h Hex) Add(hex Hex) Hex {
 	return Hex{h.Q + hex.Q, h.R + hex.R}
 }
 
-// Subtract creates a new Hex that is the vector difference h - hex.
+// Subtract returns a new Hex that is the vector difference h - hex.
 func (h Hex) Subtract(hex Hex) Hex {
 	return Hex{h.Q - hex.Q, h.R - hex.R}
 }
 
-// Multiply creates a new Hex scaled by the given integer factor.
+// Multiply returns a new Hex scaled by the given integer factor.
 func (h Hex) Multiply(factor int) Hex {
 	return Hex{h.Q * factor, h.R * factor}
 }
 
-// Lerp creates a new Hex at the interpolated position between h and hex, rounded to the
+// Lerp returns a new Hex at the interpolated position between h and hex, rounded to the
 // nearest hex. It interpolates through [FractionalHex], so the result is a hex the straight
 // line from h to hex passes through. It panics for a NaN or infinite t, as
 // [FractionalHex.Round] does, and a finite t that carries the position beyond the range of int
@@ -168,8 +168,8 @@ func (h Hex) Neighbor(direction Direction) Hex {
 	return h.Add(direction.Hex())
 }
 
-// Neighbors returns the six neighboring hexes around h in axial coordinates, ordered by
-// increasing angle like [Directions]. It returns an array, so it allocates nothing.
+// Neighbors returns the six neighboring hexes around h, ordered by increasing angle like
+// [Directions]. It returns an array, so it allocates nothing.
 func (h Hex) Neighbors() [6]Hex {
 	var neighbors [6]Hex
 	for i, direction := range Directions() {
@@ -222,9 +222,11 @@ func (h Hex) AppendRange(dst []Hex, n int) []Hex {
 // walks them without a buffer. A negative radius yields nothing.
 func (h Hex) RangeSeq(n int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		for q := -n; q <= n; q++ {
-			for r := max(-n, -q-n); r <= min(n, -q+n); r++ {
-				if !yield(Hex{h.Q + q, h.R + r}) {
+		bounds := h.rangeBounds(n)
+		for q := bounds.minQ; q <= bounds.maxQ; q++ {
+			first, last := bounds.row(q)
+			for r := first; r <= last; r++ {
+				if !yield(Hex{q, r}) {
 					return
 				}
 			}
@@ -233,23 +235,23 @@ func (h Hex) RangeSeq(n int) iter.Seq[Hex] {
 }
 
 // RangeIntersection returns the hexes within radius n of h that are also within radius m of
-// other, ordered by q and then by r like [Hex.Compare]. It reads them off the cube bounds the
+// hex, ordered by q and then by r like [Hex.Compare]. It reads them off the cube bounds the
 // two ranges share, without building either. It returns nil where the two do not meet, as for
 // a negative radius.
-func (h Hex) RangeIntersection(n int, other Hex, m int) []Hex {
-	size := h.rangeBounds(n).meet(other.rangeBounds(m)).size()
+func (h Hex) RangeIntersection(n int, hex Hex, m int) []Hex {
+	size := h.rangeBounds(n).meet(hex.rangeBounds(m)).size()
 	if size == 0 {
 		return nil
 	}
 
-	return h.AppendRangeIntersection(make([]Hex, 0, size), n, other, m)
+	return h.AppendRangeIntersection(make([]Hex, 0, size), n, hex, m)
 }
 
 // AppendRangeIntersection appends the hexes RangeIntersection returns to dst and returns the
 // extended slice, so a caller reusing dst allocates nothing once it has room.
-func (h Hex) AppendRangeIntersection(dst []Hex, n int, other Hex, m int) []Hex {
-	for hex := range h.RangeIntersectionSeq(n, other, m) {
-		dst = append(dst, hex)
+func (h Hex) AppendRangeIntersection(dst []Hex, n int, hex Hex, m int) []Hex {
+	for shared := range h.RangeIntersectionSeq(n, hex, m) {
+		dst = append(dst, shared)
 	}
 
 	return dst
@@ -257,9 +259,9 @@ func (h Hex) AppendRangeIntersection(dst []Hex, n int, other Hex, m int) []Hex {
 
 // RangeIntersectionSeq returns an iterator over the hexes RangeIntersection returns, in the
 // same order, so a caller walks them without a buffer.
-func (h Hex) RangeIntersectionSeq(n int, other Hex, m int) iter.Seq[Hex] {
+func (h Hex) RangeIntersectionSeq(n int, hex Hex, m int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		bounds := h.rangeBounds(n).meet(other.rangeBounds(m))
+		bounds := h.rangeBounds(n).meet(hex.rangeBounds(m))
 		for q := bounds.minQ; q <= bounds.maxQ; q++ {
 			first, last := bounds.row(q)
 			for r := first; r <= last; r++ {
@@ -422,6 +424,9 @@ func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
 // stricter than [Hex.Line]: a hex off the line can clip the segment, and a hex of the line that
 // the segment only touches does not block. It allocates nothing.
 //
+// It costs one pass over the blockers, and one more for each blocker the segment touches along
+// an edge, to look for the hex facing it: at most two a step of the distance.
+//
 // The test multiplies the coordinates pairwise, so it is exact while the square of the distance
 // from h to target and to every blocker fits an int a few times over, far beyond any map on a
 // 64-bit platform. Further apart the products overflow and the answer means nothing.
@@ -448,8 +453,8 @@ func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 // HasLineOfSightFunc reports whether target is visible from h past the hexes blocked reports,
 // by the rule of [Hex.HasLineOfSight]: it holds exactly when HasLineOfSight does for the same
 // blockers. It asks blocked about the hexes the segment meets, from h towards target, and no
-// others, so it costs the distance however many hexes block, where HasLineOfSight costs a pass
-// over its blockers: the form for a large or dense map kept in a map or a grid. A nil blocked
+// others, so it costs the distance however many hexes block, where HasLineOfSight costs its
+// passes over the blockers: the form for a large or dense map kept in a map or a grid. A nil blocked
 // blocks nothing. It allocates nothing.
 func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 	if blocked == nil {
@@ -476,8 +481,13 @@ func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 
 // FieldOfView returns the candidates visible from h past the blocking hexes, in the order
 // given: those [Hex.HasLineOfSight] sees, so the field is symmetric and a blocker casts the
-// same shadow from every side. A candidate at distance one or less is always visible.
+// same shadow from every side. A candidate at distance one or less is always visible. It
+// returns nil for no candidates.
 func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
+	if len(candidates) == 0 {
+		return nil
+	}
+
 	return h.AppendFieldOfView(make([]Hex, 0, len(candidates)), candidates, blocking)
 }
 
@@ -506,8 +516,12 @@ func (h Hex) FieldOfViewSeq(candidates []Hex, blocking []Hex) iter.Seq[Hex] {
 
 // FieldOfViewFunc returns the candidates visible from h past the hexes blocked reports, in the
 // order given: those [Hex.HasLineOfSightFunc] sees, the field [Hex.FieldOfView] returns for the
-// same blockers.
+// same blockers. It returns nil for no candidates.
 func (h Hex) FieldOfViewFunc(candidates []Hex, blocked func(Hex) bool) []Hex {
+	if len(candidates) == 0 {
+		return nil
+	}
+
 	return h.AppendFieldOfViewFunc(make([]Hex, 0, len(candidates)), candidates, blocked)
 }
 
@@ -607,7 +621,8 @@ func (h Hex) IsZero() bool {
 	return h == Hex{}
 }
 
-// To converts the hex into the specified coordinate system, returning a geom.Point[int].
+// To converts the hex into the specified coordinate system, returning a geom.Point[int]. It
+// panics for a system outside the seven, as [CoordinateSystem.To] does.
 func (h Hex) To(system CoordinateSystem) geom.Point[int] {
 	return system.To(h)
 }

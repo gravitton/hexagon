@@ -57,8 +57,9 @@
 //
 // HasLineOfSightFunc and FieldOfViewFunc apply the same rule to a function reporting whether a
 // hex blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass
-// over the blockers for each target and the Func forms the distance to it, so the slice forms
-// suit a small board or few blockers and the Func forms a large or dense map.
+// over the blockers for each target, and one more for each blocker the segment touches along an
+// edge, and the Func forms the distance to it, so the slice forms suit a small board or few
+// blockers and the Func forms a large or dense map.
 //
 // Both multiply the coordinates pairwise, so they are exact while the square of the distance
 // between the hexes fits an int a few times over, far beyond any map on a 64-bit platform.
@@ -66,13 +67,13 @@
 // # Panics
 //
 // Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring and
-// Spiral, a zero radius gives the center alone, a line from a hex to itself is that one hex, and
-// DirectionNone gives the hex itself from Neighbor and DiagonalNeighbor, and is the answer of
-// DirectionTo for the hex itself.
+// Spiral, a zero radius gives the center alone, a line from a hex to itself is that one hex, no
+// candidates give nil from FieldOfView and FieldOfViewFunc, and DirectionNone gives the hex
+// itself from Neighbor and DiagonalNeighbor, and is the answer of DirectionTo for the hex itself.
 //
-// CoordinateSystem.Offsets, Offset, Neighbor, To and From panic for a system outside the seven,
-// CoordinateSystemNone included, as geom panics for an unknown Orientation: the absence of a
-// layout has nothing to convert. FractionalHex.Round panics for a NaN or infinite coordinate
+// CoordinateSystem.Offsets, Offset, Neighbor, To and From, and Hex.To through it, panic for a
+// system outside the seven, CoordinateSystemNone included, as geom panics for an unknown
+// Orientation: the absence of a layout has nothing to convert. FractionalHex.Round panics for a NaN or infinite coordinate
 // through geom.Cast, and Hex.Lerp with it for a NaN or infinite t: a non-finite position lies
 // on no hex. These are the only panics.
 //
@@ -80,5 +81,6 @@
 //
 // Every product in FractionalHex arithmetic is rounded before it is added, so the compiler
 // cannot fuse it into a multiply-add on arm64 or amd64 v3, and the same inputs give the same
-// bits, and the same rounded hex, on every architecture.
+// bits, and the same rounded hex, on every architecture. FractionalHex.Multiply rounds what it
+// returns for the same reason: it inlines into its caller, where a sum would fuse with it.
 package hex
