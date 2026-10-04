@@ -22,10 +22,6 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ### Fixed
 - `FractionalHex.Multiply` rounds each product before returning it: it inlines into its caller, where `a.Add(b.Multiply(t))` fused into one multiply-add on arm64 and amd64 v3 and gave other bits than on amd64, against the reproducibility the package documents
-- `HasLineOfSight` and the package documentation state the limit of the integer test: it is exact while the square of the distance fits an `int` a few times over, and overflows beyond it
-- The package documentation no longer claims `FieldOfView` and `FieldOfViewFunc` allocate the exact capacity of the result: they allocate room for every candidate
-- Doc comments read "a geom.Point[int]", left as "an" by the rename from `ints.Point`, and the overlong lines in `doc.go`, `direction.go` and `hextest` are wrapped
-- README: the `Append` form is explained once, the `RangeIntersection` snippet uses values defined above it, and two unused link references are gone
 
 
 ## [v1.5.0](https://github.com/gravitton/hexagon/compare/v1.4.0...v1.5.0) (2026-10-04)
