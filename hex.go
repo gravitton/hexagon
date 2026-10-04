@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/ints"
 )
 
 // Hex represents a hexagon in axial (cube) coordinates using integer q and r.
@@ -596,13 +595,13 @@ func (h Hex) IsZero() bool {
 	return h == Hex{}
 }
 
-// To converts the hex into the specified coordinate system, returning an ints.Point.
-func (h Hex) To(system CoordinateSystem) ints.Point {
+// To converts the hex into the specified coordinate system, returning an geom.Point[int].
+func (h Hex) To(system CoordinateSystem) geom.Point[int] {
 	return system.To(h)
 }
 
-// Point returns (q,r) as an [ints.Point].
-func (h Hex) Point() ints.Point {
+// Point returns (q,r) as an [geom.Point[int]].
+func (h Hex) Point() geom.Point[int] {
 	return geom.Pt(h.Q, h.R)
 }
 

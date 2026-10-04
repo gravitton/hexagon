@@ -8,12 +8,11 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/ints"
 	. "github.com/gravitton/hexagon"
 	"github.com/gravitton/hexagon/hextest"
 )
 
-var axialDirection = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var axialDirection = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
 
 func TestDirections(t *testing.T) {
 	t.Run("by increasing angle", func(t *testing.T) {
@@ -148,7 +147,7 @@ func TestDirection_Opposite(t *testing.T) {
 	})
 	t.Run("the offsets cancel", func(t *testing.T) {
 		for _, direction := range Directions() {
-			assert.Equal(t, direction.Offset().Add(direction.Opposite().Offset()), ints.Vector{}, direction.String()+": ")
+			assert.Equal(t, direction.Offset().Add(direction.Opposite().Offset()), geom.Vector[int]{}, direction.String()+": ")
 		}
 	})
 	t.Run("none is its own opposite", func(t *testing.T) {
@@ -229,14 +228,14 @@ func TestDirection_Offset(t *testing.T) {
 		assert.Equal(t, Direction(-8).Offset(), axialDirection[4])
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
-		assert.Equal(t, DirectionNone.Offset(), ints.Vector{})
+		assert.Equal(t, DirectionNone.Offset(), geom.Vector[int]{})
 	})
 	t.Run("the six cancel out", func(t *testing.T) {
-		sum := ints.Vector{}
+		sum := geom.Vector[int]{}
 		for _, direction := range Directions() {
 			sum = sum.Add(direction.Offset())
 		}
-		assert.Equal(t, sum, ints.Vector{})
+		assert.Equal(t, sum, geom.Vector[int]{})
 	})
 	t.Run("every step is one hex long and no two are the same", func(t *testing.T) {
 		directions := Directions()

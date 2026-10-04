@@ -10,7 +10,6 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/ints"
 	. "github.com/gravitton/hexagon"
 	"github.com/gravitton/hexagon/hextest"
 )
@@ -29,9 +28,9 @@ var (
 	sinkDirection  Direction
 	sinkDirections [6]Direction
 	sinkSystems    [7]CoordinateSystem
-	sinkPoint      ints.Point
-	sinkVector     ints.Vector
-	sinkVectors    [6]ints.Vector
+	sinkPoint      geom.Point[int]
+	sinkVector     geom.Vector[int]
+	sinkVectors    [6]geom.Vector[int]
 )
 
 func TestHex_Constructor(t *testing.T) {

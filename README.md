@@ -158,7 +158,7 @@ a.ReflectQ()        // mirrored across the q-axis; also ReflectR and ReflectS
 dir := hex.QPlus
 dir.Opposite() // QMinus
 dir.Turn(1)    // SMinus, one step of increasing angle
-dir.Offset()   // ints.Vector, the axial step
+dir.Offset()   // geom.Vector[int], the axial step
 dir.Hex()      // Hex, the same step as a hex
 dir.Angle()    // 5π/3
 
@@ -240,8 +240,8 @@ Pixel layout lives in [`gravitton/grid`](https://github.com/gravitton/grid); the
 this package builds on live in [`gravitton/geometry`](https://github.com/gravitton/geometry).
 
 ```go
-a.Point()         // ints.Point{1, -2}
-a.Float().Point() // floats.Point{1, -2}
+a.Point()         // geom.Point[int]{1, -2}
+a.Float().Point() // geom.Point[float64]{1, -2}
 
 json.Marshal(hex.Pt(1, -2))  // {"q":1,"r":-2}
 json.Marshal(hex.QPlus)      // "QPlus"

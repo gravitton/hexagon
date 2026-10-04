@@ -5,7 +5,6 @@ import (
 	"math"
 
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/ints"
 )
 
 // Direction represents one of the six neighbor directions around a hex. The named constants
@@ -65,7 +64,7 @@ func Directions() [6]Direction {
 }
 
 // directionOffsets lists the axial neighbor vector of each direction, indexed by direction.
-var directionOffsets = [6]ints.Vector{
+var directionOffsets = [6]geom.Vector[int]{
 	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
 	geom.Vec(0, 1),  // +R, flat-top S,  pointy-top SE
 	geom.Vec(-1, 1), // -Q, flat-top SW, pointy-top SW
@@ -121,9 +120,9 @@ func (d Direction) Turn(steps int) Direction {
 
 // Offset returns the axial neighbor offset vector for the given direction,
 // and the zero vector for DirectionNone.
-func (d Direction) Offset() ints.Vector {
+func (d Direction) Offset() geom.Vector[int] {
 	if d.IsNone() {
-		return ints.Vector{}
+		return geom.Vector[int]{}
 	}
 
 	return directionOffsets[d.normalize()]

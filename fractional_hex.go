@@ -5,7 +5,6 @@ import (
 	"math"
 
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/floats"
 )
 
 // FractionalHex represents a hex with floating-point axial coordinates.
@@ -130,8 +129,8 @@ func (h FractionalHex) IsZero() bool {
 	return h.Equal(FractionalHex{})
 }
 
-// Point returns the axial (q,r) as a floats.Point.
-func (h FractionalHex) Point() floats.Point {
+// Point returns the axial (q,r) as a geom.Point[float64].
+func (h FractionalHex) Point() geom.Point[float64] {
 	return geom.Pt(h.Q, h.R)
 }
 

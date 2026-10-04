@@ -7,18 +7,17 @@ import (
 
 	"github.com/gravitton/assert"
 	geom "github.com/gravitton/geometry"
-	"github.com/gravitton/geometry/types/ints"
 	. "github.com/gravitton/hexagon"
 )
 
 var testConversions = []struct {
 	hex          Hex
-	offsetOddR   ints.Point
-	offsetEvenR  ints.Point
-	offsetOddQ   ints.Point
-	offsetEvenQ  ints.Point
-	doubleWidth  ints.Point
-	doubleHeight ints.Point
+	offsetOddR   geom.Point[int]
+	offsetEvenR  geom.Point[int]
+	offsetOddQ   geom.Point[int]
+	offsetEvenQ  geom.Point[int]
+	doubleWidth  geom.Point[int]
+	doubleHeight geom.Point[int]
 }{
 	{
 		hex:          Pt(0, 0),
@@ -85,16 +84,16 @@ var testConversions = []struct {
 	},
 }
 
-var offsetOddRDirectionOddRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddRDirectionEvenRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionOddRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionEvenRow = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddQDirectionOddCol = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var offsetOddQDirectionEvenCol = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionOddCol = [6]ints.Vector{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionEvenCol = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var doubleWidthDirection = [6]ints.Vector{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
-var doubleHeightDirection = [6]ints.Vector{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
+var offsetOddRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var offsetOddQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var doubleWidthDirection = [6]geom.Vector[int]{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
+var doubleHeightDirection = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
 
 func TestCoordinateSystems(t *testing.T) {
 	t.Run("the seven in order", func(t *testing.T) {
@@ -135,14 +134,14 @@ func TestParseCoordinateSystem(t *testing.T) {
 func TestCoordinateSystem_Offsets(t *testing.T) {
 	t.Run("the tables at each parity", func(t *testing.T) {
 		tests := []struct {
-			index        ints.Point
-			axial        [6]ints.Vector
-			offsetOddR   [6]ints.Vector
-			offsetEvenR  [6]ints.Vector
-			offsetOddQ   [6]ints.Vector
-			offsetEvenQ  [6]ints.Vector
-			doubleWidth  [6]ints.Vector
-			doubleHeight [6]ints.Vector
+			index        geom.Point[int]
+			axial        [6]geom.Vector[int]
+			offsetOddR   [6]geom.Vector[int]
+			offsetEvenR  [6]geom.Vector[int]
+			offsetOddQ   [6]geom.Vector[int]
+			offsetEvenQ  [6]geom.Vector[int]
+			doubleWidth  [6]geom.Vector[int]
+			doubleHeight [6]geom.Vector[int]
 		}{
 			{
 				index:        geom.Pt(0, 0), // even col, even row
@@ -237,7 +236,7 @@ func BenchmarkCoordinateSystem_Offsets(b *testing.B) {
 }
 
 func TestCoordinateSystem_Offset(t *testing.T) {
-	indexes := []ints.Point{geom.Pt(0, 0), geom.Pt(1, 1), geom.Pt(3, 2), geom.Pt(-2, -3)}
+	indexes := []geom.Point[int]{geom.Pt(0, 0), geom.Pt(1, 1), geom.Pt(3, 2), geom.Pt(-2, -3)}
 
 	t.Run("reads Offsets by direction", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
@@ -259,7 +258,7 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	})
 	t.Run("none steps nowhere", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), ints.Vector{}, system.String()+": ")
+			assert.Equal(t, system.Offset(geom.Pt(1, 1), DirectionNone), geom.Vector[int]{}, system.String()+": ")
 		}
 	})
 	t.Run("steps to the neighbor of the hex", func(t *testing.T) {
@@ -362,7 +361,7 @@ func TestCoordinateSystem_To(t *testing.T) {
 	})
 	t.Run("no two hexes share a coordinate", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			seen := map[ints.Point]Hex{}
+			seen := map[geom.Point[int]]Hex{}
 			for _, h := range testHex.Spiral(4) {
 				index := system.To(h)
 				other, taken := seen[index]
@@ -534,10 +533,10 @@ func TestCoordinateSystem_Text(t *testing.T) {
 
 // deriveOffsets computes the neighbor offsets of a system straight from Directions and the
 // coordinate conversion, which is the definition the literal tables cache.
-func deriveOffsets(system CoordinateSystem, index ints.Point) [6]ints.Vector {
+func deriveOffsets(system CoordinateSystem, index geom.Point[int]) [6]geom.Vector[int] {
 	h := system.From(index)
 
-	var offsets [6]ints.Vector
+	var offsets [6]geom.Vector[int]
 	for i, direction := range Directions() {
 		neighbor := system.To(h.Neighbor(direction))
 		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
