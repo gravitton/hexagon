@@ -26,7 +26,6 @@ var (
 	sinkBool       bool
 	sinkInt        int
 	sinkFracHex    FractionalHex
-	sinkRegion     Region
 	sinkDirection  Direction
 	sinkDirections [6]Direction
 	sinkSystems    [7]CoordinateSystem
@@ -645,35 +644,6 @@ func BenchmarkHex_RangeSeq(b *testing.B) {
 			sinkHex = h
 		}
 	}
-}
-
-func TestHex_Region(t *testing.T) {
-	t.Run("the region of Range", func(t *testing.T) {
-		for _, n := range []int{0, 1, 2, 5} {
-			assert.True(t, testHex.Region(n).Equal(Reg(testHex.Range(n))), strconv.Itoa(n)+": ")
-			assert.Equal(t, testHex.Region(n).Hexes(), testHex.Range(n), strconv.Itoa(n)+": ")
-		}
-	})
-	t.Run("negative radius is the empty region", func(t *testing.T) {
-		assert.True(t, testHex.Region(-1).IsEmpty())
-	})
-	t.Run("zero radius is the center alone", func(t *testing.T) {
-		assert.True(t, testHex.Region(0).Equal(Reg([]Hex{testHex})))
-	})
-	t.Run("holds exactly the hexes within the radius", func(t *testing.T) {
-		region := testHex.Region(3)
-		for _, h := range testHex.Spiral(5) {
-			assert.Equal(t, region.Contains(h), testHex.DistanceTo(h) <= 3, h.String()+": ")
-		}
-	})
-	t.Run("bordered by the ring", func(t *testing.T) {
-		assert.True(t, testHex.Region(3).Border().Equal(Reg(testHex.Ring(3))))
-	})
-	t.Run("allocates once", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkRegion = testHex.Region(3)
-		}), 1.0)
-	})
 }
 
 func TestHex_RangeIntersection(t *testing.T) {
@@ -1719,13 +1689,6 @@ func ExampleHex_AppendRange() {
 	// Output:
 	// 7 (-1,0)
 	// 7 (4,-2)
-}
-
-func ExampleHex_Region() {
-	reach := Pt(0, 0).Region(2)
-
-	fmt.Println(reach.Len(), reach.Contains(Pt(2, -1)), reach.Contains(Pt(3, 0)))
-	// Output: 19 true false
 }
 
 func ExampleHex_RangeIntersection() {

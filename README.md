@@ -115,25 +115,11 @@ for _, unit := range units {
 }
 ```
 
-### Regions
-
-A `Region` is a set of hexes for area queries. It holds each hex once, in the order of
-`Hex.Compare`, and every operation returns a new region:
+The hexes two ranges share come straight from the cube bounds, without building either range:
 
 ```go
-reach := unit.Region(3)   // the range as a region, no sort or copy
-blast := target.Region(1) // hex.Reg(hexes) builds one from any slice
-
-reach.Intersection(blast) // also Union and Difference
-reach.Border()            // the hexes with a neighbor outside, around holes as well
-reach.Contains(h)         // binary search, no allocation
-reach.Hexes()             // a fresh slice; also AppendHexes
-reach.All()               // the iterator, for range reach.All()
-
-unit.RangeIntersection(3, target, 1) // two ranges, straight from the cube bounds
+unit.RangeIntersection(3, target, 1) // also AppendRangeIntersection and RangeIntersectionSeq
 ```
-
-A region marshals to JSON as an array of hexes.
 
 ### Visibility
 
@@ -275,7 +261,8 @@ Full reference: [pkg.go.dev][link-go-dev-reference].
 This package is the coordinate math alone: a hex knows its neighbors, its distances and its
 shape on the grid, and nothing about where it is drawn or what it holds. That layer is
 [`gravitton/grid`](https://github.com/gravitton/grid), which builds on this package and holds
-everything it leaves out.
+everything it leaves out. A set of cells with union, intersection and difference is there too,
+as `grid.Region`, over the indices square and hexagonal grids share.
 
 ## Credits
 

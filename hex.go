@@ -225,13 +225,6 @@ func (h Hex) RangeSeq(n int) iter.Seq[Hex] {
 	}
 }
 
-// Region returns the hexes within radius n around h as a [Region], the set Range lists. Range
-// is already in the order a region keeps, so the region wraps it without sorting or copying. It
-// returns the empty region for a negative radius.
-func (h Hex) Region(n int) Region {
-	return Region{h.Range(n)}
-}
-
 // RangeIntersection returns the hexes within radius n of h that are also within radius m of
 // other, ordered by q and then by r like [Hex.Compare]. It reads them off the cube bounds the
 // two ranges share, without building either. It returns nil where the two do not meet, as for

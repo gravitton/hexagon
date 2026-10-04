@@ -7,7 +7,7 @@
 //
 // The package covers neighbor lookup and [Direction], distance, area and perimeter traversal
 // (range, ring, spiral), line drawing, line of sight and field of view, rotation and
-// reflection in cube space, sets of hexes as a [Region], and conversion between seven
+// reflection in cube space, and conversion between seven
 // [CoordinateSystem] layouts.
 //
 // Pixel layout lives in github.com/gravitton/grid; the shapes and vectors this package builds
@@ -41,8 +41,7 @@
 // Range, RangeIntersection, Ring, Spiral, Line and FieldOfView. Each has an Append form that appends to a buffer the
 // caller reuses, as strconv.AppendInt does, so a loop allocates nothing once the buffer has room.
 // Range, RangeIntersection, Ring, Spiral, Line and FieldOfView also have a Seq form, an
-// iterator that walks the same hexes in the same order without a buffer at all. A [Region]
-// allocates once per set operation, at the exact size of the result.
+// iterator that walks the same hexes in the same order without a buffer at all.
 // Neighbors and DiagonalNeighbors return an array, and HasLineOfSight tests each blocker
 // against the sight line without building anything.
 //
