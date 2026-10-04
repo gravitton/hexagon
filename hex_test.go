@@ -1334,32 +1334,35 @@ func BenchmarkHex_HasLineOfSight(b *testing.B) {
 }
 
 func FuzzHex_HasLineOfSight(f *testing.F) {
-	f.Add(0, 0, 4, -1, 2, -1)
-	f.Add(-1, 3, 3, 1, 2, 0)
-	f.Add(7, -12, 2, 2, 1, 0)
-	f.Add(-1000000, 999999, -40, 17, -20, 9)
+	f.Add(0, 0, 4, -1, 2, -1, 3, 3)
+	f.Add(-1, 3, 3, 1, 2, 0, 1, 1)
+	f.Add(7, -12, 2, 2, 1, 0, 0, 1)
+	f.Add(0, 0, 4, -2, 1, 0, 1, -1)
+	f.Add(-1000000, 999999, -40, 17, -20, 9, -21, 9)
 
-	f.Fuzz(func(t *testing.T, q, r, stepQ, stepR, blockQ, blockR int) {
-		if max(geom.Abs(q), geom.Abs(r)) > 1e6 || max(geom.Abs(stepQ), geom.Abs(stepR), geom.Abs(blockQ), geom.Abs(blockR)) > 60 {
+	f.Fuzz(func(t *testing.T, q, r, stepQ, stepR, firstQ, firstR, secondQ, secondR int) {
+		if max(geom.Abs(q), geom.Abs(r)) > 1e6 || max(geom.Abs(stepQ), geom.Abs(stepR), geom.Abs(firstQ), geom.Abs(firstR), geom.Abs(secondQ), geom.Abs(secondR)) > 60 {
 			t.Skip()
 		}
 
-		source := Pt(q, r)
-		step, block := Pt(stepQ, stepR), Pt(blockQ, blockR)
-		target, blocker := source.Add(step), source.Add(block)
-		sees := source.HasLineOfSight(target, []Hex{blocker})
-		message := source.String() + " to " + target.String() + " past " + blocker.String() + ": "
+		source, step := Pt(q, r), Pt(stepQ, stepR)
+		blocks := []Hex{Pt(firstQ, firstR), Pt(secondQ, secondR)}
+		target, blockers := source.Add(step), []Hex{source.Add(blocks[0]), source.Add(blocks[1])}
+		sees := source.HasLineOfSight(target, blockers)
+		message := source.String() + " to " + target.String() + " past " + blockers[0].String() + " and " + blockers[1].String() + ": "
 
-		assert.Equal(t, target.HasLineOfSight(source, []Hex{blocker}), sees, message)
-		assert.Equal(t, source.HasLineOfSightFunc(target, among([]Hex{blocker})), sees, message)
-		assert.Equal(t, testHexZero.HasLineOfSight(step, []Hex{block}), sees, message)
-		assert.Equal(t, testHexZero.HasLineOfSight(step.ReflectQ(), []Hex{block.ReflectQ()}), sees, message)
+		assert.Equal(t, target.HasLineOfSight(source, blockers), sees, message)
+		assert.Equal(t, source.HasLineOfSightFunc(target, among(blockers)), sees, message)
+		assert.Equal(t, testHexZero.HasLineOfSight(step, blocks), sees, message)
+		assert.Equal(t, testHexZero.HasLineOfSight(step.ReflectQ(), []Hex{blocks[0].ReflectQ(), blocks[1].ReflectQ()}), sees, message)
 		for steps := 1; steps < 6; steps++ {
-			assert.Equal(t, testHexZero.HasLineOfSight(step.Turn(steps), []Hex{block.Turn(steps)}), sees, message)
+			assert.Equal(t, testHexZero.HasLineOfSight(step.Turn(steps), []Hex{blocks[0].Turn(steps), blocks[1].Turn(steps)}), sees, message)
 		}
 
 		if !sees {
-			assert.True(t, source.DistanceTo(blocker)+blocker.DistanceTo(target) <= source.DistanceTo(target)+1, message)
+			assert.True(t, slices.ContainsFunc(blockers, func(blocker Hex) bool {
+				return source.DistanceTo(blocker)+blocker.DistanceTo(target) <= source.DistanceTo(target)+1
+			}), message)
 		}
 	})
 }

@@ -90,14 +90,16 @@ func (l sightLine) crossed() iter.Seq[Hex] {
 			}
 		}
 
-		forward, side, divisor := geom.Sign(sight[axis]), sight[(axis+1)%3], 3*steps
+		second, third := (axis+1)%3, (axis+2)%3
+
+		forward, side, divisor := geom.Sign(sight[axis]), sight[second], 3*steps
 		for i := 1; i < steps; i++ {
 			var offset [3]int
 			offset[axis] = forward * i
 
 			first, last := -floorDiv(l.width-3*side*i, divisor), floorDiv(l.width+3*side*i, divisor)
-			for along := first; along <= last; along++ {
-				offset[(axis+1)%3], offset[(axis+2)%3] = along, -offset[axis]-along
+			for lateral := first; lateral <= last; lateral++ {
+				offset[second], offset[third] = lateral, -offset[axis]-lateral
 
 				if !yield(Hex{offset[0], offset[1]}) {
 					return

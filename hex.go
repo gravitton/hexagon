@@ -149,12 +149,12 @@ func (h Hex) TurnAround(center Hex, steps int) Hex {
 
 // ReflectQ returns the hex reflected across the q-axis (q unchanged, r and s swapped).
 func (h Hex) ReflectQ() Hex {
-	return Hex{h.Q, -h.Q - h.R}
+	return Hex{h.Q, h.S()}
 }
 
 // ReflectR returns the hex reflected across the r-axis (r unchanged, q and s swapped).
 func (h Hex) ReflectR() Hex {
-	return Hex{-h.Q - h.R, h.R}
+	return Hex{h.S(), h.R}
 }
 
 // ReflectS returns the hex reflected across the s-axis (s unchanged, q and r swapped).
@@ -454,8 +454,8 @@ func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 // by the rule of [Hex.HasLineOfSight]: it holds exactly when HasLineOfSight does for the same
 // blockers. It asks blocked about the hexes the segment meets, from h towards target, and no
 // others, so it costs the distance however many hexes block, where HasLineOfSight costs its
-// passes over the blockers: the form for a large or dense map kept in a map or a grid. A nil blocked
-// blocks nothing. It allocates nothing.
+// passes over the blockers: the form for a large or dense map kept in a map or a grid. A nil
+// blocked blocks nothing. It allocates nothing.
 func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 	if blocked == nil {
 		return true

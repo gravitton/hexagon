@@ -14,14 +14,12 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.5.0...main)
 
 ### Changed
-- `Hex.Turn` picks the turned hex from the six cases directly, as `FractionalHex.Turn` does, where it looped a sixth-turn at a time; `DirectionTo` and `TurnAround` gain through it
-- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk only the hexes strictly between the two ends, where they also visited the source and the target, which never block
-- `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, as `Range`, `Ring` and `Spiral` do for a negative radius, where they returned an empty slice
-- `RangeSeq` reads its rows from the cube bounds `RangeIntersectionSeq` reads, so a range and the intersection of a range with itself cannot drift apart
-- CI scans the package for fused multiply-adds on arm64 and amd64 v3 against the list in `.github/fused.txt`, which is empty, and measures coverage in a step of its own
+- `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, where they returned an empty slice
+- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms no longer ask `blocked` about the source and the target, which never block
+- CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in a step of its own
 
 ### Fixed
-- `FractionalHex.Multiply` rounds each product before returning it: it inlines into its caller, where `a.Add(b.Multiply(t))` fused into one multiply-add on arm64 and amd64 v3 and gave other bits than on amd64, against the reproducibility the package documents
+- `FractionalHex.Multiply` rounds each product before returning it, so a sum it feeds gives the same bits on every architecture
 
 
 ## [v1.5.0](https://github.com/gravitton/hexagon/compare/v1.4.0...v1.5.0) (2026-10-04)
