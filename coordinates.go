@@ -114,7 +114,7 @@ func (s CoordinateSystem) Neighbor(index geom.Point[int], direction Direction) g
 	return index.Add(s.Offset(index, direction))
 }
 
-// To converts an axial hex into this coordinate system as an geom.Point[int].
+// To converts an axial hex into this coordinate system as a geom.Point[int].
 func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	switch s {
 	case OffsetOddR:
@@ -211,12 +211,12 @@ func (s *CoordinateSystem) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// toAxial returns the axial (q,r) as an geom.Point[int].
+// toAxial returns the axial (q,r) as a geom.Point[int].
 func toAxial(hex Hex) geom.Point[int] {
 	return geom.Pt(hex.Q, hex.R)
 }
 
-// fromAxial converts an geom.Point[int] (q,r) into an axial Hex.
+// fromAxial converts a geom.Point[int] (q,r) into an axial Hex.
 func fromAxial(index geom.Point[int]) Hex {
 	return Hex{index.X, index.Y}
 }

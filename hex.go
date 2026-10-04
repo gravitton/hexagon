@@ -124,12 +124,20 @@ func (h Hex) Lerp(hex Hex, t float64) Hex {
 // [Direction.Turn]: clockwise as drawn on a screen with Y pointing down.
 // Negative steps rotate the other way.
 func (h Hex) Turn(steps int) Hex {
-	steps = geom.Mod(steps, 6)
-	for i := 0; i < steps; i++ {
-		h = Hex{-h.R, h.Q + h.R}
+	switch geom.Mod(steps, 6) {
+	case 1:
+		return Hex{-h.R, -h.S()}
+	case 2:
+		return Hex{h.S(), h.Q}
+	case 3:
+		return Hex{-h.Q, -h.R}
+	case 4:
+		return Hex{h.R, h.S()}
+	case 5:
+		return Hex{-h.S(), -h.Q}
+	default:
+		return h
 	}
-
-	return h
 }
 
 // TurnAround returns the hex rotated by steps×60° around center, in the same sense as
@@ -413,6 +421,10 @@ func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
 // each other or neither does. It is the visibility symmetric shadow casting computes, and it is
 // stricter than [Hex.Line]: a hex off the line can clip the segment, and a hex of the line that
 // the segment only touches does not block. It allocates nothing.
+//
+// The test multiplies the coordinates pairwise, so it is exact while the square of the distance
+// from h to target and to every blocker fits an int a few times over, far beyond any map on a
+// 64-bit platform. Further apart the products overflow and the answer means nothing.
 func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 	line := h.sightLine(target)
 
@@ -595,12 +607,12 @@ func (h Hex) IsZero() bool {
 	return h == Hex{}
 }
 
-// To converts the hex into the specified coordinate system, returning an geom.Point[int].
+// To converts the hex into the specified coordinate system, returning a geom.Point[int].
 func (h Hex) To(system CoordinateSystem) geom.Point[int] {
 	return system.To(h)
 }
 
-// Point returns (q,r) as an [geom.Point[int]].
+// Point returns (q,r) as a geom.Point[int].
 func (h Hex) Point() geom.Point[int] {
 	return geom.Pt(h.Q, h.R)
 }

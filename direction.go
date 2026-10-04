@@ -100,42 +100,6 @@ func ParseDirection(name string) (Direction, error) {
 	return DirectionNone, fmt.Errorf("hex: unknown direction %q", name)
 }
 
-// Opposite returns the direction directly opposite to d, half a turn away, and DirectionNone
-// for DirectionNone.
-func (d Direction) Opposite() Direction {
-	return d.Turn(3)
-}
-
-// Turn advances d by steps sixths of a turn of increasing angle, the same sense as a
-// positive geom.Direction.Turn step: counterclockwise in math coordinates, clockwise as drawn
-// on a screen with Y pointing down. Negative steps go the other way.
-// Turn(3) is equivalent to Opposite(), and DirectionNone turns to itself.
-func (d Direction) Turn(steps int) Direction {
-	if d.IsNone() {
-		return DirectionNone
-	}
-
-	return geom.Mod(d.normalize()+Direction(geom.Mod(steps, 6)), 6)
-}
-
-// Offset returns the axial neighbor offset vector for the given direction,
-// and the zero vector for DirectionNone.
-func (d Direction) Offset() geom.Vector[int] {
-	if d.IsNone() {
-		return geom.Vector[int]{}
-	}
-
-	return directionOffsets[d.normalize()]
-}
-
-// Hex returns the unit Hex step in the direction, the [Hex] counterpart of [Direction.Offset],
-// and the zero hex for DirectionNone.
-func (d Direction) Hex() Hex {
-	offset := d.Offset()
-
-	return Hex{offset.X, offset.Y}
-}
-
 // Angle returns the angle of the direction in radians in a pointy-top layout, in [0, 2π), the
 // order the constants follow: SMinus is 0 and QPlus is 5π/3. A flat-top layout adds π/6.
 // It is NaN for DirectionNone, which has no angle.
@@ -158,9 +122,45 @@ func (d Direction) normalize() Direction {
 	return geom.Mod(d, 6)
 }
 
+// Opposite returns the direction directly opposite to d, half a turn away, and DirectionNone
+// for DirectionNone.
+func (d Direction) Opposite() Direction {
+	return d.Turn(3)
+}
+
+// Turn advances d by steps sixths of a turn of increasing angle, the same sense as a
+// positive geom.Direction.Turn step: counterclockwise in math coordinates, clockwise as drawn
+// on a screen with Y pointing down. Negative steps go the other way.
+// Turn(3) is equivalent to Opposite(), and DirectionNone turns to itself.
+func (d Direction) Turn(steps int) Direction {
+	if d.IsNone() {
+		return DirectionNone
+	}
+
+	return geom.Mod(d.normalize()+Direction(geom.Mod(steps, 6)), 6)
+}
+
 // IsNone reports whether the direction is DirectionNone.
 func (d Direction) IsNone() bool {
 	return d == DirectionNone
+}
+
+// Offset returns the axial neighbor offset vector for the given direction,
+// and the zero vector for DirectionNone.
+func (d Direction) Offset() geom.Vector[int] {
+	if d.IsNone() {
+		return geom.Vector[int]{}
+	}
+
+	return directionOffsets[d.normalize()]
+}
+
+// Hex returns the unit Hex step in the direction, the [Hex] counterpart of [Direction.Offset],
+// and the zero hex for DirectionNone.
+func (d Direction) Hex() Hex {
+	offset := d.Offset()
+
+	return Hex{offset.X, offset.Y}
 }
 
 // String returns the name of the direction constant.
@@ -189,7 +189,8 @@ func (d Direction) MarshalText() ([]byte, error) {
 	return []byte(d.String()), nil
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler, the inverse of MarshalText through ParseDirection.
+// UnmarshalText implements encoding.TextUnmarshaler, the inverse of MarshalText through
+// ParseDirection.
 func (d *Direction) UnmarshalText(text []byte) error {
 	direction, err := ParseDirection(string(text))
 	if err != nil {

@@ -37,11 +37,11 @@
 //
 // # Allocations
 //
-// Only a method whose result is a slice allocates, once, with the exact capacity of the result:
-// Range, RangeIntersection, Ring, Spiral, Line, FieldOfView and FieldOfViewFunc. Each has an Append form that appends to a buffer the
-// caller reuses, as strconv.AppendInt does, so a loop allocates nothing once the buffer has room.
-// Range, RangeIntersection, Ring, Spiral, Line, FieldOfView and FieldOfViewFunc also have a Seq form, an
-// iterator that walks the same hexes in the same order without a buffer at all.
+// Only a method whose result is a slice allocates, once: Range, RangeIntersection, Ring, Spiral
+// and Line with the exact capacity of the result, FieldOfView and FieldOfViewFunc with room for
+// every candidate. Each has an Append form that appends to a buffer the caller reuses, as
+// strconv.AppendInt does, so a loop allocates nothing once the buffer has room, and a Seq form,
+// an iterator that walks the same hexes in the same order without a buffer at all.
 // Neighbors and DiagonalNeighbors return an array, and HasLineOfSight tests each blocker
 // against the sight line without building anything.
 //
@@ -59,6 +59,9 @@
 // hex blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass
 // over the blockers for each target and the Func forms the distance to it, so the slice forms
 // suit a small board or few blockers and the Func forms a large or dense map.
+//
+// Both multiply the coordinates pairwise, so they are exact while the square of the distance
+// between the hexes fits an int a few times over, far beyond any map on a 64-bit platform.
 //
 // # Panics
 //

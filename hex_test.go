@@ -1301,6 +1301,12 @@ func TestHex_HasLineOfSight(t *testing.T) {
 			}
 		}
 	})
+	t.Run("exact across a long segment", func(t *testing.T) {
+		target := Pt(1<<14, 0)
+
+		assert.False(t, testHexZero.HasLineOfSight(target, []Hex{Pt(1<<13, 0)}))
+		assert.True(t, testHexZero.HasLineOfSight(target, []Hex{Pt(1<<13, 1)}))
+	})
 	t.Run("sees the same both ways", func(t *testing.T) {
 		for _, source := range testHexZero.Spiral(2) {
 			for _, target := range testHexZero.Spiral(2) {

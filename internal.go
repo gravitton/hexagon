@@ -71,16 +71,14 @@ func (l sightLine) facing(offset Hex) (Hex, bool) {
 	return offset.Add(l.across.Multiply(geom.Sign(l.sight.cross(offset)))), !l.across.IsZero()
 }
 
-// crossed returns an iterator over the hexes the line can meet, from its start towards the
-// target. It takes a step at a time along the cube coordinate the segment covers the most of
-// and yields the hexes of that step lying no further from the segment than a hex reaches, one
-// or two of them and found by division, so every hex that does not stand clear of it is among them.
+// crossed returns an iterator over the hexes the line can meet strictly between its ends, from
+// its start towards the target. It takes a step at a time along the cube coordinate the segment
+// covers the most of and yields the hexes of that step lying no further from the segment than a
+// hex reaches, one or two of them and found by division, so every hex that does not stand clear
+// of it is among them.
 func (l sightLine) crossed() iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
 		steps := l.sight.Length()
-		if steps == 0 {
-			return
-		}
 
 		q, r, s := l.sight.QRS()
 		sight := [3]int{q, r, s}
@@ -93,7 +91,7 @@ func (l sightLine) crossed() iter.Seq[Hex] {
 		}
 
 		forward, side, divisor := geom.Sign(sight[axis]), sight[(axis+1)%3], 3*steps
-		for i := 0; i <= steps; i++ {
+		for i := 1; i < steps; i++ {
 			var offset [3]int
 			offset[axis] = forward * i
 

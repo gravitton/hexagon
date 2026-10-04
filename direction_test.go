@@ -131,6 +131,40 @@ func TestParseDirection(t *testing.T) {
 	})
 }
 
+func TestDirection_Angle(t *testing.T) {
+	t.Run("sixths of a turn", func(t *testing.T) {
+		assert.EqualDelta(t, SMinus.Angle(), 0, geom.Delta)
+		assert.EqualDelta(t, RPlus.Angle(), geom.Pi/3, geom.Delta)
+		assert.EqualDelta(t, SPlus.Angle(), geom.Pi, geom.Delta)
+		assert.EqualDelta(t, QPlus.Angle(), 5*geom.Pi/3, geom.Delta)
+	})
+	t.Run("out-of-range values wrap", func(t *testing.T) {
+		assert.EqualDelta(t, Direction(6).Angle(), 0, geom.Delta)
+		assert.EqualDelta(t, Direction(-2).Angle(), 4*geom.Pi/3, geom.Delta)
+	})
+	t.Run("is the angle of the offset in a pointy-top layout", func(t *testing.T) {
+		for _, direction := range Directions() {
+			v := direction.Offset()
+			x := geom.Sqrt3 * (float64(v.X) + float64(v.Y)/2)
+			y := 1.5 * float64(v.Y)
+
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle(), geom.Delta, direction.String()+": ")
+		}
+	})
+	t.Run("a flat-top layout adds a twelfth of a turn", func(t *testing.T) {
+		for _, direction := range Directions() {
+			v := direction.Offset()
+			x := 1.5 * float64(v.X)
+			y := geom.Sqrt3 * (float64(v.Y) + float64(v.X)/2)
+
+			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle()+geom.Pi/6, geom.Delta, direction.String()+": ")
+		}
+	})
+	t.Run("none has no angle", func(t *testing.T) {
+		assert.True(t, math.IsNaN(DirectionNone.Angle()))
+	})
+}
+
 func TestDirection_Opposite(t *testing.T) {
 	t.Run("half a turn", func(t *testing.T) {
 		assert.Equal(t, SMinus.Opposite(), SPlus)
@@ -211,6 +245,20 @@ func TestDirection_Turn(t *testing.T) {
 	})
 }
 
+func TestDirection_IsNone(t *testing.T) {
+	t.Run("none", func(t *testing.T) {
+		assert.True(t, DirectionNone.IsNone())
+	})
+	t.Run("the six are not none", func(t *testing.T) {
+		for _, direction := range Directions() {
+			assert.False(t, direction.IsNone(), direction.String()+": ")
+		}
+	})
+	t.Run("out-of-range values wrap rather than being none", func(t *testing.T) {
+		assert.False(t, Direction(6).IsNone())
+	})
+}
+
 func TestDirection_Offset(t *testing.T) {
 	t.Run("the axial step of each direction", func(t *testing.T) {
 		assert.Equal(t, SMinus.Offset(), axialDirection[0])
@@ -257,54 +305,6 @@ func TestDirection_Hex(t *testing.T) {
 	})
 	t.Run("none is the zero hex", func(t *testing.T) {
 		hextest.AssertHex(t, DirectionNone.Hex(), testHexZero)
-	})
-}
-
-func TestDirection_Angle(t *testing.T) {
-	t.Run("sixths of a turn", func(t *testing.T) {
-		assert.EqualDelta(t, SMinus.Angle(), 0, geom.Delta)
-		assert.EqualDelta(t, RPlus.Angle(), geom.Pi/3, geom.Delta)
-		assert.EqualDelta(t, SPlus.Angle(), geom.Pi, geom.Delta)
-		assert.EqualDelta(t, QPlus.Angle(), 5*geom.Pi/3, geom.Delta)
-	})
-	t.Run("out-of-range values wrap", func(t *testing.T) {
-		assert.EqualDelta(t, Direction(6).Angle(), 0, geom.Delta)
-		assert.EqualDelta(t, Direction(-2).Angle(), 4*geom.Pi/3, geom.Delta)
-	})
-	t.Run("is the angle of the offset in a pointy-top layout", func(t *testing.T) {
-		for _, direction := range Directions() {
-			v := direction.Offset()
-			x := geom.Sqrt3 * (float64(v.X) + float64(v.Y)/2)
-			y := 1.5 * float64(v.Y)
-
-			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle(), geom.Delta, direction.String()+": ")
-		}
-	})
-	t.Run("a flat-top layout adds a twelfth of a turn", func(t *testing.T) {
-		for _, direction := range Directions() {
-			v := direction.Offset()
-			x := 1.5 * float64(v.X)
-			y := geom.Sqrt3 * (float64(v.Y) + float64(v.X)/2)
-
-			assert.EqualDelta(t, geom.NormalizeAngle(math.Atan2(y, x)), direction.Angle()+geom.Pi/6, geom.Delta, direction.String()+": ")
-		}
-	})
-	t.Run("none has no angle", func(t *testing.T) {
-		assert.True(t, math.IsNaN(DirectionNone.Angle()))
-	})
-}
-
-func TestDirection_IsNone(t *testing.T) {
-	t.Run("none", func(t *testing.T) {
-		assert.True(t, DirectionNone.IsNone())
-	})
-	t.Run("the six are not none", func(t *testing.T) {
-		for _, direction := range Directions() {
-			assert.False(t, direction.IsNone(), direction.String()+": ")
-		}
-	})
-	t.Run("out-of-range values wrap rather than being none", func(t *testing.T) {
-		assert.False(t, Direction(6).IsNone())
 	})
 }
 

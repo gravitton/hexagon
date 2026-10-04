@@ -27,8 +27,8 @@ func AssertHex(t assert.Testing, actual, expected hex.Hex, messages ...string) b
 	return ok
 }
 
-// AssertFractionalHex asserts that actual equals expected within the relative tolerance [geomtest.AssertNumber] applies,
-// so the tolerance holds at any magnitude.
+// AssertFractionalHex asserts that actual equals expected within the relative tolerance
+// [geomtest.AssertNumber] applies, so the tolerance holds at any magnitude.
 func AssertFractionalHex(t assert.Testing, actual, expected hex.FractionalHex, messages ...string) bool {
 	t.Helper()
 

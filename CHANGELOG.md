@@ -13,6 +13,17 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.5.0...main)
 
+### Changed
+- `Hex.Turn` picks the turned hex from the six cases directly, as `FractionalHex.Turn` does, where it looped a sixth-turn at a time; `DirectionTo` and `TurnAround` gain through it
+- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk only the hexes strictly between the two ends, where they also visited the source and the target, which never block
+- `direction.go` and its tests follow the method order of `geom.Direction` in geometry v1.15.0: `Angle` first, then `Opposite`, `Turn`, `IsNone`, `Offset` and `Hex`
+
+### Fixed
+- `HasLineOfSight` and the package documentation state the limit of the integer test: it is exact while the square of the distance fits an `int` a few times over, and overflows beyond it
+- The package documentation no longer claims `FieldOfView` and `FieldOfViewFunc` allocate the exact capacity of the result: they allocate room for every candidate
+- Doc comments read "a geom.Point[int]", left as "an" by the rename from `ints.Point`, and the overlong lines in `doc.go`, `direction.go` and `hextest` are wrapped
+- README: the `Append` form is explained once, the `RangeIntersection` snippet uses values defined above it, and two unused link references are gone
+
 
 ## [v1.5.0](https://github.com/gravitton/hexagon/compare/v1.4.0...v1.5.0) (2026-10-04)
 

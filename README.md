@@ -104,21 +104,10 @@ same call at the same cost.
 
 `Ring(1)` is exactly `Neighbors()`. A negative radius gives `nil`, a zero radius the center alone.
 
-Every slice result has an `Append` form that appends to a buffer you reuse, so a loop allocates
-nothing once the buffer has room:
-
-```go
-buffer := make([]hex.Hex, 0, 37)
-for _, unit := range units {
-	buffer = unit.AppendRange(buffer[:0], 3)
-	// ...
-}
-```
-
 The hexes two ranges share come straight from the cube bounds, without building either range:
 
 ```go
-unit.RangeIntersection(3, target, 1) // also AppendRangeIntersection and RangeIntersectionSeq
+h.RangeIntersection(3, hex.Pt(2, 0), 1) // also AppendRangeIntersection and RangeIntersectionSeq
 ```
 
 ### Visibility
@@ -226,7 +215,6 @@ hex.FracPt(0, 0).Lerp(hex.FracPt(3, -1), 0.5) // FractionalHex{1.5, -0.5}
 hex.Pt(2, -1).Float()                  // the other way, exactly
 hex.ParseFractionalHex("(1.40,-1.80)") // the form String prints, two decimals
 
-
 f.Turn(1)                          // a sub-hex position turns and reflects like a Hex
 f.TurnAround(hex.FracPt(1, 0), -1) // also ReflectQ, ReflectR and ReflectS
 ```
@@ -287,11 +275,9 @@ The MIT License (MIT). Please see [License File][link-licence] for more informat
 [ico-go-dev-reference]:     https://img.shields.io/badge/go.dev-reference-blue?style=flat-square
 [ico-coverage]:             https://img.shields.io/coverallsCoverage/github/gravitton/hexagon?style=flat-square
 
-[link-author]:              https://github.com/gravitton
 [link-release]:             https://github.com/gravitton/hexagon/releases
 [link-contributors]:        https://github.com/gravitton/hexagon/contributors
 [link-licence]:             ./LICENSE.md
-[link-changelog]:           ./CHANGELOG.md
 [link-workflow]:            https://github.com/gravitton/hexagon/actions
 [link-go-dev-reference]:    https://pkg.go.dev/github.com/gravitton/hexagon
 [link-coverage]:            https://coveralls.io/github/gravitton/hexagon
