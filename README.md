@@ -115,6 +115,26 @@ for _, unit := range units {
 }
 ```
 
+### Regions
+
+A `Region` is a set of hexes for area queries. It holds each hex once, in the order of
+`Hex.Compare`, and every operation returns a new region:
+
+```go
+reach := unit.Region(3)   // the range as a region, no sort or copy
+blast := target.Region(1) // hex.Reg(hexes) builds one from any slice
+
+reach.Intersection(blast) // also Union and Difference
+reach.Border()            // the hexes with a neighbor outside, around holes as well
+reach.Contains(h)         // binary search, no allocation
+reach.Hexes()             // a fresh slice; also AppendHexes
+reach.All()               // the iterator, for range reach.All()
+
+unit.RangeIntersection(3, target, 1) // two ranges, straight from the cube bounds
+```
+
+A region marshals to JSON as an array of hexes.
+
 ### Visibility
 
 ```go
