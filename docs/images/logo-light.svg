@@ -7,5 +7,5 @@
     <polygon points="65.0,59.5 52.0,67.0 39.0,59.5 39.0,44.5 52.0,37.0 65.0,44.5" fill="#1c1713"/>
   </g>
   <text x="102.75" y="47.1" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="1.4" fill="#1c1713">GRAVITTON</text>
-  <text x="103.25" y="77.1" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" letter-spacing="9.3" fill="#e8883a">HEXAGON</text>
+  <text x="103.25" y="77.1" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" letter-spacing="6.2" fill="#e8883a">HEXAGON</text>
 </svg>
