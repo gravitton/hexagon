@@ -11,7 +11,15 @@ more expensive of the two. A breaking change is marked **breaking** in its entry
 lists them under **Breaking** at the top of its section. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.4.0...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.5.0...main)
+
+
+## [v1.5.0](https://github.com/gravitton/hexagon/compare/v1.4.0...v1.5.0) (2026-10-04)
+
+The package now follows `geometry` v1.15.0 convention for convention: enums have a `None` member, parse and marshal
+as text, and a count of steps is a `Turn`. Every traversal comes in three forms sharing one walk, a slice, an `Append`
+onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segment in integers rather than the hexes of
+`Line`.
 
 ### Breaking
 - **breaking** `Direction.Rotate`, `Hex.Rotate` and `Hex.RotateAround` are `Turn` and `TurnAround`, following `geom.Direction.Turn`: a count of steps is a turn, and `Rotate` is kept for an angle in radians
@@ -54,7 +62,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - Require `geometry` v1.15.0 and `assert` v1.6.0
 - `Hex.Spiral` allocates once rather than once per ring, and `HasLineOfSight` builds nothing, so a line-of-sight test allocates nothing and `FieldOfView` allocates only its result
 - `Hex.Neighbor` steps by `Direction.Hex`, so a direction has one lattice step and the two cannot disagree
-- A `CoordinateSystem` outside the seven panics with `hex: unknown coordinate system` and the value, as `geom` panics on an unknown `Orientation`
+- `CoordinateSystem` outside the seven panics with `hex: unknown coordinate system` and the value, as `geom` panics on an unknown `Orientation`
 - `Direction.Angle`, `DirectionFromAngle` and the README direction table state that their angles are those of a pointy-top layout, which a flat-top layout turns by π/6
 - `DoubleWidth` and `DoubleHeight` state that they address only cells whose column and row share a parity, and that `From` maps any other coordinate to a cell beside it
 - The conventions moved from the README into the package documentation, the spec on pkg.go.dev
@@ -71,12 +79,12 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - The indirect `github.com/gravitton/x` dependency, which geometry v1.15.0 dropped
 
 
-## [v1.4.0 (2026-08-26)](https://github.com/gravitton/hexagon/compare/v1.3.0...v1.4.0)
+## [v1.4.0](https://github.com/gravitton/hexagon/compare/v1.3.0...v1.4.0) (2026-08-26)
 ### Added
 - `Hex.Compare(hex) int` – orders hexes by Q and then by R in the `cmp.Compare` convention, the axial counterpart of `geom.Point.Compare`, for `slices.SortFunc` and `slices.BinarySearchFunc`. The order is total but arbitrary in space — it follows neither distance nor angle from the origin
 
 
-## [v1.3.0 (2026-08-26)](https://github.com/gravitton/hexagon/compare/v1.2.0...v1.3.0)
+## [v1.3.0](https://github.com/gravitton/hexagon/compare/v1.2.0...v1.3.0) (2026-08-26)
 ### Changed
 - Require Go 1.27
 - `Direction` constants are renumbered to run by increasing angle — `SMinus`, `RPlus`, `QMinus`, `SPlus`, `RMinus`, `QPlus` — matching `geometry` v1.11.0, so a positive `Rotate` step is counterclockwise in math coordinates and clockwise as drawn on a screen with Y pointing down. Everything ordered by direction follows the new order: `Directions`, the offset tables, `CoordinateSystem.Offsets`, `Hex.Neighbors`, `Hex.Ring`, and `Hex.Spiral` (**breaking**)
@@ -103,7 +111,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - Neighbor offsets are returned as `[6]ints.Vector` by value; the removed functions returned slices aliasing the package's own tables, so callers could mutate them
 
 
-## [v1.2.0 (2026-05-03)](https://github.com/gravitton/hexagon/compare/v1.1.0...v1.2.0)
+## [v1.2.0](https://github.com/gravitton/hexagon/compare/v1.1.0...v1.2.0) (2026-05-03)
 ### Breaking Changes
 - `H(q, r int)` constructor renamed to `Pt(q, r int)`
 - `F(q, r float64)` constructor renamed to `FracPt(q, r float64)`
@@ -117,7 +125,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - Named direction aliases for pointy-top grids: `PointyTopE`, `PointyTopNE`, `PointyTopNW`, `PointyTopW`, `PointyTopSW`, `PointyTopSE`
 
 
-## [v1.1.0 (2026-04-25)](https://github.com/gravitton/hexagon/compare/v1.0.0...v1.1.0)
+## [v1.1.0](https://github.com/gravitton/hexagon/compare/v1.0.0...v1.1.0) (2026-04-25)
 ### Added
 - `Hex.Ring(radius)` — hexes at exactly the given distance from a center hex, ordered counterclockwise
 - `Hex.Spiral(radius)` — all hexes from center outward to radius, ring by ring (nearest-first traversal)
