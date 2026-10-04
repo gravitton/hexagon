@@ -1346,6 +1346,7 @@ func FuzzHex_HasLineOfSight(f *testing.F) {
 		message := source.String() + " to " + target.String() + " past " + blocker.String() + ": "
 
 		assert.Equal(t, target.HasLineOfSight(source, []Hex{blocker}), sees, message)
+		assert.Equal(t, source.HasLineOfSightFunc(target, among([]Hex{blocker})), sees, message)
 		assert.Equal(t, testHexZero.HasLineOfSight(step, []Hex{block}), sees, message)
 		assert.Equal(t, testHexZero.HasLineOfSight(step.ReflectQ(), []Hex{block.ReflectQ()}), sees, message)
 		for steps := 1; steps < 6; steps++ {
@@ -1356,6 +1357,93 @@ func FuzzHex_HasLineOfSight(f *testing.F) {
 			assert.True(t, source.DistanceTo(blocker)+blocker.DistanceTo(target) <= source.DistanceTo(target)+1, message)
 		}
 	})
+}
+
+func TestHex_HasLineOfSightFunc(t *testing.T) {
+	t.Run("a nil blocked blocks nothing", func(t *testing.T) {
+		assert.True(t, testHexZero.HasLineOfSightFunc(Pt(3, 0), nil))
+	})
+	t.Run("clear to itself and to a neighbor whatever blocks", func(t *testing.T) {
+		everything := func(Hex) bool {
+			return true
+		}
+
+		assert.True(t, testHex.HasLineOfSightFunc(testHex, everything))
+		for _, neighbor := range testHex.Neighbors() {
+			assert.True(t, testHex.HasLineOfSightFunc(neighbor, everything), neighbor.String()+": ")
+		}
+	})
+	t.Run("blocked between", func(t *testing.T) {
+		assert.False(t, testHexZero.HasLineOfSightFunc(Pt(3, 0), among([]Hex{Pt(1, 0)})))
+		assert.False(t, testHexZero.HasLineOfSightFunc(Pt(3, 0), among([]Hex{Pt(2, 0)})))
+	})
+	t.Run("the endpoints and a blocker beyond the target are ignored", func(t *testing.T) {
+		assert.True(t, testHexZero.HasLineOfSightFunc(Pt(2, 0), among([]Hex{testHexZero, Pt(2, 0), Pt(3, 0)})))
+	})
+	t.Run("along an edge only both hexes beside it block", func(t *testing.T) {
+		for _, direction := range Directions() {
+			target := testHex.DiagonalNeighbor(direction)
+			before, after := testHex.Neighbor(direction), testHex.Neighbor(direction.Turn(1))
+			assert.True(t, testHex.HasLineOfSightFunc(target, among([]Hex{before})), direction.String()+": ")
+			assert.True(t, testHex.HasLineOfSightFunc(target, among([]Hex{after})), direction.String()+": ")
+			assert.False(t, testHex.HasLineOfSightFunc(target, among([]Hex{before, after})), direction.String()+": ")
+		}
+	})
+	t.Run("agrees with HasLineOfSight", func(t *testing.T) {
+		for _, stride := range []int{2, 3, 5, 7, 11} {
+			blocking := everyNth(testHexZero.Range(7), stride)
+			blocked := among(blocking)
+			for _, source := range testHexZero.Spiral(1) {
+				for _, target := range testHexZero.Spiral(6) {
+					assert.Equal(t, source.HasLineOfSightFunc(target, blocked), source.HasLineOfSight(target, blocking), source.String()+" to "+target.String()+" at stride "+strconv.Itoa(stride)+": ")
+				}
+			}
+		}
+	})
+	t.Run("asks only about hexes between the two, a few each step", func(t *testing.T) {
+		for _, target := range testHexZero.Spiral(6) {
+			asked := 0
+			testHexZero.HasLineOfSightFunc(target, func(h Hex) bool {
+				asked++
+				assert.True(t, h != testHexZero && h != target, target.String()+" asked about "+h.String()+": ")
+				assert.True(t, testHexZero.DistanceTo(h)+h.DistanceTo(target) <= testHexZero.DistanceTo(target)+1, target.String()+" asked about "+h.String()+": ")
+
+				return false
+			})
+			assert.True(t, asked <= 2*testHexZero.DistanceTo(target), target.String()+": ")
+		}
+	})
+	t.Run("stops at the first blocker", func(t *testing.T) {
+		asked := 0
+		assert.False(t, testHexZero.HasLineOfSightFunc(Pt(6, 0), func(h Hex) bool {
+			asked++
+
+			return true
+		}))
+		assert.Equal(t, asked, 1)
+	})
+	t.Run("exact far from the origin", func(t *testing.T) {
+		far := Pt(1<<28, -1<<27)
+		for _, target := range testHexZero.Spiral(3) {
+			for _, h := range testHexZero.Range(4) {
+				assert.Equal(t, far.HasLineOfSightFunc(far.Add(target), among([]Hex{far.Add(h)})), testHexZero.HasLineOfSight(target, []Hex{h}), target.String()+" past "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		blocked := among([]Hex{Pt(9, 9)})
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkBool = testHexZero.HasLineOfSightFunc(Pt(4, -1), blocked)
+		}), 0.0)
+	})
+}
+
+func BenchmarkHex_HasLineOfSightFunc(b *testing.B) {
+	blocked := among(testHexZero.Ring(5))
+
+	for b.Loop() {
+		sinkBool = testHexZero.HasLineOfSightFunc(Pt(10, -4), blocked)
+	}
 }
 
 func TestHex_FieldOfView(t *testing.T) {
@@ -1477,6 +1565,85 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 	t.Run("allocates nothing", func(t *testing.T) {
 		assert.Equal(t, testing.AllocsPerRun(100, func() {
 			for h := range testHexZero.FieldOfViewSeq(candidates, blocking) {
+				sinkHex = h
+			}
+		}), 0.0)
+	})
+}
+
+func TestHex_FieldOfViewFunc(t *testing.T) {
+	candidates := testHexZero.Range(5)
+
+	t.Run("a nil blocked shows every candidate", func(t *testing.T) {
+		assert.Equal(t, testHexZero.FieldOfViewFunc(candidates, nil), candidates)
+	})
+	t.Run("no candidates see nothing", func(t *testing.T) {
+		assert.Equal(t, len(testHexZero.FieldOfViewFunc(nil, among([]Hex{Pt(1, 0)}))), 0)
+	})
+	t.Run("agrees with FieldOfView", func(t *testing.T) {
+		for _, stride := range []int{2, 3, 5, 7, 11} {
+			blocking := everyNth(candidates, stride)
+			assert.Equal(t, testHex.FieldOfViewFunc(candidates, among(blocking)), testHex.FieldOfView(candidates, blocking), "stride "+strconv.Itoa(stride)+": ")
+		}
+	})
+	t.Run("allocates once at the number of candidates", func(t *testing.T) {
+		blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
+		assert.Equal(t, cap(testHexZero.FieldOfViewFunc(candidates, blocked)), len(candidates))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHexZero.FieldOfViewFunc(candidates, blocked)
+		}), 1.0)
+	})
+}
+
+func BenchmarkHex_FieldOfViewFunc(b *testing.B) {
+	candidates := testHexZero.Range(10)
+	blocked := among(testHexZero.Ring(5)[:10])
+
+	for b.Loop() {
+		sinkHexes = testHexZero.FieldOfViewFunc(candidates, blocked)
+	}
+}
+
+func TestHex_AppendFieldOfViewFunc(t *testing.T) {
+	candidates := testHexZero.Range(3)
+	blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
+
+	t.Run("appends the hexes of FieldOfViewFunc after dst", func(t *testing.T) {
+		assert.Equal(t, testHexZero.AppendFieldOfViewFunc([]Hex{testHex}, candidates, blocked), append([]Hex{testHex}, testHexZero.FieldOfViewFunc(candidates, blocked)...))
+	})
+	t.Run("appends nothing when all are blocked", func(t *testing.T) {
+		assert.Equal(t, testHexZero.AppendFieldOfViewFunc([]Hex{testHex}, []Hex{Pt(2, 0), Pt(3, 0)}, among([]Hex{Pt(1, 0)})), []Hex{testHex})
+	})
+	t.Run("allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, len(candidates))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHexZero.AppendFieldOfViewFunc(buffer, candidates, blocked)
+		}), 0.0)
+	})
+}
+
+func TestHex_FieldOfViewFuncSeq(t *testing.T) {
+	candidates := testHexZero.Range(3)
+	blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
+
+	t.Run("yields the hexes of FieldOfViewFunc in order", func(t *testing.T) {
+		assert.Equal(t, slices.Collect(testHexZero.FieldOfViewFuncSeq(candidates, blocked)), testHexZero.FieldOfViewFunc(candidates, blocked))
+	})
+	t.Run("stops when the loop breaks", func(t *testing.T) {
+		for stop := range len(testHexZero.FieldOfViewFunc(candidates, blocked)) {
+			walked := 0
+			for range testHexZero.FieldOfViewFuncSeq(candidates, blocked) {
+				if walked == stop {
+					break
+				}
+				walked++
+			}
+			assert.Equal(t, walked, stop)
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			for h := range testHexZero.FieldOfViewFuncSeq(candidates, blocked) {
 				sinkHex = h
 			}
 		}), 0.0)
@@ -1610,6 +1777,23 @@ func runsThrough(source, target, hex Hex) bool {
 	}
 
 	return leave-enter > geom.Delta
+}
+
+// among returns the predicate holding for the given hexes and no other.
+func among(hexes []Hex) func(Hex) bool {
+	return func(hex Hex) bool {
+		return slices.Contains(hexes, hex)
+	}
+}
+
+// everyNth returns the hexes at every stride-th place of the given ones.
+func everyNth(hexes []Hex, stride int) []Hex {
+	var result []Hex
+	for i := stride - 1; i < len(hexes); i += stride {
+		result = append(result, hexes[i])
+	}
+
+	return result
 }
 
 func ExamplePt() {
@@ -1760,6 +1944,19 @@ func ExampleHex_HasLineOfSight() {
 	// true
 }
 
+func ExampleHex_HasLineOfSightFunc() {
+	walls := map[Hex]bool{Pt(2, 0): true}
+	blocked := func(h Hex) bool {
+		return walls[h]
+	}
+
+	fmt.Println(Pt(0, 0).HasLineOfSightFunc(Pt(3, 0), blocked))
+	fmt.Println(Pt(0, 0).HasLineOfSightFunc(Pt(0, 3), blocked))
+	// Output:
+	// false
+	// true
+}
+
 func ExampleHex_FieldOfView() {
 	walls := []Hex{Pt(1, 0)}
 	candidates := []Hex{Pt(2, 0), Pt(0, 2), Pt(1, 0)}
@@ -1776,6 +1973,16 @@ func ExampleHex_FieldOfViewSeq() {
 		break
 	}
 	// Output: first visible hex of the ring: (1,1)
+}
+
+func ExampleHex_FieldOfViewFunc() {
+	walls := map[Hex]bool{Pt(1, 0): true}
+	candidates := []Hex{Pt(2, 0), Pt(0, 2), Pt(1, 0)}
+
+	fmt.Println(Pt(0, 0).FieldOfViewFunc(candidates, func(h Hex) bool {
+		return walls[h]
+	}))
+	// Output: [(0,2) (1,0)]
 }
 
 func ExampleHex_Compare() {

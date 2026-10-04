@@ -415,20 +415,47 @@ func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
 // stricter than [Hex.Line]: a hex off the line can clip the segment, and a hex of the line that
 // the segment only touches does not block. It allocates nothing.
 func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
-	sight := target.Subtract(h)
-	reach, width, across := sight.dot(sight), sight.width(), sight.edgeStep()
+	line := h.sightLine(target)
 
 	for _, blocker := range blocking {
 		offset := blocker.Subtract(h)
-		if along := sight.dot(offset); along <= 0 || along >= reach {
-			continue
-		}
 
-		aside := 3 * sight.cross(offset)
-		if geom.Abs(aside) < width {
+		clearance := line.clearance(offset)
+		if clearance < 0 {
 			return false
 		}
-		if geom.Abs(aside) == width && !across.IsZero() && slices.Contains(blocking, blocker.Add(across.Multiply(aside/width))) {
+		if clearance == 0 {
+			if facing, edge := line.facing(offset); edge && slices.Contains(blocking, h.Add(facing)) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// HasLineOfSightFunc reports whether target is visible from h past the hexes blocked reports,
+// by the rule of [Hex.HasLineOfSight]: it holds exactly when HasLineOfSight does for the same
+// blockers. It asks blocked about the hexes the segment meets, from h towards target, and no
+// others, so it costs the distance however many hexes block, where HasLineOfSight costs a pass
+// over its blockers: the form for a large or dense map kept in a map or a grid. A nil blocked
+// blocks nothing. It allocates nothing.
+func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
+	if blocked == nil {
+		return true
+	}
+
+	line := h.sightLine(target)
+
+	for offset := range line.crossed() {
+		clearance := line.clearance(offset)
+		if clearance > 0 || !blocked(h.Add(offset)) {
+			continue
+		}
+		if clearance < 0 {
+			return false
+		}
+		if facing, edge := line.facing(offset); edge && blocked(h.Add(facing)) {
 			return false
 		}
 	}
@@ -464,6 +491,43 @@ func (h Hex) FieldOfViewSeq(candidates []Hex, blocking []Hex) iter.Seq[Hex] {
 			}
 		}
 	}
+}
+
+// FieldOfViewFunc returns the candidates visible from h past the hexes blocked reports, in the
+// order given: those [Hex.HasLineOfSightFunc] sees, the field [Hex.FieldOfView] returns for the
+// same blockers.
+func (h Hex) FieldOfViewFunc(candidates []Hex, blocked func(Hex) bool) []Hex {
+	return h.AppendFieldOfViewFunc(make([]Hex, 0, len(candidates)), candidates, blocked)
+}
+
+// AppendFieldOfViewFunc appends the hexes FieldOfViewFunc returns to dst and returns the
+// extended slice, so a caller reusing dst allocates nothing once it has room.
+func (h Hex) AppendFieldOfViewFunc(dst []Hex, candidates []Hex, blocked func(Hex) bool) []Hex {
+	for hex := range h.FieldOfViewFuncSeq(candidates, blocked) {
+		dst = append(dst, hex)
+	}
+
+	return dst
+}
+
+// FieldOfViewFuncSeq returns an iterator over the hexes FieldOfViewFunc returns, in the same
+// order, so a caller walks the visible candidates without a buffer and tests no candidate past
+// the one it stops at.
+func (h Hex) FieldOfViewFuncSeq(candidates []Hex, blocked func(Hex) bool) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		for _, candidate := range candidates {
+			if h.HasLineOfSightFunc(candidate, blocked) && !yield(candidate) {
+				return
+			}
+		}
+	}
+}
+
+// sightLine returns the segment from the center of h to the center of target.
+func (h Hex) sightLine(target Hex) sightLine {
+	sight := target.Subtract(h)
+
+	return sightLine{sight, sight.dot(sight), sight.width(), sight.edgeStep()}
 }
 
 // lineAt returns the hex at step i of the n steps of the line from h to target, both nudged
@@ -507,7 +571,7 @@ func (h Hex) cross(hex Hex) int {
 // dot returns the dot product of h and hex as vectors, up to a positive factor: the sum of the
 // products of their cube coordinates.
 func (h Hex) dot(hex Hex) int {
-	return h.Q*hex.Q + h.R*hex.R + h.S()*hex.S()
+	return h.Q*hex.Q + h.R*hex.R + (h.Q+h.R)*(hex.Q+hex.R)
 }
 
 // Equal reports whether h and hex are the same hex. Axial coordinates are integers, so the

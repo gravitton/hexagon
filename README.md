@@ -127,6 +127,9 @@ unit.RangeIntersection(3, target, 1) // also AppendRangeIntersection and RangeIn
 a.Line(b)                           // the hexes connecting a to b in a straight line
 a.HasLineOfSight(b, blocking)       // whether the segment between the two centers is clear
 a.FieldOfView(candidates, blocking) // the candidates a has line of sight to; also Append and Seq
+
+a.HasLineOfSightFunc(b, blocked)       // the same rule, asking blocked(hex) along the segment
+a.FieldOfViewFunc(candidates, blocked) // also AppendFieldOfViewFunc and FieldOfViewFuncSeq
 ```
 
 Sight runs along the exact segment between two hex centers, in integers: a blocker the segment
@@ -135,8 +138,11 @@ where the segment runs along the edge between two hexes, it takes both of them t
 rule reads the same from either end, so two hexes always see each other or neither does, and
 neither end ever blocks. It is stricter than `Line`, which picks one hex per step.
 
-Both take a `[]Hex` of blockers and cost one pass over them per target, whatever the distance.
-For large grids, keep the blockers in a map keyed by `Hex` and filter before calling.
+The slice forms cost one pass over the blockers per target, whatever the distance, and are the
+faster ones on a small board or with few blockers. The `Func` forms take a
+`blocked func(hex.Hex) bool`, a lookup in a map or a grid, and ask it only about the hexes the
+segment meets, so they cost the distance however many hexes block: the forms for a large or
+dense map. Both give the same answer.
 
 ### Rotation and reflection
 

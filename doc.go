@@ -38,9 +38,9 @@
 // # Allocations
 //
 // Only a method whose result is a slice allocates, once, with the exact capacity of the result:
-// Range, RangeIntersection, Ring, Spiral, Line and FieldOfView. Each has an Append form that appends to a buffer the
+// Range, RangeIntersection, Ring, Spiral, Line, FieldOfView and FieldOfViewFunc. Each has an Append form that appends to a buffer the
 // caller reuses, as strconv.AppendInt does, so a loop allocates nothing once the buffer has room.
-// Range, RangeIntersection, Ring, Spiral, Line and FieldOfView also have a Seq form, an
+// Range, RangeIntersection, Ring, Spiral, Line, FieldOfView and FieldOfViewFunc also have a Seq form, an
 // iterator that walks the same hexes in the same order without a buffer at all.
 // Neighbors and DiagonalNeighbors return an array, and HasLineOfSight tests each blocker
 // against the sight line without building anything.
@@ -54,6 +54,11 @@
 // either end, so sight is symmetric, and FieldOfView is the candidates it holds for: the field
 // symmetric shadow casting computes. Line is the traversal, one hex per step, so a blocker off
 // the Line can still clip the sight line.
+//
+// HasLineOfSightFunc and FieldOfViewFunc apply the same rule to a function reporting whether a
+// hex blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass
+// over the blockers for each target and the Func forms the distance to it, so the slice forms
+// suit a small board or few blockers and the Func forms a large or dense map.
 //
 // # Panics
 //
