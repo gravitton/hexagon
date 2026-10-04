@@ -7,7 +7,8 @@
 //
 // The package covers neighbor lookup and [Direction], distance, area and perimeter traversal
 // (range, ring, spiral), line drawing, line of sight and field of view, rotation and
-// reflection in cube space, and conversion between seven [CoordinateSystem] layouts.
+// reflection in cube space, sets of hexes as a [Region], and conversion between seven
+// [CoordinateSystem] layouts.
 //
 // Pixel layout lives in github.com/gravitton/grid; the shapes and vectors this package builds
 // on live in github.com/gravitton/geometry.
@@ -37,10 +38,23 @@
 // # Allocations
 //
 // Only a method whose result is a slice allocates, once, with the exact capacity of the result:
-// Range, Ring, Spiral, Line and FieldOfView. Each has an Append form that appends to a buffer the
+// Range, RangeIntersection, Ring, Spiral, Line and FieldOfView. Each has an Append form that appends to a buffer the
 // caller reuses, as strconv.AppendInt does, so a loop allocates nothing once the buffer has room.
-// Neighbors and DiagonalNeighbors return an array, and HasLineOfSight walks the line without
-// building it.
+// Range, RangeIntersection, Ring, Spiral, Line and FieldOfView also have a Seq form, an
+// iterator that walks the same hexes in the same order without a buffer at all. A [Region]
+// allocates once per set operation, at the exact size of the result.
+// Neighbors and DiagonalNeighbors return an array, and HasLineOfSight tests each blocker
+// against the sight line without building anything.
+//
+// # Visibility
+//
+// HasLineOfSight asks whether the straight segment between two hex centers is clear, exactly, in
+// integers. A blocking hex the segment runs through blocks it, however small the corner it
+// cuts; a hex the segment only touches at a corner does not; and where the segment runs along
+// the edge between two hexes, both must block. Neither end counts. The rule is the same from
+// either end, so sight is symmetric, and FieldOfView is the candidates it holds for: the field
+// symmetric shadow casting computes. Line is the traversal, one hex per step, so a blocker off
+// the Line can still clip the sight line.
 //
 // # Panics
 //

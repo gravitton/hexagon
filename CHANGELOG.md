@@ -21,6 +21,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - **breaking** `Hex.Neighbors` returns a `[6]Hex` array rather than a slice, so it allocates nothing
 - **breaking** `Hex` and `FractionalHex` have JSON tags, so a hex is stored as `{"q":1,"r":-2}` with the one-character keys `geom` uses
 - **breaking** The assertions moved to the new `hextest` package as `hextest.AssertHex` and `hextest.AssertFractionalHex`, so the main package no longer imports a test library itself. They take the expected value rather than loose `q, r` coordinates, take `assert.Testing` rather than `*testing.T`, return whether the assertion held and prefix their messages per field, like every `geomtest.Assert*` helper. `AssertFracHex` is renamed `AssertFractionalHex` and compares through `geomtest.AssertNumber`, within `geom.EpsilonRelative`, so the tolerance holds at any magnitude
+- **breaking** `Hex.HasLineOfSight`, and `FieldOfView` through it, test the exact segment between the two hex centers in integers, where they walked the hexes of `Line`: a blocker the segment clips at a corner now blocks though it is off the `Line`, a hex the segment only touches at a corner no longer blocks, and where the segment runs along the edge between two hexes, as towards a diagonal neighbor, both of them must block. This is the visibility symmetric shadow casting computes; it costs one pass over the blockers per target whatever the distance, and no float is involved
 - **breaking** `FractionalHex.Round`, and `Hex.Lerp` through it, convert through `geom.Cast` and so panic for a NaN or infinite coordinate, where they returned a platform-dependent hex
 
 ### Added
@@ -37,6 +38,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Float` – the `FractionalHex` of a hex, the counterpart of `FractionalHex.Round`
 - `FractionalHex.Length`, `DistanceTo`, `Add`, `Subtract`, `Multiply` and `IsZero` – the arithmetic `Hex` has, without rounding to a hex
 - `FractionalHex.Turn`, `TurnAround`, `ReflectQ`, `ReflectR` and `ReflectS` – the cube-space geometry `Hex` has, for a sub-hex position; a turn permutes and negates the cube coordinates directly, so it carries one rounding at most however many steps it takes
+- `Hex.RangeSeq`, `RingSeq`, `SpiralSeq`, `LineSeq` and `FieldOfViewSeq` – the traversals as `iter.Seq[Hex]`, named like `strings.SplitSeq`, walking the hexes of the slice method in the same order without a buffer and stopping when the loop breaks; the `Append` forms range over them, so the three forms of a traversal share one walk
+- `RangeLen(n)` and `RingLen(radius)` – the number of hexes within a radius and at exactly a radius, the lengths of `Range`, `Spiral` and `Ring`, for sizing the buffer their `Append` forms fill, named as `base64.EncodedLen` is
+- `Hex.RangeIntersection(n, other, m)`, `AppendRangeIntersection` and `RangeIntersectionSeq` – the hexes two ranges share, read off the cube bounds without building either range
 - `Hex.DiagonalNeighbor(direction)` and `DiagonalNeighbors()` – the six hexes two steps away that lie between two neighbors, each named by the direction it follows by a twelfth of a turn, so no second enum is needed
 - `Hex.DirectionTo(target)` – the direction of a neighbor, or the nearest one for a distant hex, compared in cube coordinates so it is exact at any distance; a target exactly on a diagonal takes the direction of lower angle, and the hex itself gives `DirectionNone`
 - `CoordinateSystem.Neighbor(index, direction)` – the coordinate beside an index in any of the seven systems, the step every offset-system caller wrote as `index.Add(system.Offset(index, direction))`
@@ -47,7 +51,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ### Changed
 - Require `geometry` v1.15.0 and `assert` v1.6.0
-- `Hex.Spiral` allocates once rather than once per ring, and `HasLineOfSight` walks the line without building it, so a line-of-sight test allocates nothing and `FieldOfView` allocates only its result
+- `Hex.Spiral` allocates once rather than once per ring, and `HasLineOfSight` builds nothing, so a line-of-sight test allocates nothing and `FieldOfView` allocates only its result
 - `Hex.Neighbor` steps by `Direction.Hex`, so a direction has one lattice step and the two cannot disagree
 - A `CoordinateSystem` outside the seven panics with `hex: unknown coordinate system` and the value, as `geom` panics on an unknown `Orientation`
 - `Direction.Angle`, `DirectionFromAngle` and the README direction table state that their angles are those of a pointy-top layout, which a flat-top layout turns by π/6

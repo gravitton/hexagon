@@ -3,6 +3,7 @@ package hex
 import (
 	"cmp"
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 
@@ -31,6 +32,27 @@ func ParseHex(s string) (Hex, error) {
 	}
 
 	return Hex{q, r}, nil
+}
+
+// RangeLen returns the number of hexes within radius n of a hex, the length of [Hex.Range] and
+// [Hex.Spiral], for sizing the buffer their Append forms fill. It is zero for a negative radius.
+func RangeLen(n int) int {
+	if n < 0 {
+		return 0
+	}
+
+	return 1 + 3*n*(n+1)
+}
+
+// RingLen returns the number of hexes at exactly distance radius from a hex, the length of
+// [Hex.Ring], for sizing the buffer its Append form fills. It is one for a zero radius, the
+// center alone, and zero for a negative one.
+func RingLen(radius int) int {
+	if radius < 0 {
+		return 0
+	}
+
+	return max(6*radius, 1)
 }
 
 // parseCoordinates parses the "(q,r)" form String prints into its two coordinates, naming the
@@ -176,19 +198,77 @@ func (h Hex) Range(n int) []Hex {
 		return nil
 	}
 
-	return h.AppendRange(make([]Hex, 0, areaOf(n)), n)
+	return h.AppendRange(make([]Hex, 0, RangeLen(n)), n)
 }
 
 // AppendRange appends the hexes Range returns to dst and returns the extended slice, so a
 // caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
 func (h Hex) AppendRange(dst []Hex, n int) []Hex {
-	for q := -n; q <= n; q++ {
-		for r := max(-n, -q-n); r <= min(n, -q+n); r++ {
-			dst = append(dst, Hex{h.Q + q, h.R + r})
-		}
+	for hex := range h.RangeSeq(n) {
+		dst = append(dst, hex)
 	}
 
 	return dst
+}
+
+// RangeSeq returns an iterator over the hexes Range returns, in the same order, so a caller
+// walks them without a buffer. A negative radius yields nothing.
+func (h Hex) RangeSeq(n int) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		for q := -n; q <= n; q++ {
+			for r := max(-n, -q-n); r <= min(n, -q+n); r++ {
+				if !yield(Hex{h.Q + q, h.R + r}) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// Region returns the hexes within radius n around h as a [Region], the set Range lists. Range
+// is already in the order a region keeps, so the region wraps it without sorting or copying. It
+// returns the empty region for a negative radius.
+func (h Hex) Region(n int) Region {
+	return Region{h.Range(n)}
+}
+
+// RangeIntersection returns the hexes within radius n of h that are also within radius m of
+// other, ordered by q and then by r like [Hex.Compare]. It reads them off the cube bounds the
+// two ranges share, without building either. It returns nil where the two do not meet, as for
+// a negative radius.
+func (h Hex) RangeIntersection(n int, other Hex, m int) []Hex {
+	size := h.rangeBounds(n).meet(other.rangeBounds(m)).size()
+	if size == 0 {
+		return nil
+	}
+
+	return h.AppendRangeIntersection(make([]Hex, 0, size), n, other, m)
+}
+
+// AppendRangeIntersection appends the hexes RangeIntersection returns to dst and returns the
+// extended slice, so a caller reusing dst allocates nothing once it has room.
+func (h Hex) AppendRangeIntersection(dst []Hex, n int, other Hex, m int) []Hex {
+	for hex := range h.RangeIntersectionSeq(n, other, m) {
+		dst = append(dst, hex)
+	}
+
+	return dst
+}
+
+// RangeIntersectionSeq returns an iterator over the hexes RangeIntersection returns, in the
+// same order, so a caller walks them without a buffer.
+func (h Hex) RangeIntersectionSeq(n int, other Hex, m int) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		bounds := h.rangeBounds(n).meet(other.rangeBounds(m))
+		for q := bounds.minQ; q <= bounds.maxQ; q++ {
+			first, last := bounds.row(q)
+			for r := first; r <= last; r++ {
+				if !yield(Hex{q, r}) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // Ring returns the hexes at exactly distance radius from h, ordered by increasing angle from
@@ -200,29 +280,42 @@ func (h Hex) Ring(radius int) []Hex {
 		return nil
 	}
 
-	return h.AppendRing(make([]Hex, 0, max(6*radius, 1)), radius)
+	return h.AppendRing(make([]Hex, 0, RingLen(radius)), radius)
 }
 
 // AppendRing appends the hexes Ring returns to dst and returns the extended slice, so a
 // caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
 func (h Hex) AppendRing(dst []Hex, radius int) []Hex {
-	if radius < 0 {
-		return dst
-	}
-	if radius == 0 {
-		return append(dst, h)
-	}
-
-	for _, direction := range Directions() {
-		corner := h.Add(direction.Hex().Multiply(radius))
-		edge := direction.Turn(2).Hex()
-
-		for j := range radius {
-			dst = append(dst, corner.Add(edge.Multiply(j)))
-		}
+	for hex := range h.RingSeq(radius) {
+		dst = append(dst, hex)
 	}
 
 	return dst
+}
+
+// RingSeq returns an iterator over the hexes Ring returns, in the same order, so a caller
+// walks them without a buffer. A negative radius yields nothing.
+func (h Hex) RingSeq(radius int) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		if radius < 0 {
+			return
+		}
+		if radius == 0 {
+			yield(h)
+			return
+		}
+
+		for _, direction := range Directions() {
+			corner := h.Add(direction.Hex().Multiply(radius))
+			edge := direction.Turn(2).Hex()
+
+			for j := range radius {
+				if !yield(corner.Add(edge.Multiply(j))) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // Spiral returns all hexes from h outward to radius, starting with h and expanding ring by
@@ -233,17 +326,37 @@ func (h Hex) Spiral(radius int) []Hex {
 		return nil
 	}
 
-	return h.AppendSpiral(make([]Hex, 0, areaOf(radius)), radius)
+	return h.AppendSpiral(make([]Hex, 0, RangeLen(radius)), radius)
 }
 
 // AppendSpiral appends the hexes Spiral returns to dst and returns the extended slice, so a
 // caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
 func (h Hex) AppendSpiral(dst []Hex, radius int) []Hex {
-	for r := range radius + 1 {
-		dst = h.AppendRing(dst, r)
+	for hex := range h.SpiralSeq(radius) {
+		dst = append(dst, hex)
 	}
 
 	return dst
+}
+
+// SpiralSeq returns an iterator over the hexes Spiral returns, in the same order, so a caller
+// walks them nearest first without a buffer and stops as soon as it has found what it looks
+// for. A negative radius yields nothing.
+func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		for r := range radius + 1 {
+			for hex := range h.RingSeq(r) {
+				if !yield(hex) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// rangeBounds returns the bounds of the hexes within radius n of h.
+func (h Hex) rangeBounds(n int) cubeBounds {
+	return cubeBounds{h.Q - n, h.Q + n, h.R - n, h.R + n, h.S() - n, h.S() + n}
 }
 
 // DistanceTo returns the hex distance between h and the given hex.
@@ -278,25 +391,51 @@ func (h Hex) Line(target Hex) []Hex {
 // AppendLine appends the hexes Line returns to dst and returns the extended slice, so a caller
 // reusing dst allocates nothing once it has room.
 func (h Hex) AppendLine(dst []Hex, target Hex) []Hex {
-	n := h.DistanceTo(target)
-	for i := 0; i <= n; i++ {
-		dst = append(dst, h.lineAt(target, i, n))
+	for hex := range h.LineSeq(target) {
+		dst = append(dst, hex)
 	}
 
 	return dst
 }
 
-// HasLineOfSight reports whether target is visible from h past the blocking hexes. Neither h
-// nor target counts as a blocker, only the hexes of the line strictly between them do. It walks
-// the line without building it, so it allocates nothing.
-func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
-	if len(blocking) == 0 {
-		return true
+// LineSeq returns an iterator over the hexes Line returns, in the same order, so a caller walks
+// from h towards target without a buffer and stops where it needs to.
+func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		n := h.DistanceTo(target)
+		for i := 0; i <= n; i++ {
+			if !yield(h.lineAt(target, i, n)) {
+				return
+			}
+		}
 	}
+}
 
-	n := h.DistanceTo(target)
-	for i := 1; i < n; i++ {
-		if slices.Contains(blocking, h.lineAt(target, i, n)) {
+// HasLineOfSight reports whether target is visible from h past the blocking hexes: whether the
+// straight segment between the two centers is clear. A blocking hex the segment runs through
+// blocks it, however small the corner it cuts. A hex the segment only touches does not: one
+// met at a single corner never blocks, and where the segment runs along the edge between two
+// hexes it is blocked only when both of them block. Neither h nor target counts as a blocker.
+//
+// The test is exact in integers and reads the same from either end, so two hexes always see
+// each other or neither does. It is the visibility symmetric shadow casting computes, and it is
+// stricter than [Hex.Line]: a hex off the line can clip the segment, and a hex of the line that
+// the segment only touches does not block. It allocates nothing.
+func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
+	sight := target.Subtract(h)
+	reach, width, across := sight.dot(sight), sight.width(), sight.edgeStep()
+
+	for _, blocker := range blocking {
+		offset := blocker.Subtract(h)
+		if along := sight.dot(offset); along <= 0 || along >= reach {
+			continue
+		}
+
+		aside := 3 * sight.cross(offset)
+		if geom.Abs(aside) < width {
+			return false
+		}
+		if geom.Abs(aside) == width && !across.IsZero() && slices.Contains(blocking, blocker.Add(across.Multiply(aside/width))) {
 			return false
 		}
 	}
@@ -305,7 +444,8 @@ func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 }
 
 // FieldOfView returns the candidates visible from h past the blocking hexes, in the order
-// given. A candidate at distance one or less is always visible.
+// given: those [Hex.HasLineOfSight] sees, so the field is symmetric and a blocker casts the
+// same shadow from every side. A candidate at distance one or less is always visible.
 func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 	return h.AppendFieldOfView(make([]Hex, 0, len(candidates)), candidates, blocking)
 }
@@ -313,13 +453,24 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 // AppendFieldOfView appends the hexes FieldOfView returns to dst and returns the extended
 // slice, so a caller reusing dst allocates nothing once it has room.
 func (h Hex) AppendFieldOfView(dst []Hex, candidates []Hex, blocking []Hex) []Hex {
-	for _, candidate := range candidates {
-		if h.HasLineOfSight(candidate, blocking) {
-			dst = append(dst, candidate)
-		}
+	for hex := range h.FieldOfViewSeq(candidates, blocking) {
+		dst = append(dst, hex)
 	}
 
 	return dst
+}
+
+// FieldOfViewSeq returns an iterator over the hexes FieldOfView returns, in the same order, so
+// a caller walks the visible candidates without a buffer and tests no candidate past the one
+// it stops at.
+func (h Hex) FieldOfViewSeq(candidates []Hex, blocking []Hex) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		for _, candidate := range candidates {
+			if h.HasLineOfSight(candidate, blocking) && !yield(candidate) {
+				return
+			}
+		}
+	}
 }
 
 // lineAt returns the hex at step i of the n steps of the line from h to target, both nudged
@@ -331,6 +482,39 @@ func (h Hex) lineAt(target Hex, i, n int) Hex {
 	end := FractionalHex{float64(target.Q) + nudge, float64(target.R) + 2*nudge}
 
 	return start.Lerp(end, float64(i)/float64(max(n, 1))).Round()
+}
+
+// width returns how far a hex reaches to either side of the line from the origin through h, in
+// the unit of three times cross: a hex whose center lies nearer the line than that is run
+// through, and one exactly that far is touched, at a corner or along an edge.
+func (h Hex) width() int {
+	q, r, s := h.QRS()
+
+	return max(geom.Abs(q-r), geom.Abs(r-s), geom.Abs(s-q))
+}
+
+// edgeStep returns the step from a hex counterclockwise of the line from the origin through h
+// to the hex facing it across the line, where the line runs along the edge the two share, as it
+// does towards a diagonal neighbor. It is the zero hex for a line that runs along no edge.
+func (h Hex) edgeStep() Hex {
+	q, r, s := h.QRS()
+	if h.IsZero() || q != r && r != s && s != q {
+		return Hex{}
+	}
+
+	return Hex{(r - s) / h.width(), (s - q) / h.width()}
+}
+
+// cross returns the cross product of h and hex as vectors, up to a positive factor: positive
+// where hex lies counterclockwise of h, zero where the two are parallel.
+func (h Hex) cross(hex Hex) int {
+	return h.Q*hex.R - h.R*hex.Q
+}
+
+// dot returns the dot product of h and hex as vectors, up to a positive factor: the sum of the
+// products of their cube coordinates.
+func (h Hex) dot(hex Hex) int {
+	return h.Q*hex.Q + h.R*hex.R + h.S()*hex.S()
 }
 
 // Equal reports whether h and hex are the same hex. Axial coordinates are integers, so the
@@ -373,9 +557,4 @@ func (h Hex) Float() FractionalHex {
 // String returns a compact representation of the hex as (q,r).
 func (h Hex) String() string {
 	return fmt.Sprintf("(%s,%s)", geom.String(h.Q), geom.String(h.R))
-}
-
-// areaOf returns the number of hexes within radius n of a hex, the length of Range and Spiral.
-func areaOf(n int) int {
-	return 1 + 3*n*(n+1)
 }

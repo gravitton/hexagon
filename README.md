@@ -81,6 +81,27 @@ h.Ring(2)   // hexes at exactly distance 2 (perimeter)
 h.Spiral(2) // the same set as Range, ordered center-outward
 ```
 
+Each of the three, and `Line`, has a `Seq` form that walks the hexes without a buffer:
+
+```go
+for near := range h.SpiralSeq(5) { // nearest first, stops at the break
+	if occupied[near] {
+		break
+	}
+}
+```
+
+To reuse a buffer, prefer the standard library's `slices.AppendSeq` on the `Seq` form: it works
+with every one of them and allocates nothing once the buffer has room.
+
+```go
+buffer := make([]hex.Hex, 0, hex.RangeLen(2)) // 19 hexes within radius 2; RingLen sizes a ring
+buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
+```
+
+Each traversal also has an `Append` form, `h.AppendRange(buffer[:0], 2)`, a shorthand for the
+same call at the same cost.
+
 `Ring(1)` is exactly `Neighbors()`. A negative radius gives `nil`, a zero radius the center alone.
 
 Every slice result has an `Append` form that appends to a buffer you reuse, so a loop allocates
@@ -97,13 +118,19 @@ for _, unit := range units {
 ### Visibility
 
 ```go
-a.Line(b)                     // the hexes connecting a to b in a straight line
-a.HasLineOfSight(b, blocking) // only the hexes strictly between a and b block, no allocation
-a.FieldOfView(candidates, blocking)
+a.Line(b)                           // the hexes connecting a to b in a straight line
+a.HasLineOfSight(b, blocking)       // whether the segment between the two centers is clear
+a.FieldOfView(candidates, blocking) // the candidates a has line of sight to; also Append and Seq
 ```
 
-Both take a `[]Hex` of blockers and cost O(n×m) per call. For large grids, keep the blockers in a
-map keyed by `Hex` and filter before calling.
+Sight runs along the exact segment between two hex centers, in integers: a blocker the segment
+cuts through blocks it, however small the corner; one it only touches at a corner does not; and
+where the segment runs along the edge between two hexes, it takes both of them to block. The
+rule reads the same from either end, so two hexes always see each other or neither does, and
+neither end ever blocks. It is stricter than `Line`, which picks one hex per step.
+
+Both take a `[]Hex` of blockers and cost one pass over them per target, whatever the distance.
+For large grids, keep the blockers in a map keyed by `Hex` and filter before calling.
 
 ### Rotation and reflection
 
