@@ -10,9 +10,17 @@ import (
 	hex "github.com/gravitton/hexagon"
 )
 
+// Testing is what the assertions report a failure through, the part of testing.TB they call, so a
+// *testing.T, a *testing.B or a recorder of the caller's own is passed as it is. It is declared
+// here rather than taken from the assertion library underneath, which no signature names.
+type Testing interface {
+	Helper()
+	Errorf(format string, args ...any)
+}
+
 // AssertHex asserts that actual equals expected. Axial coordinates are integers,
 // so the comparison is exact.
-func AssertHex(t assert.Testing, actual, expected hex.Hex, messages ...string) bool {
+func AssertHex(t Testing, actual, expected hex.Hex, messages ...string) bool {
 	t.Helper()
 
 	ok := true
@@ -29,7 +37,7 @@ func AssertHex(t assert.Testing, actual, expected hex.Hex, messages ...string) b
 
 // AssertFractionalHex asserts that actual equals expected within the relative tolerance
 // [geomtest.AssertNumber] applies, so the tolerance holds at any magnitude.
-func AssertFractionalHex(t assert.Testing, actual, expected hex.FractionalHex, messages ...string) bool {
+func AssertFractionalHex(t Testing, actual, expected hex.FractionalHex, messages ...string) bool {
 	t.Helper()
 
 	ok := true

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gravitton/assert"
 	hex "github.com/gravitton/hexagon"
 )
 
@@ -38,7 +37,7 @@ func TestAssertFractionalHex(t *testing.T) {
 // reported the expected outcome, and on a failure that its message names the field that
 // differs. Every helper takes (actual, expected) of the same type, so one signature covers
 // them all.
-func assertHelper[V any](t *testing.T, assertion func(assert.Testing, V, V, ...string) bool, actual, expected V, result bool, field string) {
+func assertHelper[V any](t *testing.T, assertion func(Testing, V, V, ...string) bool, actual, expected V, result bool, field string) {
 	t.Helper()
 
 	recorder := &logger{}
