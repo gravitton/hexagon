@@ -13,6 +13,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.5.0...main)
 
+### Breaking
+- **breaking** `Hex.RangeIntersection`, `AppendRangeIntersection` and `RangeIntersectionSeq` are removed: filter `RangeSeq` by `DistanceTo` the other center, or intersect two regions in `grid`
+
 ### Changed
 - `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, where they returned an empty slice
 - `HasLineOfSightFunc` and the `FieldOfViewFunc` forms no longer ask `blocked` about the source and the target, which never block

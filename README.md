@@ -104,12 +104,6 @@ same call at the same cost.
 
 `Ring(1)` is exactly `Neighbors()`. A negative radius gives `nil`, a zero radius the center alone.
 
-The hexes two ranges share come straight from the cube bounds, without building either range:
-
-```go
-h.RangeIntersection(3, hex.Pt(2, 0), 1) // also AppendRangeIntersection and RangeIntersectionSeq
-```
-
 ### Visibility
 
 ```go

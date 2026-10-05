@@ -37,7 +37,7 @@
 //
 // # Allocations
 //
-// Only a method whose result is a slice allocates, once: Range, RangeIntersection, Ring, Spiral
+// Only a method whose result is a slice allocates, once: Range, Ring, Spiral
 // and Line with the exact capacity of the result, FieldOfView and FieldOfViewFunc with room for
 // every candidate. Each has an Append form that appends to a buffer the caller reuses, as
 // strconv.AppendInt does, so a loop allocates nothing once the buffer has room, and a Seq form,

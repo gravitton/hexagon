@@ -222,50 +222,9 @@ func (h Hex) AppendRange(dst []Hex, radius int) []Hex {
 // walks them without a buffer. A negative radius yields nothing.
 func (h Hex) RangeSeq(radius int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		bounds := h.rangeBounds(radius)
-		for q := bounds.minQ; q <= bounds.maxQ; q++ {
-			first, last := bounds.row(q)
-			for r := first; r <= last; r++ {
-				if !yield(Hex{q, r}) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// RangeIntersection returns the hexes within radius n of h that are also within radius m of
-// hex, ordered by q and then by r like [Hex.Compare]. It reads them off the cube bounds the
-// two ranges share, without building either. It returns nil where the two do not meet, as for
-// a negative radius.
-func (h Hex) RangeIntersection(n int, hex Hex, m int) []Hex {
-	size := h.rangeBounds(n).meet(hex.rangeBounds(m)).size()
-	if size == 0 {
-		return nil
-	}
-
-	return h.AppendRangeIntersection(make([]Hex, 0, size), n, hex, m)
-}
-
-// AppendRangeIntersection appends the hexes RangeIntersection returns to dst and returns the
-// extended slice, so a caller reusing dst allocates nothing once it has room.
-func (h Hex) AppendRangeIntersection(dst []Hex, n int, hex Hex, m int) []Hex {
-	for shared := range h.RangeIntersectionSeq(n, hex, m) {
-		dst = append(dst, shared)
-	}
-
-	return dst
-}
-
-// RangeIntersectionSeq returns an iterator over the hexes RangeIntersection returns, in the
-// same order, so a caller walks them without a buffer.
-func (h Hex) RangeIntersectionSeq(n int, hex Hex, m int) iter.Seq[Hex] {
-	return func(yield func(Hex) bool) {
-		bounds := h.rangeBounds(n).meet(hex.rangeBounds(m))
-		for q := bounds.minQ; q <= bounds.maxQ; q++ {
-			first, last := bounds.row(q)
-			for r := first; r <= last; r++ {
-				if !yield(Hex{q, r}) {
+		for q := -radius; q <= radius; q++ {
+			for r := max(-radius, -q-radius); r <= min(radius, radius-q); r++ {
+				if !yield(Hex{h.Q + q, h.R + r}) {
 					return
 				}
 			}
@@ -354,11 +313,6 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 			}
 		}
 	}
-}
-
-// rangeBounds returns the bounds of the hexes within radius of h.
-func (h Hex) rangeBounds(radius int) cubeBounds {
-	return cubeBounds{h.Q - radius, h.Q + radius, h.R - radius, h.R + radius, h.S() - radius, h.S() + radius}
 }
 
 // DistanceTo returns the hex distance between h and the given hex.
