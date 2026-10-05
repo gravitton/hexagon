@@ -81,10 +81,10 @@ func (l sightLine) crossed() iter.Seq[Hex] {
 		steps := l.sight.Length()
 
 		q, r, s := l.sight.QRS()
-		sight := [3]int{q, r, s}
+		cube := [3]int{q, r, s}
 
 		axis := 0
-		for i, coordinate := range sight {
+		for i, coordinate := range cube {
 			if geom.Abs(coordinate) == steps {
 				axis = i
 			}
@@ -92,7 +92,7 @@ func (l sightLine) crossed() iter.Seq[Hex] {
 
 		second, third := (axis+1)%3, (axis+2)%3
 
-		forward, side, divisor := geom.Sign(sight[axis]), sight[second], 3*steps
+		forward, side, divisor := geom.Sign(cube[axis]), cube[second], 3*steps
 		for i := 1; i < steps; i++ {
 			var offset [3]int
 			offset[axis] = forward * i

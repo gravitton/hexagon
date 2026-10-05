@@ -131,6 +131,18 @@ func TestParseCoordinateSystem(t *testing.T) {
 	})
 }
 
+func TestCoordinateSystem_IsNone(t *testing.T) {
+	t.Run("none and every value outside the seven", func(t *testing.T) {
+		assert.True(t, CoordinateSystemNone.IsNone())
+		assert.True(t, CoordinateSystem(99).IsNone())
+	})
+	t.Run("the seven are not none", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.False(t, system.IsNone(), system.String()+": ")
+		}
+	})
+}
+
 func TestCoordinateSystem_Offsets(t *testing.T) {
 	t.Run("the tables at each parity", func(t *testing.T) {
 		tests := []struct {
@@ -480,18 +492,6 @@ func FuzzCoordinateSystem_From(f *testing.F) {
 		for _, system := range []CoordinateSystem{DoubleWidth, DoubleHeight} {
 			cell := system.To(system.From(mixed))
 			assert.True(t, geom.Abs(cell.X-mixed.X)+geom.Abs(cell.Y-mixed.Y) <= 1, system.String()+" from "+mixed.String()+": ")
-		}
-	})
-}
-
-func TestCoordinateSystem_IsNone(t *testing.T) {
-	t.Run("none and every value outside the seven", func(t *testing.T) {
-		assert.True(t, CoordinateSystemNone.IsNone())
-		assert.True(t, CoordinateSystem(99).IsNone())
-	})
-	t.Run("the seven are not none", func(t *testing.T) {
-		for _, system := range CoordinateSystems() {
-			assert.False(t, system.IsNone(), system.String()+": ")
 		}
 	})
 }

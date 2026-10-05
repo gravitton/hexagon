@@ -75,7 +75,8 @@
 // system outside the seven, CoordinateSystemNone included, as geom panics for an unknown
 // Orientation: the absence of a layout has nothing to convert. FractionalHex.Round panics for a
 // NaN or infinite coordinate through geom.Cast, and Hex.Lerp with it for a NaN or infinite t: a
-// non-finite position lies on no hex. These are the only panics.
+// non-finite position lies on no hex. These are the only panics for a result that fits in memory:
+// a radius or a distance too large to allocate the slice for is outside the contract.
 //
 // # Reproducibility
 //

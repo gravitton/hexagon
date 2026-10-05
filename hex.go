@@ -33,14 +33,14 @@ func ParseHex(s string) (Hex, error) {
 	return Hex{q, r}, nil
 }
 
-// RangeLen returns the number of hexes within radius n of a hex, the length of [Hex.Range] and
+// RangeLen returns the number of hexes within radius of a hex, the length of [Hex.Range] and
 // [Hex.Spiral], for sizing the buffer their Append forms fill. It is zero for a negative radius.
-func RangeLen(n int) int {
-	if n < 0 {
+func RangeLen(radius int) int {
+	if radius < 0 {
 		return 0
 	}
 
-	return 1 + 3*n*(n+1)
+	return 1 + 3*radius*(radius+1)
 }
 
 // RingLen returns the number of hexes at exactly distance radius from a hex, the length of
@@ -198,20 +198,20 @@ func (h Hex) DiagonalNeighbors() [6]Hex {
 	return neighbors
 }
 
-// Range returns the set of hexes within radius n around h, inclusive of h, ordered by q and
+// Range returns the set of hexes within radius of h, inclusive of h, ordered by q and
 // then by r like [Hex.Compare]. It returns nil for a negative radius and h alone for zero.
-func (h Hex) Range(n int) []Hex {
-	if n < 0 {
+func (h Hex) Range(radius int) []Hex {
+	if radius < 0 {
 		return nil
 	}
 
-	return h.AppendRange(make([]Hex, 0, RangeLen(n)), n)
+	return h.AppendRange(make([]Hex, 0, RangeLen(radius)), radius)
 }
 
 // AppendRange appends the hexes Range returns to dst and returns the extended slice, so a
 // caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
-func (h Hex) AppendRange(dst []Hex, n int) []Hex {
-	for hex := range h.RangeSeq(n) {
+func (h Hex) AppendRange(dst []Hex, radius int) []Hex {
+	for hex := range h.RangeSeq(radius) {
 		dst = append(dst, hex)
 	}
 
@@ -220,9 +220,9 @@ func (h Hex) AppendRange(dst []Hex, n int) []Hex {
 
 // RangeSeq returns an iterator over the hexes Range returns, in the same order, so a caller
 // walks them without a buffer. A negative radius yields nothing.
-func (h Hex) RangeSeq(n int) iter.Seq[Hex] {
+func (h Hex) RangeSeq(radius int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		bounds := h.rangeBounds(n)
+		bounds := h.rangeBounds(radius)
 		for q := bounds.minQ; q <= bounds.maxQ; q++ {
 			first, last := bounds.row(q)
 			for r := first; r <= last; r++ {
@@ -356,9 +356,9 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	}
 }
 
-// rangeBounds returns the bounds of the hexes within radius n of h.
-func (h Hex) rangeBounds(n int) cubeBounds {
-	return cubeBounds{h.Q - n, h.Q + n, h.R - n, h.R + n, h.S() - n, h.S() + n}
+// rangeBounds returns the bounds of the hexes within radius of h.
+func (h Hex) rangeBounds(radius int) cubeBounds {
+	return cubeBounds{h.Q - radius, h.Q + radius, h.R - radius, h.R + radius, h.S() - radius, h.S() + radius}
 }
 
 // DistanceTo returns the hex distance between h and the given hex.

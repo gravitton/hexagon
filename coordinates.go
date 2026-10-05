@@ -71,6 +71,18 @@ func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
 	return CoordinateSystemNone, fmt.Errorf("hex: unknown coordinate system %q", name)
 }
 
+// IsNone reports whether the coordinate system is none of the seven. Like geom.Orientation, a
+// CoordinateSystem outside the constants is not normalized, so every such value counts as
+// CoordinateSystemNone.
+func (s CoordinateSystem) IsNone() bool {
+	switch s {
+	case Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight:
+		return false
+	default:
+		return true
+	}
+}
+
 // Offsets returns the 6 neighbor offsets for the given coordinate index in this system,
 // indexed by [Direction]. For offset systems this accounts for row/column parity. It panics
 // for a system outside the seven.
@@ -161,18 +173,6 @@ func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 	}
 }
 
-// IsNone reports whether the coordinate system is none of the seven. Like geom.Orientation, a
-// CoordinateSystem outside the constants is not normalized, so every such value counts as
-// CoordinateSystemNone.
-func (s CoordinateSystem) IsNone() bool {
-	switch s {
-	case Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight:
-		return false
-	default:
-		return true
-	}
-}
-
 // String returns the name of the coordinate system.
 func (s CoordinateSystem) String() string {
 	switch s {
@@ -216,7 +216,7 @@ func (s *CoordinateSystem) UnmarshalText(text []byte) error {
 
 // toAxial returns the axial (q,r) as a geom.Point[int].
 func toAxial(hex Hex) geom.Point[int] {
-	return geom.Pt(hex.Q, hex.R)
+	return hex.Point()
 }
 
 // fromAxial converts a geom.Point[int] (q,r) into an axial Hex.
