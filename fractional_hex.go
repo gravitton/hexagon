@@ -1,8 +1,8 @@
 package hex
 
 import (
-	"fmt"
 	"math"
+	"strconv"
 
 	geom "github.com/gravitton/geometry"
 )
@@ -159,7 +159,26 @@ func (h FractionalHex) Round() Hex {
 }
 
 // String returns a compact representation of the fractional hex as (q,r), each coordinate
-// formatted by [geom.String] with two decimals.
+// formatted as [geom.String] formats it, with two decimals.
 func (h FractionalHex) String() string {
-	return fmt.Sprintf("(%s,%s)", geom.String(h.Q), geom.String(h.R))
+	buf := make([]byte, 0, stringSize)
+	buf = append(buf, '(')
+	buf = appendString(buf, h.Q)
+	buf = append(buf, ',')
+	buf = appendString(buf, h.R)
+	buf = append(buf, ')')
+
+	return string(buf)
+}
+
+// appendString appends the coordinate to buf and returns the extended buffer, as [geom.String]
+// prints it: two decimals, and no sign on a value that rounds to zero.
+func appendString(buf []byte, value float64) []byte {
+	start := len(buf)
+	buf = strconv.AppendFloat(buf, value, 'f', 2, 64)
+	if string(buf[start:]) == "-0.00" {
+		return append(buf[:start], "0.00"...)
+	}
+
+	return buf
 }

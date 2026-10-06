@@ -20,6 +20,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - The `hextest` helpers take `hextest.Testing`, declared in the package with the `Helper` and `Errorf` methods they call, rather than `assert.Testing`, so no signature names the assertion library; a `*testing.T` and any `assert.Testing` still pass as they are
 - `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, where they returned an empty slice
 - `HasLineOfSightFunc` and the `FieldOfViewFunc` forms no longer ask `blocked` about the source and the target, which never block
+- `Hex.String` and `FractionalHex.String` append into a buffer on the stack rather than going through `fmt.Sprintf`, so each allocates the string it returns and nothing else; the text printed is unchanged
 - CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in a step of its own
 
 ### Fixed

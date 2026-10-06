@@ -31,6 +31,7 @@ var (
 	sinkPoint      geom.Point[int]
 	sinkVector     geom.Vector[int]
 	sinkVectors    [6]geom.Vector[int]
+	sinkString     string
 )
 
 func TestHex_Constructor(t *testing.T) {
@@ -1623,7 +1624,24 @@ func TestHex_Float(t *testing.T) {
 }
 
 func TestHex_String(t *testing.T) {
-	assert.Equal(t, testHex.String(), "(-1,3)")
+	t.Run("coordinates in parentheses", func(t *testing.T) {
+		assert.Equal(t, testHex.String(), "(-1,3)")
+		assert.Equal(t, testHexZero.String(), "(0,0)")
+	})
+	t.Run("widest coordinates", func(t *testing.T) {
+		assert.Equal(t, Pt(math.MinInt64, math.MaxInt64).String(), "(-9223372036854775808,9223372036854775807)")
+	})
+	t.Run("allocates the string alone", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkString = Pt(math.MinInt64, math.MaxInt64).String()
+		}), 1.0)
+	})
+}
+
+func BenchmarkHex_String(b *testing.B) {
+	for b.Loop() {
+		sinkString = testHex.String()
+	}
 }
 
 func TestHex_JSON(t *testing.T) {

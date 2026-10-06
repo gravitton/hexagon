@@ -75,6 +75,11 @@ func (l sightLine) crossed() iter.Seq[Hex] {
 	}
 }
 
+// stringSize is the capacity every String starts its buffer at: it holds two coordinates of any
+// int and of a float64 of a few digits, so the buffer stays on the stack and the string returned
+// is the one allocation. A longer text grows the buffer like any append.
+const stringSize = 64
+
 // floorDiv returns n divided by a positive m and rounded down, where the / operator rounds
 // towards zero.
 func floorDiv(n, m int) int {
