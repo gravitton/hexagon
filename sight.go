@@ -40,48 +40,60 @@ func (l sightLine) facing(offset Hex) (Hex, bool) {
 // crossed returns an iterator over the hexes the line can meet strictly between its ends, from
 // its start towards the target. It takes a step at a time along the cube coordinate the segment
 // covers the most of and yields the hexes of that step lying no further from the segment than a
-// hex reaches, one or two of them and found by division, so every hex that does not stand clear
-// of it is among them.
+// hex reaches, one or two of them, so every hex that does not stand clear of it is among them.
+// The two ends of a step are quotients of a numerator that moves by the same amount at each
+// one, so they are carried from step to step and nothing is divided.
 func (l sightLine) crossed() iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
 		steps := l.sight.Length()
-
 		q, r, s := l.sight.QRS()
-		cube := [3]int{q, r, s}
 
-		axis := 0
-		for i, coordinate := range cube {
-			if geom.Abs(coordinate) == steps {
-				axis = i
-			}
+		var forward, lateral Hex
+		var side int
+		switch steps {
+		case geom.Abs(s):
+			forward, lateral, side = Hex{0, -geom.Sign(s)}, Hex{1, -1}, q
+		case geom.Abs(r):
+			forward, lateral, side = Hex{-geom.Sign(r), geom.Sign(r)}, Hex{-1, 0}, s
+		default:
+			forward, lateral, side = Hex{geom.Sign(q), 0}, Hex{0, 1}, r
 		}
 
-		second, third := (axis+1)%3, (axis+2)%3
-
-		forward, side, divisor := geom.Sign(cube[axis]), cube[second], 3*steps
+		drift, divisor := 3*side, 3*steps
+		before, after := quotient{0, l.width}, quotient{0, l.width}
+		row := Hex{}
 		for i := 1; i < steps; i++ {
-			var offset [3]int
-			offset[axis] = forward * i
+			row = row.Add(forward)
+			before, after = before.carry(-drift, divisor), after.carry(drift, divisor)
 
-			first, last := -floorDiv(l.width-3*side*i, divisor), floorDiv(l.width+3*side*i, divisor)
-			for lateral := first; lateral <= last; lateral++ {
-				offset[second], offset[third] = lateral, -offset[axis]-lateral
-
-				if !yield(Hex{offset[0], offset[1]}) {
+			offset := row.Subtract(lateral.Multiply(before.whole))
+			for range before.whole + after.whole + 1 {
+				if !yield(offset) {
 					return
 				}
+
+				offset = offset.Add(lateral)
 			}
 		}
 	}
 }
 
-// stringSize is the capacity every String starts its buffer at: it holds two coordinates of any
-// int and of a float64 of a few digits, so the buffer stays on the stack and the string returned
-// is the one allocation. A longer text grows the buffer like any append.
-const stringSize = 64
+// quotient is a numerator divided by a positive divisor and rounded down, kept with the rest of
+// the division so the numerator can move without dividing again.
+type quotient struct {
+	whole int
+	rest  int
+}
 
-// floorDiv returns n divided by a positive m and rounded down, where the / operator rounds
-// towards zero.
-func floorDiv(n, m int) int {
-	return (n - geom.Mod(n, m)) / m
+// carry returns the quotient after its numerator moved by delta, which is no larger than the
+// divisor either way.
+func (q quotient) carry(delta, divisor int) quotient {
+	switch rest := q.rest + delta; {
+	case rest >= divisor:
+		return quotient{q.whole + 1, rest - divisor}
+	case rest < 0:
+		return quotient{q.whole - 1, rest + divisor}
+	default:
+		return quotient{q.whole, rest}
+	}
 }
