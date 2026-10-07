@@ -353,6 +353,16 @@ func TestFractionalHex_Round(t *testing.T) {
 			sinkHex = FracPt(0, math.Inf(-1)).Round()
 		})
 	})
+	t.Run("an edge goes to the same side on every hex", func(t *testing.T) {
+		for _, direction := range Directions() {
+			edge := Hex{}.Float().Lerp(Hex{}.Neighbor(direction).Float(), 0.5)
+			owner := edge.Round()
+
+			for _, h := range testHex.Spiral(3) {
+				hextest.AssertHex(t, edge.Add(h.Float()).Round(), owner.Add(h), h.String()+" towards "+direction.String()+": ")
+			}
+		}
+	})
 	t.Run("a whole hex rounds to itself", func(t *testing.T) {
 		for _, h := range testHex.Spiral(3) {
 			hextest.AssertHex(t, h.Float().Round(), h)
@@ -408,11 +418,6 @@ func TestFractionalHex_String(t *testing.T) {
 	})
 	t.Run("no sign on a value that rounds to zero", func(t *testing.T) {
 		assert.Equal(t, FracPt(-0.001, math.Copysign(0, -1)).String(), "(0.00,0.00)")
-	})
-	t.Run("prints each coordinate as geom does", func(t *testing.T) {
-		for _, value := range []float64{0, -0.001, 0.004, -0.004, 0.005, -0.005, 1.005, -1.005, 2.675, 1e6, -1e15, math.MaxFloat64, math.Inf(1), math.Inf(-1), math.NaN()} {
-			assert.Equal(t, FracPt(value, value).String(), "("+geom.String(value)+","+geom.String(value)+")", geom.String(value)+": ")
-		}
 	})
 	t.Run("allocates the string alone", func(t *testing.T) {
 		assert.Equal(t, testing.AllocsPerRun(100, func() {

@@ -137,12 +137,15 @@ func (h FractionalHex) Point() geom.Point[float64] {
 
 // Round converts a FractionalHex to the nearest Hex while preserving q+r+s=0.
 // It is the [Hex] conversion of a fractional hex, the counterpart of [Hex.Float].
+// A point on an edge or a corner goes to the same side on every hex, since each coordinate
+// rounds a tie toward positive infinity: the rounding of a fractional hex moved by a whole one
+// is the rounded hex moved by it.
 // It converts through [geom.Cast], so it panics for a NaN or infinite coordinate, which has
 // no hex, and a finite coordinate beyond the range of int gives a platform-dependent hex.
 func (h FractionalHex) Round() Hex {
-	q := math.Round(h.Q)
-	r := math.Round(h.R)
-	s := math.Round(h.S())
+	q := geom.RoundHalfUp(h.Q)
+	r := geom.RoundHalfUp(h.R)
+	s := geom.RoundHalfUp(h.S())
 
 	qDiff := math.Abs(q - h.Q)
 	rDiff := math.Abs(r - h.R)
