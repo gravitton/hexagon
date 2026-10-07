@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"iter"
 	"slices"
-	"strconv"
 	"strings"
 
 	geom "github.com/gravitton/geometry"
@@ -592,14 +591,8 @@ func (h Hex) Float() FractionalHex {
 	return FractionalHex{float64(h.Q), float64(h.R)}
 }
 
-// String returns a compact representation of the hex as (q,r).
+// String returns a compact representation of the hex as (q,r), printed as the [geom.Point] of
+// its coordinates is.
 func (h Hex) String() string {
-	buf := make([]byte, 0, stringSize)
-	buf = append(buf, '(')
-	buf = strconv.AppendInt(buf, int64(h.Q), 10)
-	buf = append(buf, ',')
-	buf = strconv.AppendInt(buf, int64(h.R), 10)
-	buf = append(buf, ')')
-
-	return string(buf)
+	return h.Point().String()
 }
