@@ -581,29 +581,6 @@ func BenchmarkHex_Range(b *testing.B) {
 	}
 }
 
-func TestHex_AppendRange(t *testing.T) {
-	t.Run("appends after dst", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendRange([]Hex{testHexZero}, 1), append([]Hex{testHexZero}, testHex.Range(1)...))
-	})
-	t.Run("negative radius appends nothing", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendRange([]Hex{testHexZero}, -1), []Hex{testHexZero})
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, RangeLen(3))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHex.AppendRange(buffer, 3)
-		}), 0.0)
-	})
-}
-
-func BenchmarkHex_AppendRange(b *testing.B) {
-	buffer := make([]Hex, 0, RangeLen(10))
-
-	for b.Loop() {
-		sinkHexes = testHex.AppendRange(buffer, 10)
-	}
-}
-
 func TestHex_RangeSeq(t *testing.T) {
 	t.Run("yields the hexes of Range in order", func(t *testing.T) {
 		for _, n := range []int{0, 1, 2, 5} {
@@ -634,6 +611,12 @@ func TestHex_RangeSeq(t *testing.T) {
 			for h := range testHex.RangeSeq(3) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, RangeLen(3))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHex.RangeSeq(3))
 		}), 0.0)
 	})
 }
@@ -692,32 +675,6 @@ func BenchmarkHex_Ring(b *testing.B) {
 	}
 }
 
-func TestHex_AppendRing(t *testing.T) {
-	t.Run("appends after dst", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, 2), append([]Hex{testHexZero}, testHex.Ring(2)...))
-	})
-	t.Run("zero radius appends the center", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, 0), []Hex{testHexZero, testHex})
-	})
-	t.Run("negative radius appends nothing", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendRing([]Hex{testHexZero}, -1), []Hex{testHexZero})
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, 18)
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHex.AppendRing(buffer, 3)
-		}), 0.0)
-	})
-}
-
-func BenchmarkHex_AppendRing(b *testing.B) {
-	buffer := make([]Hex, 0, RingLen(10))
-
-	for b.Loop() {
-		sinkHexes = testHex.AppendRing(buffer, 10)
-	}
-}
-
 func TestHex_RingSeq(t *testing.T) {
 	t.Run("yields the hexes of Ring in order", func(t *testing.T) {
 		for _, radius := range []int{0, 1, 2, 5} {
@@ -748,6 +705,12 @@ func TestHex_RingSeq(t *testing.T) {
 			for h := range testHex.RingSeq(3) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, RingLen(3))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHex.RingSeq(3))
 		}), 0.0)
 	})
 }
@@ -798,29 +761,6 @@ func BenchmarkHex_Spiral(b *testing.B) {
 	}
 }
 
-func TestHex_AppendSpiral(t *testing.T) {
-	t.Run("appends after dst", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendSpiral([]Hex{testHexZero}, 2), append([]Hex{testHexZero}, testHex.Spiral(2)...))
-	})
-	t.Run("negative radius appends nothing", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendSpiral([]Hex{testHexZero}, -1), []Hex{testHexZero})
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, RangeLen(3))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHex.AppendSpiral(buffer, 3)
-		}), 0.0)
-	})
-}
-
-func BenchmarkHex_AppendSpiral(b *testing.B) {
-	buffer := make([]Hex, 0, RangeLen(10))
-
-	for b.Loop() {
-		sinkHexes = testHex.AppendSpiral(buffer, 10)
-	}
-}
-
 func TestHex_SpiralSeq(t *testing.T) {
 	t.Run("yields the hexes of Spiral in order", func(t *testing.T) {
 		for _, radius := range []int{0, 1, 2, 5} {
@@ -851,6 +791,12 @@ func TestHex_SpiralSeq(t *testing.T) {
 			for h := range testHex.SpiralSeq(3) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, RangeLen(3))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHex.SpiralSeq(3))
 		}), 0.0)
 	})
 }
@@ -1036,26 +982,6 @@ func FuzzHex_Line(f *testing.F) {
 	})
 }
 
-func TestHex_AppendLine(t *testing.T) {
-	t.Run("appends after dst", func(t *testing.T) {
-		assert.Equal(t, testHex.AppendLine([]Hex{testHexZero}, Pt(2, 0)), append([]Hex{testHexZero}, testHex.Line(Pt(2, 0))...))
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, 5)
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHexZero.AppendLine(buffer, Pt(4, -1))
-		}), 0.0)
-	})
-}
-
-func BenchmarkHex_AppendLine(b *testing.B) {
-	buffer := make([]Hex, 0, 11)
-
-	for b.Loop() {
-		sinkHexes = testHexZero.AppendLine(buffer, Pt(10, -4))
-	}
-}
-
 func TestHex_LineSeq(t *testing.T) {
 	t.Run("yields the hexes of Line in order", func(t *testing.T) {
 		for _, target := range testHex.Spiral(4) {
@@ -1083,6 +1009,12 @@ func TestHex_LineSeq(t *testing.T) {
 			for h := range testHexZero.LineSeq(Pt(4, -1)) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, 5)
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.LineSeq(Pt(4, -1)))
 		}), 0.0)
 	})
 }
@@ -1392,33 +1324,6 @@ func BenchmarkHex_FieldOfView(b *testing.B) {
 	}
 }
 
-func TestHex_AppendFieldOfView(t *testing.T) {
-	candidates := []Hex{Pt(2, 0), Pt(3, 0)}
-
-	t.Run("appends the visible after dst", func(t *testing.T) {
-		assert.Equal(t, testHexZero.AppendFieldOfView([]Hex{testHex}, candidates, nil), []Hex{testHex, Pt(2, 0), Pt(3, 0)})
-	})
-	t.Run("appends nothing when all are blocked", func(t *testing.T) {
-		assert.Equal(t, testHexZero.AppendFieldOfView([]Hex{testHex}, candidates, []Hex{Pt(1, 0)}), []Hex{testHex})
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, len(candidates))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHexZero.AppendFieldOfView(buffer, candidates, nil)
-		}), 0.0)
-	})
-}
-
-func BenchmarkHex_AppendFieldOfView(b *testing.B) {
-	candidates := testHexZero.Range(10)
-	blocking := testHexZero.Ring(5)[:10]
-	buffer := make([]Hex, 0, len(candidates))
-
-	for b.Loop() {
-		sinkHexes = testHexZero.AppendFieldOfView(buffer, candidates, blocking)
-	}
-}
-
 func TestHex_FieldOfViewSeq(t *testing.T) {
 	candidates := testHexZero.Range(3)
 	blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
@@ -1449,6 +1354,12 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 			for h := range testHexZero.FieldOfViewSeq(candidates, blocking) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, len(candidates))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(candidates, blocking))
 		}), 0.0)
 	})
 }
@@ -1487,24 +1398,6 @@ func BenchmarkHex_FieldOfViewFunc(b *testing.B) {
 	}
 }
 
-func TestHex_AppendFieldOfViewFunc(t *testing.T) {
-	candidates := testHexZero.Range(3)
-	blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
-
-	t.Run("appends the hexes of FieldOfViewFunc after dst", func(t *testing.T) {
-		assert.Equal(t, testHexZero.AppendFieldOfViewFunc([]Hex{testHex}, candidates, blocked), append([]Hex{testHex}, testHexZero.FieldOfViewFunc(candidates, blocked)...))
-	})
-	t.Run("appends nothing when all are blocked", func(t *testing.T) {
-		assert.Equal(t, testHexZero.AppendFieldOfViewFunc([]Hex{testHex}, []Hex{Pt(2, 0), Pt(3, 0)}, among([]Hex{Pt(1, 0)})), []Hex{testHex})
-	})
-	t.Run("allocates nothing with room", func(t *testing.T) {
-		buffer := make([]Hex, 0, len(candidates))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
-			sinkHexes = testHexZero.AppendFieldOfViewFunc(buffer, candidates, blocked)
-		}), 0.0)
-	})
-}
-
 func TestHex_FieldOfViewFuncSeq(t *testing.T) {
 	candidates := testHexZero.Range(3)
 	blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
@@ -1529,6 +1422,143 @@ func TestHex_FieldOfViewFuncSeq(t *testing.T) {
 			for h := range testHexZero.FieldOfViewFuncSeq(candidates, blocked) {
 				sinkHex = h
 			}
+		}), 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, len(candidates))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewFuncSeq(candidates, blocked))
+		}), 0.0)
+	})
+}
+
+func TestHex_FieldOfViewRange(t *testing.T) {
+	everything := func(Hex) bool {
+		return true
+	}
+
+	t.Run("a negative radius sees nothing", func(t *testing.T) {
+		assert.True(t, testHex.FieldOfViewRange(-1, everything) == nil)
+	})
+	t.Run("a zero radius sees the hex alone", func(t *testing.T) {
+		assert.Equal(t, testHex.FieldOfViewRange(0, everything), []Hex{testHex})
+	})
+	t.Run("a nil blocked shows the spiral", func(t *testing.T) {
+		assert.Equal(t, testHex.FieldOfViewRange(4, nil), testHex.Spiral(4))
+	})
+	t.Run("the neighbors are visible whatever blocks", func(t *testing.T) {
+		assert.Equal(t, testHex.FieldOfViewRange(5, everything), testHex.Spiral(1))
+	})
+	t.Run("a hex hides those behind it and is visible itself", func(t *testing.T) {
+		visible := testHexZero.FieldOfViewRange(3, among([]Hex{Pt(1, 0)}))
+		assert.True(t, slices.Contains(visible, Pt(1, 0)))
+		assert.False(t, slices.Contains(visible, Pt(2, 0)))
+		assert.False(t, slices.Contains(visible, Pt(3, 0)))
+		assert.True(t, slices.Contains(visible, Pt(1, 1)))
+	})
+	t.Run("an edge is closed by the two hexes beside it together", func(t *testing.T) {
+		assert.True(t, slices.Contains(testHexZero.FieldOfViewRange(2, among([]Hex{Pt(1, 0)})), Pt(1, 1)))
+		assert.True(t, slices.Contains(testHexZero.FieldOfViewRange(2, among([]Hex{Pt(0, 1)})), Pt(1, 1)))
+		assert.False(t, slices.Contains(testHexZero.FieldOfViewRange(2, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1)))
+	})
+	t.Run("agrees with FieldOfViewFunc over the spiral", func(t *testing.T) {
+		for _, source := range []Hex{testHexZero, testHex, Pt(40, -17)} {
+			for _, radius := range []int{1, 2, 3, 7, 16, 33} {
+				for _, modulus := range []int{1, 2, 3, 4, 5, 7, 11, 23, 97} {
+					blocked := scattered(modulus)
+					assert.Equal(t, source.FieldOfViewRange(radius, blocked), source.FieldOfViewFunc(source.Spiral(radius), blocked), source.String()+" within "+strconv.Itoa(radius)+" past one in "+strconv.Itoa(modulus)+": ")
+				}
+			}
+		}
+	})
+	t.Run("asks about a hex once and never about the source or the last ring", func(t *testing.T) {
+		for _, modulus := range []int{2, 5, 11, 97} {
+			asked := map[Hex]int{}
+			testHex.FieldOfViewRange(12, func(hex Hex) bool {
+				asked[hex]++
+
+				return scattered(modulus)(hex)
+			})
+
+			for hex, times := range asked {
+				assert.Equal(t, times, 1, hex.String()+": ")
+				assert.True(t, testHex.DistanceTo(hex) > 0 && testHex.DistanceTo(hex) < 12, hex.String()+": ")
+			}
+		}
+	})
+	t.Run("allocates the result at the length of the range and the sweep", func(t *testing.T) {
+		blocked := scattered(11)
+		assert.Equal(t, cap(testHexZero.FieldOfViewRange(10, blocked)), RangeLen(10))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = testHexZero.FieldOfViewRange(10, blocked)
+		}), 2.0)
+	})
+}
+
+func BenchmarkHex_FieldOfViewRange(b *testing.B) {
+	blocked := scattered(11)
+
+	for b.Loop() {
+		sinkHexes = testHexZero.FieldOfViewRange(40, blocked)
+	}
+}
+
+func FuzzHex_FieldOfViewRange(f *testing.F) {
+	f.Add(0, 0, 6, 1, 0, 2)
+	f.Add(-1, 3, 12, 7, 13, 11)
+	f.Add(40, -17, 20, 3, -5, 4)
+	f.Add(-1000000, 999999, 9, 1, 1, 3)
+
+	f.Fuzz(func(t *testing.T, q, r, radius, factorQ, factorR, modulus int) {
+		if max(geom.Abs(q), geom.Abs(r), geom.Abs(factorQ), geom.Abs(factorR)) > 1e6 || radius < 0 || radius > 24 || modulus < 1 || modulus > 1000 {
+			t.Skip()
+		}
+
+		source := Pt(q, r)
+		blocked := func(hex Hex) bool {
+			return geom.Mod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
+		}
+
+		assert.Equal(t, source.FieldOfViewRange(radius, blocked), source.FieldOfViewFunc(source.Spiral(radius), blocked), source.String()+" within "+strconv.Itoa(radius)+": ")
+	})
+}
+
+func TestHex_FieldOfViewRangeSeq(t *testing.T) {
+	blocked := scattered(5)
+
+	t.Run("yields the hexes of FieldOfViewRange in order", func(t *testing.T) {
+		assert.Equal(t, slices.Collect(testHexZero.FieldOfViewRangeSeq(6, blocked)), testHexZero.FieldOfViewRange(6, blocked))
+	})
+	t.Run("stops when the loop breaks", func(t *testing.T) {
+		for stop := range len(testHexZero.FieldOfViewRange(6, blocked)) {
+			walked := 0
+			for range testHexZero.FieldOfViewRangeSeq(6, blocked) {
+				if walked == stop {
+					break
+				}
+				walked++
+			}
+			assert.Equal(t, walked, stop)
+		}
+	})
+	t.Run("allocates the sweep alone", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			for h := range testHexZero.FieldOfViewRangeSeq(6, blocked) {
+				sinkHex = h
+			}
+		}), 1.0)
+	})
+	t.Run("slices.AppendSeq allocates the sweep alone with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, RangeLen(6))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(6, blocked))
+		}), 1.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
+		buffer := make([]Hex, 0, RangeLen(6))
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(6, nil))
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(1, blocked))
 		}), 0.0)
 	})
 }
@@ -1686,6 +1716,14 @@ func among(hexes []Hex) func(Hex) bool {
 	}
 }
 
+// scattered returns the predicate holding for one hex in modulus, spread over the plane by a
+// linear form of the coordinates.
+func scattered(modulus int) func(Hex) bool {
+	return func(hex Hex) bool {
+		return geom.Mod(hex.Q*7+hex.R*13, modulus) == 3%modulus
+	}
+}
+
 // everyNth returns the hexes at every stride-th place of the given ones.
 func everyNth(hexes []Hex, stride int) []Hex {
 	var result []Hex
@@ -1719,7 +1757,7 @@ func ExampleParseHex() {
 
 func ExampleRangeLen() {
 	buffer := make([]Hex, 0, RangeLen(2))
-	buffer = Pt(0, 0).AppendRange(buffer, 2)
+	buffer = slices.AppendSeq(buffer, Pt(0, 0).RangeSeq(2))
 
 	fmt.Println(RangeLen(2), len(buffer), cap(buffer))
 	// Output: 19 19 19
@@ -1764,10 +1802,10 @@ func ExampleHex_Range() {
 	// Output: [(-1,0) (-1,1) (0,-1) (0,0) (0,1) (1,-1) (1,0)]
 }
 
-func ExampleHex_AppendRange() {
-	buffer := make([]Hex, 0, 7)
+func ExampleHex_RangeSeq() {
+	buffer := make([]Hex, 0, RangeLen(1))
 	for _, center := range []Hex{Pt(0, 0), Pt(5, -2)} {
-		buffer = center.AppendRange(buffer[:0], 1)
+		buffer = slices.AppendSeq(buffer[:0], center.RangeSeq(1))
 		fmt.Println(len(buffer), buffer[0])
 	}
 	// Output:

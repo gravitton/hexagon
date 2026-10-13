@@ -332,6 +332,37 @@ func TestFractionalHex_IsZero(t *testing.T) {
 	})
 }
 
+func TestFractionalHex_IsFinite(t *testing.T) {
+	t.Run("a hex of numbers", func(t *testing.T) {
+		assert.True(t, testFracHex.IsFinite())
+		assert.True(t, FracPt(math.MaxFloat64, -math.MaxFloat64).IsFinite())
+	})
+	t.Run("a NaN coordinate", func(t *testing.T) {
+		assert.False(t, FracPt(math.NaN(), 0).IsFinite())
+		assert.False(t, FracPt(0, math.NaN()).IsFinite())
+	})
+	t.Run("an infinite coordinate", func(t *testing.T) {
+		assert.False(t, FracPt(math.Inf(1), 0).IsFinite())
+		assert.False(t, FracPt(0, math.Inf(-1)).IsFinite())
+	})
+	t.Run("holds exactly where Round does not panic", func(t *testing.T) {
+		for _, q := range []float64{0, 10.9, math.MaxFloat64, -math.MaxFloat64, math.NaN(), math.Inf(1), math.Inf(-1)} {
+			for _, r := range []float64{0, -1.2, math.MaxFloat64, -math.MaxFloat64, math.NaN(), math.Inf(1), math.Inf(-1)} {
+				h := FracPt(q, r)
+				rounds := func() (rounded bool) {
+					defer func() {
+						rounded = recover() == nil
+					}()
+					sinkHex = h.Round()
+
+					return
+				}
+				assert.Equal(t, h.IsFinite(), rounds(), h.String()+": ")
+			}
+		}
+	})
+}
+
 func TestFractionalHex_Point(t *testing.T) {
 	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
 }

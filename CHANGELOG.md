@@ -15,6 +15,11 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ### Breaking
 - **breaking** `Hex.RangeIntersection`, `AppendRangeIntersection` and `RangeIntersectionSeq` are removed: filter `RangeSeq` by `DistanceTo` the other center, or intersect two regions in `grid`
+- **breaking** `Hex.AppendRange`, `AppendRing`, `AppendSpiral`, `AppendLine`, `AppendFieldOfView` and `AppendFieldOfViewFunc` are removed: `slices.AppendSeq(dst, h.RangeSeq(radius))` on the `Seq` form of each appends the same hexes into a reused buffer and allocates nothing once it has room
+
+### Added
+- `FractionalHex.IsFinite` reports whether both coordinates are numbers, neither NaN nor infinite: the test for a fractional hex `Round` takes to a hex without panicking
+- `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` return the hexes within a radius visible past the hexes a function reports as blocking, in the order of `Spiral`: the field `FieldOfViewFunc` gives for the spiral, found in one sweep outwards that asks about each hex at most once, about fifteen times faster at a radius of 40
 
 ### Changed
 - `FractionalHex.Round` rounds each coordinate with `geom.RoundHalfUp`, a tie toward positive infinity, where `math.Round` took it away from zero: a point on an edge goes to the same side on every hex, where a hex at the origin lost the edges its neighbours on either side both claimed. Requires the `geometry` release after v1.15.0

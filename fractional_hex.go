@@ -130,6 +130,12 @@ func (h FractionalHex) IsZero() bool {
 	return h.Equal(FractionalHex{})
 }
 
+// IsFinite reports whether Q and R are both numbers, neither NaN nor infinite: a position on
+// the grid, which Round takes to a hex where it panics on any other.
+func (h FractionalHex) IsFinite() bool {
+	return geom.IsFinite(h.Q) && geom.IsFinite(h.R)
+}
+
 // Point returns the axial (q,r) as a geom.Point[float64].
 func (h FractionalHex) Point() geom.Point[float64] {
 	return geom.Pt(h.Q, h.R)

@@ -34,7 +34,8 @@ func ParseHex(s string) (Hex, error) {
 }
 
 // RangeLen returns the number of hexes within radius of a hex, the length of [Hex.Range] and
-// [Hex.Spiral], for sizing the buffer their Append forms fill. It is zero for a negative radius.
+// [Hex.Spiral], for sizing the buffer their Seq forms are collected into. It is zero for a
+// negative radius.
 func RangeLen(radius int) int {
 	if radius < 0 {
 		return 0
@@ -44,8 +45,8 @@ func RangeLen(radius int) int {
 }
 
 // RingLen returns the number of hexes at exactly distance radius from a hex, the length of
-// [Hex.Ring], for sizing the buffer its Append form fills. It is one for a zero radius, the
-// center alone, and zero for a negative one.
+// [Hex.Ring], for sizing the buffer its Seq form is collected into. It is one for a zero radius,
+// the center alone, and zero for a negative one.
 func RingLen(radius int) int {
 	if radius < 0 {
 		return 0
@@ -205,17 +206,7 @@ func (h Hex) Range(radius int) []Hex {
 		return nil
 	}
 
-	return h.AppendRange(make([]Hex, 0, RangeLen(radius)), radius)
-}
-
-// AppendRange appends the hexes Range returns to dst and returns the extended slice, so a
-// caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
-func (h Hex) AppendRange(dst []Hex, radius int) []Hex {
-	for hex := range h.RangeSeq(radius) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, RangeLen(radius)), h.RangeSeq(radius))
 }
 
 // RangeSeq returns an iterator over the hexes Range returns, in the same order, so a caller
@@ -241,17 +232,7 @@ func (h Hex) Ring(radius int) []Hex {
 		return nil
 	}
 
-	return h.AppendRing(make([]Hex, 0, RingLen(radius)), radius)
-}
-
-// AppendRing appends the hexes Ring returns to dst and returns the extended slice, so a
-// caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
-func (h Hex) AppendRing(dst []Hex, radius int) []Hex {
-	for hex := range h.RingSeq(radius) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, RingLen(radius)), h.RingSeq(radius))
 }
 
 // RingSeq returns an iterator over the hexes Ring returns, in the same order, so a caller
@@ -287,17 +268,7 @@ func (h Hex) Spiral(radius int) []Hex {
 		return nil
 	}
 
-	return h.AppendSpiral(make([]Hex, 0, RangeLen(radius)), radius)
-}
-
-// AppendSpiral appends the hexes Spiral returns to dst and returns the extended slice, so a
-// caller reusing dst allocates nothing once it has room. A negative radius appends nothing.
-func (h Hex) AppendSpiral(dst []Hex, radius int) []Hex {
-	for hex := range h.SpiralSeq(radius) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, RangeLen(radius)), h.SpiralSeq(radius))
 }
 
 // SpiralSeq returns an iterator over the hexes Spiral returns, in the same order, so a caller
@@ -341,17 +312,7 @@ func (h Hex) DirectionTo(target Hex) Direction {
 // included. The line is nudged off the hex boundaries, so it never lands on a tie, except far
 // enough from the origin that float64 can no longer resolve the nudge.
 func (h Hex) Line(target Hex) []Hex {
-	return h.AppendLine(make([]Hex, 0, h.DistanceTo(target)+1), target)
-}
-
-// AppendLine appends the hexes Line returns to dst and returns the extended slice, so a caller
-// reusing dst allocates nothing once it has room.
-func (h Hex) AppendLine(dst []Hex, target Hex) []Hex {
-	for hex := range h.LineSeq(target) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, h.DistanceTo(target)+1), h.LineSeq(target))
 }
 
 // LineSeq returns an iterator over the hexes Line returns, in the same order, so a caller walks
@@ -442,17 +403,7 @@ func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
 		return nil
 	}
 
-	return h.AppendFieldOfView(make([]Hex, 0, len(candidates)), candidates, blocking)
-}
-
-// AppendFieldOfView appends the hexes FieldOfView returns to dst and returns the extended
-// slice, so a caller reusing dst allocates nothing once it has room.
-func (h Hex) AppendFieldOfView(dst []Hex, candidates []Hex, blocking []Hex) []Hex {
-	for hex := range h.FieldOfViewSeq(candidates, blocking) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, len(candidates)), h.FieldOfViewSeq(candidates, blocking))
 }
 
 // FieldOfViewSeq returns an iterator over the hexes FieldOfView returns, in the same order, so
@@ -476,17 +427,7 @@ func (h Hex) FieldOfViewFunc(candidates []Hex, blocked func(Hex) bool) []Hex {
 		return nil
 	}
 
-	return h.AppendFieldOfViewFunc(make([]Hex, 0, len(candidates)), candidates, blocked)
-}
-
-// AppendFieldOfViewFunc appends the hexes FieldOfViewFunc returns to dst and returns the
-// extended slice, so a caller reusing dst allocates nothing once it has room.
-func (h Hex) AppendFieldOfViewFunc(dst []Hex, candidates []Hex, blocked func(Hex) bool) []Hex {
-	for hex := range h.FieldOfViewFuncSeq(candidates, blocked) {
-		dst = append(dst, hex)
-	}
-
-	return dst
+	return slices.AppendSeq(make([]Hex, 0, len(candidates)), h.FieldOfViewFuncSeq(candidates, blocked))
 }
 
 // FieldOfViewFuncSeq returns an iterator over the hexes FieldOfViewFunc returns, in the same
@@ -498,6 +439,45 @@ func (h Hex) FieldOfViewFuncSeq(candidates []Hex, blocked func(Hex) bool) iter.S
 			if h.HasLineOfSightFunc(candidate, blocked) && !yield(candidate) {
 				return
 			}
+		}
+	}
+}
+
+// FieldOfViewRange returns the hexes within radius of h visible from it past the hexes blocked
+// reports, in the order of [Hex.Spiral]: the hexes of the spiral [Hex.FieldOfViewFunc] keeps. It
+// sweeps the rings outwards once, keeping the directions hidden so far, and asks blocked about a
+// hex at most once, where FieldOfViewFunc walks a line to each candidate: the faster of the two
+// for every hex of a range. It returns nil for a negative radius.
+func (h Hex) FieldOfViewRange(radius int, blocked func(Hex) bool) []Hex {
+	if radius < 0 {
+		return nil
+	}
+
+	return slices.AppendSeq(make([]Hex, 0, RangeLen(radius)), h.FieldOfViewRangeSeq(radius, blocked))
+}
+
+// FieldOfViewRangeSeq returns an iterator over the hexes FieldOfViewRange returns, in the same
+// order, so a caller walks them nearest first without a buffer for them. A negative radius
+// yields nothing.
+func (h Hex) FieldOfViewRangeSeq(radius int, blocked func(Hex) bool) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		if radius < 0 || !yield(h) {
+			return
+		}
+
+		var sweep shadowCast
+		if blocked != nil && radius > 1 {
+			sweep = newShadowCast(radius)
+		}
+
+		for distance := 1; distance < radius; distance++ {
+			if !sweep.ring(h, distance, blocked, yield) {
+				return
+			}
+		}
+
+		if radius > 0 {
+			sweep.ring(h, radius, nil, yield)
 		}
 	}
 }

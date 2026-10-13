@@ -91,16 +91,13 @@ for near := range h.SpiralSeq(5) { // nearest first, stops at the break
 }
 ```
 
-To reuse a buffer, prefer the standard library's `slices.AppendSeq` on the `Seq` form: it works
-with every one of them and allocates nothing once the buffer has room.
+To reuse a buffer, collect the `Seq` form with the standard library's `slices.AppendSeq`: it
+works with every one of them and allocates nothing once the buffer has room.
 
 ```go
 buffer := make([]hex.Hex, 0, hex.RangeLen(2)) // 19 hexes within radius 2; RingLen sizes a ring
 buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 ```
-
-Each traversal also has an `Append` form, `h.AppendRange(buffer[:0], 2)`, a shorthand for the
-same call at the same cost.
 
 `Ring(1)` is exactly `Neighbors()`. A negative radius gives `nil`, a zero radius the center alone.
 
@@ -109,10 +106,12 @@ same call at the same cost.
 ```go
 a.Line(b)                           // the hexes connecting a to b in a straight line
 a.HasLineOfSight(b, blocking)       // whether the segment between the two centers is clear
-a.FieldOfView(candidates, blocking) // the candidates a has line of sight to; also Append and Seq
+a.FieldOfView(candidates, blocking) // the candidates a has line of sight to; also FieldOfViewSeq
 
 a.HasLineOfSightFunc(b, blocked)       // the same rule, asking blocked(hex) along the segment
-a.FieldOfViewFunc(candidates, blocked) // also AppendFieldOfViewFunc and FieldOfViewFuncSeq
+a.FieldOfViewFunc(candidates, blocked) // also FieldOfViewFuncSeq
+
+a.FieldOfViewRange(radius, blocked) // every visible hex within radius, in one sweep; also FieldOfViewRangeSeq
 ```
 
 Sight runs along the exact segment between two hex centers, in integers: a blocker the segment
@@ -126,6 +125,12 @@ faster ones on a small board or with few blockers. The `Func` forms take a
 `blocked func(hex.Hex) bool`, a lookup in a map or a grid, and ask it only about the hexes the
 segment meets, so they cost the distance however many hexes block: the forms for a large or
 dense map. Both give the same answer.
+
+`FieldOfViewRange` is the field over a whole range: what a unit sees, or a blast reaches. It
+gives the hexes of `Spiral(radius)` that `FieldOfViewFunc` keeps, but sweeps the rings outwards
+once and asks `blocked` about each hex at most once, where a line to every hex walks the near
+ones again and again. At a radius of 40 it is about fifteen times faster; use `FieldOfViewFunc`
+for a handful of candidates.
 
 ### Rotation and reflection
 
@@ -214,7 +219,8 @@ f.TurnAround(hex.FracPt(1, 0), -1) // also ReflectQ, ReflectR and ReflectS
 ```
 
 It also has `Add`, `Subtract`, `Multiply`, `DistanceTo`, `Equal` and `IsZero`, with the tolerance
-of `geom.Epsilon` on the float comparisons.
+of `geom.Epsilon` on the float comparisons, and `IsFinite`, the test for a position `Round` can
+take: it panics on a NaN or an infinity.
 
 ### Interop
 
