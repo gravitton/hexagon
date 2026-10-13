@@ -49,6 +49,14 @@ import hex "github.com/gravitton/hexagon"
 
 ### Hexes
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hexes-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hexes-light.svg">
+  <img alt="A hexagon of hexes labelled with their axial coordinates, and the same hexes labelled with their distance from the center" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hexes-light.svg">
+</picture>
+</p>
+
 ```go
 a := hex.Pt(1, -2) // axial (q, r)
 b := hex.Pt(0, 3)
@@ -67,6 +75,14 @@ hex.ParseHex("(1,-2)") // the string back to the hex
 ```
 
 ### Neighbors and traversal
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/traversal-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/traversal-light.svg">
+  <img alt="The neighbors and diagonal neighbors of a hex, its range, its ring and its spiral, numbered in the order they are returned" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/traversal-light.svg">
+</picture>
+</p>
 
 ```go
 h := hex.Pt(0, 0)
@@ -103,6 +119,14 @@ buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 
 ### Visibility
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/visibility-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/visibility-light.svg">
+  <img alt="A line between two hexes, lines of sight past two blocking hexes, and the field of view of a hex among walls" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/visibility-light.svg">
+</picture>
+</p>
+
 ```go
 a.Line(b)                           // the hexes connecting a to b in a straight line
 a.HasLineOfSight(b, blocking)       // whether the segment between the two centers is clear
@@ -134,6 +158,14 @@ for a handful of candidates.
 
 ### Rotation and reflection
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/transform-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/transform-light.svg">
+  <img alt="A hex turned around the origin in six steps, and the same hex reflected across the q-, r- and s-axis" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/transform-light.svg">
+</picture>
+</p>
+
 ```go
 a.Turn(2)           // 2×60° around the origin
 a.TurnAround(b, -1) // 1×60° the other way, around b
@@ -157,6 +189,14 @@ hex.ParseDirection("QPlus")     // the name back to the constant, "None" to Dire
 
 Six named directions in cube space, with flat-top and pointy-top aliases:
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/directions-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/directions-light.svg">
+  <img alt="The six directions around a hex in the pointy-top and the flat-top layout, with their compass aliases" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/directions-light.svg">
+</picture>
+</p>
+
 | Index | Angle  | Constant | Flat-top alias     | Pointy-top alias     |
 |-------|--------|----------|--------------------|----------------------|
 | 0     | `0°`   | `SMinus` | `FlatTopSouthEast` | `PointyTopEast`      |
@@ -178,6 +218,14 @@ hex.OffsetOddR.From(p)    // round-trips exactly
 hex.CoordinateSystems()            // all seven, as a fresh array
 hex.ParseCoordinateSystem("Axial") // the name back to the constant
 ```
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/systems-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/systems-light.svg">
+  <img alt="The same patch of hexes indexed in the Axial, OffsetOddR and DoubleWidth coordinate systems" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/systems-light.svg">
+</picture>
+</p>
 
 | Constant       | Orientation | Description                                 |
 |----------------|-------------|---------------------------------------------|
