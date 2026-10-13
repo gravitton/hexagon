@@ -12,8 +12,6 @@ import (
 	"github.com/gravitton/hexagon/hextest"
 )
 
-var axialDirection = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-
 func TestDirections(t *testing.T) {
 	t.Run("by increasing angle", func(t *testing.T) {
 		assert.Equal(t, Directions(), [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus})
@@ -346,6 +344,8 @@ func TestDirection_Text(t *testing.T) {
 		assert.Error(t, json.Unmarshal([]byte(`"Northwest"`), &decoded))
 	})
 }
+
+var axialDirection = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
 
 func ExampleDirectionFromAngle() {
 	fmt.Println(DirectionFromAngle(0))

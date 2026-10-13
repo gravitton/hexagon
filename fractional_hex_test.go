@@ -13,8 +13,6 @@ import (
 	"github.com/gravitton/hexagon/hextest"
 )
 
-var testFracHex = FracPt(10.9, -1.2)
-
 // tenth is 0.1 read at run time: a test pinning exact bits takes an operand from it, since the
 // compiler folds literal arithmetic into a constant without fusing.
 var tenth = 0.1
@@ -443,6 +441,14 @@ func FuzzFractionalHex_Round(f *testing.F) {
 	})
 }
 
+// squaredDistanceOf returns the squared Euclidean distance between two fractional hexes, in
+// units of the distance between two neighboring hex centers.
+func squaredDistanceOf(a, b FractionalHex) float64 {
+	delta := a.Subtract(b)
+
+	return delta.Q*delta.Q + delta.Q*delta.R + delta.R*delta.R
+}
+
 func TestFractionalHex_String(t *testing.T) {
 	t.Run("two decimals", func(t *testing.T) {
 		assert.Equal(t, testFracHex.String(), "(10.90,-1.20)")
@@ -473,13 +479,7 @@ func TestFractionalHex_JSON(t *testing.T) {
 	hextest.AssertFractionalHex(t, decoded, testFracHex)
 }
 
-// squaredDistanceOf returns the squared Euclidean distance between two fractional hexes, in
-// units of the distance between two neighboring hex centers.
-func squaredDistanceOf(a, b FractionalHex) float64 {
-	delta := a.Subtract(b)
-
-	return delta.Q*delta.Q + delta.Q*delta.R + delta.R*delta.R
-}
+var testFracHex = FracPt(10.9, -1.2)
 
 func ExampleFracPt() {
 	fmt.Println(FracPt(1.4, -1.8))

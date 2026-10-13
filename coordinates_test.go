@@ -10,91 +10,6 @@ import (
 	. "github.com/gravitton/hexagon"
 )
 
-var testConversions = []struct {
-	hex          Hex
-	offsetOddR   geom.Point[int]
-	offsetEvenR  geom.Point[int]
-	offsetOddQ   geom.Point[int]
-	offsetEvenQ  geom.Point[int]
-	doubleWidth  geom.Point[int]
-	doubleHeight geom.Point[int]
-}{
-	{
-		hex:          Pt(0, 0),
-		offsetOddR:   geom.Pt(0, 0),
-		offsetEvenR:  geom.Pt(0, 0),
-		offsetOddQ:   geom.Pt(0, 0),
-		offsetEvenQ:  geom.Pt(0, 0),
-		doubleWidth:  geom.Pt(0, 0),
-		doubleHeight: geom.Pt(0, 0),
-	},
-	{
-		hex:          Pt(1, 0),
-		offsetOddR:   geom.Pt(1, 0),
-		offsetEvenR:  geom.Pt(1, 0),
-		offsetOddQ:   geom.Pt(1, 0),
-		offsetEvenQ:  geom.Pt(1, 1),
-		doubleWidth:  geom.Pt(2, 0),
-		doubleHeight: geom.Pt(1, 1),
-	},
-	{
-		hex:          Pt(1, -1),
-		offsetOddR:   geom.Pt(0, -1),
-		offsetEvenR:  geom.Pt(1, -1),
-		offsetOddQ:   geom.Pt(1, -1),
-		offsetEvenQ:  geom.Pt(1, 0),
-		doubleWidth:  geom.Pt(1, -1),
-		doubleHeight: geom.Pt(1, -1),
-	},
-	{
-		hex:          Pt(0, -1),
-		offsetOddR:   geom.Pt(-1, -1),
-		offsetEvenR:  geom.Pt(0, -1),
-		offsetOddQ:   geom.Pt(0, -1),
-		offsetEvenQ:  geom.Pt(0, -1),
-		doubleWidth:  geom.Pt(-1, -1),
-		doubleHeight: geom.Pt(0, -2),
-	},
-	{
-		hex:          Pt(-1, 0),
-		offsetOddR:   geom.Pt(-1, 0),
-		offsetEvenR:  geom.Pt(-1, 0),
-		offsetOddQ:   geom.Pt(-1, -1),
-		offsetEvenQ:  geom.Pt(-1, 0),
-		doubleWidth:  geom.Pt(-2, 0),
-		doubleHeight: geom.Pt(-1, -1),
-	},
-	{
-		hex:          Pt(-1, 1),
-		offsetOddR:   geom.Pt(-1, 1),
-		offsetEvenR:  geom.Pt(0, 1),
-		offsetOddQ:   geom.Pt(-1, 0),
-		offsetEvenQ:  geom.Pt(-1, 1),
-		doubleWidth:  geom.Pt(-1, 1),
-		doubleHeight: geom.Pt(-1, 1),
-	},
-	{
-		hex:          Pt(0, 1),
-		offsetOddR:   geom.Pt(0, 1),
-		offsetEvenR:  geom.Pt(1, 1),
-		offsetOddQ:   geom.Pt(0, 1),
-		offsetEvenQ:  geom.Pt(0, 1),
-		doubleWidth:  geom.Pt(1, 1),
-		doubleHeight: geom.Pt(0, 2),
-	},
-}
-
-var offsetOddRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var offsetOddQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var doubleWidthDirection = [6]geom.Vector[int]{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
-var doubleHeightDirection = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
-
 func TestCoordinateSystems(t *testing.T) {
 	t.Run("the seven in order", func(t *testing.T) {
 		assert.Equal(t, CoordinateSystems(), [7]CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight})
@@ -544,6 +459,91 @@ func deriveOffsets(system CoordinateSystem, index geom.Point[int]) [6]geom.Vecto
 
 	return offsets
 }
+
+var testConversions = []struct {
+	hex          Hex
+	offsetOddR   geom.Point[int]
+	offsetEvenR  geom.Point[int]
+	offsetOddQ   geom.Point[int]
+	offsetEvenQ  geom.Point[int]
+	doubleWidth  geom.Point[int]
+	doubleHeight geom.Point[int]
+}{
+	{
+		hex:          Pt(0, 0),
+		offsetOddR:   geom.Pt(0, 0),
+		offsetEvenR:  geom.Pt(0, 0),
+		offsetOddQ:   geom.Pt(0, 0),
+		offsetEvenQ:  geom.Pt(0, 0),
+		doubleWidth:  geom.Pt(0, 0),
+		doubleHeight: geom.Pt(0, 0),
+	},
+	{
+		hex:          Pt(1, 0),
+		offsetOddR:   geom.Pt(1, 0),
+		offsetEvenR:  geom.Pt(1, 0),
+		offsetOddQ:   geom.Pt(1, 0),
+		offsetEvenQ:  geom.Pt(1, 1),
+		doubleWidth:  geom.Pt(2, 0),
+		doubleHeight: geom.Pt(1, 1),
+	},
+	{
+		hex:          Pt(1, -1),
+		offsetOddR:   geom.Pt(0, -1),
+		offsetEvenR:  geom.Pt(1, -1),
+		offsetOddQ:   geom.Pt(1, -1),
+		offsetEvenQ:  geom.Pt(1, 0),
+		doubleWidth:  geom.Pt(1, -1),
+		doubleHeight: geom.Pt(1, -1),
+	},
+	{
+		hex:          Pt(0, -1),
+		offsetOddR:   geom.Pt(-1, -1),
+		offsetEvenR:  geom.Pt(0, -1),
+		offsetOddQ:   geom.Pt(0, -1),
+		offsetEvenQ:  geom.Pt(0, -1),
+		doubleWidth:  geom.Pt(-1, -1),
+		doubleHeight: geom.Pt(0, -2),
+	},
+	{
+		hex:          Pt(-1, 0),
+		offsetOddR:   geom.Pt(-1, 0),
+		offsetEvenR:  geom.Pt(-1, 0),
+		offsetOddQ:   geom.Pt(-1, -1),
+		offsetEvenQ:  geom.Pt(-1, 0),
+		doubleWidth:  geom.Pt(-2, 0),
+		doubleHeight: geom.Pt(-1, -1),
+	},
+	{
+		hex:          Pt(-1, 1),
+		offsetOddR:   geom.Pt(-1, 1),
+		offsetEvenR:  geom.Pt(0, 1),
+		offsetOddQ:   geom.Pt(-1, 0),
+		offsetEvenQ:  geom.Pt(-1, 1),
+		doubleWidth:  geom.Pt(-1, 1),
+		doubleHeight: geom.Pt(-1, 1),
+	},
+	{
+		hex:          Pt(0, 1),
+		offsetOddR:   geom.Pt(0, 1),
+		offsetEvenR:  geom.Pt(1, 1),
+		offsetOddQ:   geom.Pt(0, 1),
+		offsetEvenQ:  geom.Pt(0, 1),
+		doubleWidth:  geom.Pt(1, 1),
+		doubleHeight: geom.Pt(0, 2),
+	},
+}
+
+var offsetOddRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+var offsetEvenRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetOddQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var offsetOddQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+var offsetEvenQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+var doubleWidthDirection = [6]geom.Vector[int]{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
+var doubleHeightDirection = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
 
 func ExampleCoordinateSystem_Offset() {
 	fmt.Println(OffsetOddR.Offset(geom.Pt(0, 0), PointyTopNorthWest))

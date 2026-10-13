@@ -15,11 +15,6 @@ import (
 )
 
 var (
-	testHex     = Pt(-1, 3)
-	testHexZero = Pt(0, 0)
-)
-
-var (
 	sinkHex        Hex
 	sinkHexes      []Hex
 	sinkBool       bool
@@ -1173,6 +1168,31 @@ func FuzzHex_HasLineOfSight(f *testing.F) {
 	})
 }
 
+// runsThrough reports whether the segment between the centers of source and target passes
+// through the inside of hex. It clips the segment against the three bands of cube space the hex
+// is the meet of, a formulation that shares nothing with the corner test it checks.
+func runsThrough(source, target, hex Hex) bool {
+	start, step := source.Subtract(hex), target.Subtract(source)
+	startQ, startR, startS := start.QRS()
+	stepQ, stepR, stepS := step.QRS()
+
+	enter, leave := 0.0, 1.0
+	for _, band := range [3][2]int{{startQ - startR, stepQ - stepR}, {startR - startS, stepR - stepS}, {startS - startQ, stepS - stepQ}} {
+		offset, slope := float64(band[0]), float64(band[1])
+		if slope == 0 {
+			if math.Abs(offset) >= 1 {
+				return false
+			}
+			continue
+		}
+
+		enter = max(enter, min((-1-offset)/slope, (1-offset)/slope))
+		leave = min(leave, max((-1-offset)/slope, (1-offset)/slope))
+	}
+
+	return leave-enter > geom.Delta
+}
+
 func TestHex_HasLineOfSightFunc(t *testing.T) {
 	t.Run("a nil blocked blocks nothing", func(t *testing.T) {
 		assert.True(t, testHexZero.HasLineOfSightFunc(Pt(3, 0), nil))
@@ -1684,31 +1704,6 @@ func TestHex_JSON(t *testing.T) {
 	hextest.AssertHex(t, decoded, testHex)
 }
 
-// runsThrough reports whether the segment between the centers of source and target passes
-// through the inside of hex. It clips the segment against the three bands of cube space the hex
-// is the meet of, a formulation that shares nothing with the corner test it checks.
-func runsThrough(source, target, hex Hex) bool {
-	start, step := source.Subtract(hex), target.Subtract(source)
-	startQ, startR, startS := start.QRS()
-	stepQ, stepR, stepS := step.QRS()
-
-	enter, leave := 0.0, 1.0
-	for _, band := range [3][2]int{{startQ - startR, stepQ - stepR}, {startR - startS, stepR - stepS}, {startS - startQ, stepS - stepQ}} {
-		offset, slope := float64(band[0]), float64(band[1])
-		if slope == 0 {
-			if math.Abs(offset) >= 1 {
-				return false
-			}
-			continue
-		}
-
-		enter = max(enter, min((-1-offset)/slope, (1-offset)/slope))
-		leave = min(leave, max((-1-offset)/slope, (1-offset)/slope))
-	}
-
-	return leave-enter > geom.Delta
-}
-
 // among returns the predicate holding for the given hexes and no other.
 func among(hexes []Hex) func(Hex) bool {
 	return func(hex Hex) bool {
@@ -1733,6 +1728,11 @@ func everyNth(hexes []Hex, stride int) []Hex {
 
 	return result
 }
+
+var (
+	testHex     = Pt(-1, 3)
+	testHexZero = Pt(0, 0)
+)
 
 func ExamplePt() {
 	h := Pt(-1, 3)
