@@ -91,6 +91,7 @@
 <polygon points="103.9,-60.0 116.9,-52.5 116.9,-37.5 103.9,-30.0 90.9,-37.5 90.9,-52.5" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="116.9,-37.5 129.9,-30.0 129.9,-15.0 116.9,-7.5 103.9,-15.0 103.9,-30.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="129.9,-15.0 142.9,-7.5 142.9,7.5 129.9,15.0 116.9,7.5 116.9,-7.5" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-39.0,7.5 -26.0,15.0 -26.0,30.0 -39.0,37.5 -52.0,30.0 -52.0,15.0" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="26.0,30.0 39.0,37.5 39.0,52.5 26.0,60.0 13.0,52.5 13.0,37.5" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="52.0,30.0 65.0,37.5 65.0,52.5 52.0,60.0 39.0,52.5 39.0,37.5" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="-52.0,-60.0 -39.0,-52.5 -39.0,-37.5 -52.0,-30.0 -65.0,-37.5 -65.0,-52.5" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
@@ -98,7 +99,6 @@
 <polygon points="26.0,-60.0 39.0,-52.5 39.0,-37.5 26.0,-30.0 13.0,-37.5 13.0,-52.5" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="39.0,-37.5 52.0,-30.0 52.0,-15.0 39.0,-7.5 26.0,-15.0 26.0,-30.0" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="-52.0,-15.0 -39.0,-7.5 -39.0,7.5 -52.0,15.0 -65.0,7.5 -65.0,-7.5" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
-<polygon points="-39.0,7.5 -26.0,15.0 -26.0,30.0 -39.0,37.5 -52.0,30.0 -52.0,15.0" fill="#4a433d" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <line x1="0.0" y1="0.0" x2="65.0" y2="-67.5" stroke="#8a8178" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
 <line x1="0.0" y1="0.0" x2="90.9" y2="-22.5" stroke="#8a8178" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
 <line x1="0.0" y1="0.0" x2="-90.9" y2="22.5" stroke="#8a8178" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4"/>
@@ -116,7 +116,7 @@
 <polygon points="-0.0,-15.0 13.0,-7.5 13.0,7.5 0.0,15.0 -13.0,7.5 -13.0,-7.5" fill="#e8883a" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <text x="0.0" y="3.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle"><tspan fill="#1c1713">a</tspan></text>
 </g>
-<text x="154.9" y="287.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">a.FieldOfView(candidates, blocking)</text>
+<text x="154.9" y="287.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">a.FieldOfViewFunc(candidates, blocked)</text>
 <g transform="translate(472.7 139.5)">
 <polygon points="-129.9,-15.0 -116.9,-7.5 -116.9,7.5 -129.9,15.0 -142.9,7.5 -142.9,-7.5" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="-116.9,7.5 -103.9,15.0 -103.9,30.0 -116.9,37.5 -129.9,30.0 -129.9,15.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>

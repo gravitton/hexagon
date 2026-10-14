@@ -128,17 +128,9 @@ hex.DirectionFromAngle(math.Pi) // SPlus, the nearest of the six
 hex.ParseDirection("QPlus")     // the name back to the constant, "None" to DirectionNone
 ```
 
-| Index | Angle  | Constant | Pointy-top alias     | Flat-top alias     |
-|-------|--------|----------|----------------------|--------------------|
-| 0     | `0°`   | `SMinus` | `PointyTopEast`      | `FlatTopSouthEast` |
-| 1     | `60°`  | `RPlus`  | `PointyTopSouthEast` | `FlatTopSouth`     |
-| 2     | `120°` | `QMinus` | `PointyTopSouthWest` | `FlatTopSouthWest` |
-| 3     | `180°` | `SPlus`  | `PointyTopWest`      | `FlatTopNorthWest` |
-| 4     | `240°` | `RMinus` | `PointyTopNorthWest` | `FlatTopNorth`     |
-| 5     | `300°` | `QPlus`  | `PointyTopNorthEast` | `FlatTopNorthEast` |
-
-The angles follow the pointy-top layout. In a flat-top layout every direction lies 30° further
-along, so take π/6 off a flat-top angle before `DirectionFromAngle`.
+The angles in both panels are the ones `Angle` returns, and they follow the pointy-top layout.
+In a flat-top layout every direction lies 30° further along, so take π/6 off a flat-top angle
+before `DirectionFromAngle`.
 
 ### Neighbors
 
@@ -162,7 +154,7 @@ h.DiagonalNeighbors()        // the six hexes two steps away, each between two n
 h.DirectionTo(hex.Pt(4, -1)) // SMinus, the direction nearest to another hex
 ```
 
-A hex exactly between two directions, as a diagonal neighbor is, takes the one of lower angle.
+A hex exactly between two directions, as a diagonal neighbor is, takes the one the other is a sixth-turn past.
 
 ### Range, ring, spiral and line
 
@@ -307,16 +299,6 @@ hex.OffsetOddR.From(geom.Pt(1, -1)) // back to Hex{2, -1}
 hex.CoordinateSystems()            // all seven, as a fresh array
 hex.ParseCoordinateSystem("Axial") // the name back to the constant
 ```
-
-| Constant       | Layout     | Shifted                             |
-|----------------|------------|-------------------------------------|
-| `Axial`        | either     | none: `(q, r)` directly             |
-| `OffsetOddR`   | pointy-top | odd rows, right                     |
-| `OffsetEvenR`  | pointy-top | even rows, right                    |
-| `OffsetOddQ`   | flat-top   | odd columns, down                   |
-| `OffsetEvenQ`  | flat-top   | even columns, down                  |
-| `DoubleWidth`  | pointy-top | none: columns doubled, no parity    |
-| `DoubleHeight` | flat-top   | none: rows doubled, no parity       |
 
 In an offset system the step to a neighbor depends on the parity of the row or column. Ask the
 system for it:
