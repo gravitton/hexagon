@@ -6,8 +6,8 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
-// FractionalHex represents a hex with floating-point axial coordinates.
-// Useful for interpolation and conversions from pixel space before rounding.
+// FractionalHex is a position in axial coordinates between hex centers, for interpolation and for
+// rounding a position onto the grid.
 type FractionalHex struct {
 	Q float64 `json:"q"`
 	R float64 `json:"r"`
@@ -18,10 +18,10 @@ func FracPt(q, r float64) FractionalHex {
 	return FractionalHex{q, r}
 }
 
-// ParseFractionalHex parses a fractional hex in the form "(q,r)", the form String prints, each
-// coordinate a float [geom.Parse] accepts. String keeps two decimals, so a parsed value
-// reprints the same string rather than restoring every bit. NaN and the infinities parse, as
-// String prints them, to a fractional hex [FractionalHex.Round] panics for.
+// ParseFractionalHex returns the fractional hex in the form String prints, and an error for any
+// other string. Each coordinate is a float geom.Parse accepts, NaN and the infinities included.
+// String keeps two decimals, so a parsed value reprints the same string rather than restoring every
+// bit.
 func ParseFractionalHex(s string) (FractionalHex, error) {
 	q, r, err := parseCoordinates[float64](s, "fractional hex")
 	if err != nil {
@@ -31,51 +31,49 @@ func ParseFractionalHex(s string) (FractionalHex, error) {
 	return FractionalHex{q, r}, nil
 }
 
-// S returns the implied s coordinate (-q - r).
+// S returns the third cube coordinate (-q-r).
 func (h FractionalHex) S() float64 {
 	return -h.Q - h.R
 }
 
-// QR returns the (q, r) coordinates.
+// QR returns Q and R.
 func (h FractionalHex) QR() (float64, float64) {
 	return h.Q, h.R
 }
 
-// QRS returns the (q, r, s) coordinates where s is implied.
+// QRS returns Q, R and S.
 func (h FractionalHex) QRS() (float64, float64, float64) {
 	return h.Q, h.R, h.S()
 }
 
-// Length returns the distance from the origin (0,0) in hex steps, without rounding to a hex.
+// Length returns the distance from the origin in steps.
 func (h FractionalHex) Length() float64 {
 	return (math.Abs(h.Q) + math.Abs(h.R) + math.Abs(h.S())) / 2
 }
 
-// Add returns a new FractionalHex that is the vector sum of h and hex.
+// Add returns the sum of the fractional hexes.
 func (h FractionalHex) Add(hex FractionalHex) FractionalHex {
 	return FractionalHex{h.Q + hex.Q, h.R + hex.R}
 }
 
-// Subtract returns a new FractionalHex that is the vector difference h - hex.
+// Subtract returns the fractional hex less the given one.
 func (h FractionalHex) Subtract(hex FractionalHex) FractionalHex {
 	return FractionalHex{h.Q - hex.Q, h.R - hex.R}
 }
 
-// Multiply returns a new FractionalHex scaled by the given factor. Each product is rounded
-// before it is returned, so a sum it feeds is never fused into a multiply-add.
+// Multiply returns the fractional hex with both coordinates multiplied by the factor.
 func (h FractionalHex) Multiply(factor float64) FractionalHex {
 	return FractionalHex{float64(h.Q * factor), float64(h.R * factor)}
 }
 
-// Lerp returns a new FractionalHex in linear interpolation towards given hex.
+// Lerp returns the fractional hex interpolated toward the given one, extrapolated outside [0, 1].
 func (h FractionalHex) Lerp(hex FractionalHex, t float64) FractionalHex {
 	return FractionalHex{geom.Lerp(h.Q, hex.Q, t), geom.Lerp(h.R, hex.R, t)}
 }
 
-// Turn returns the fractional hex rotated by steps×60° around the origin, in the same sense as
-// [Hex.Turn]: clockwise as drawn on a screen with Y pointing down. Negative steps rotate the
-// other way. A sixth-turn permutes and negates the cube coordinates, so the result carries the
-// one rounding of s at most, however many steps it takes.
+// Turn returns the fractional hex turned about the origin by steps sixth-turns of increasing angle;
+// negative steps go the other way. The result is exact but for one rounding of s, however many
+// steps it takes.
 func (h FractionalHex) Turn(steps int) FractionalHex {
 	switch geom.Mod(steps, 6) {
 	case 1:
@@ -93,61 +91,56 @@ func (h FractionalHex) Turn(steps int) FractionalHex {
 	}
 }
 
-// TurnAround returns the fractional hex rotated by steps×60° around center, in the same sense
-// as [Hex.Turn]: clockwise as drawn on a screen with Y pointing down. Negative steps rotate the
-// other way.
+// TurnAround returns the fractional hex turned about center by steps sixth-turns of increasing
+// angle; negative steps go the other way.
 func (h FractionalHex) TurnAround(center FractionalHex, steps int) FractionalHex {
 	return center.Add(h.Subtract(center).Turn(steps))
 }
 
-// ReflectQ returns the fractional hex reflected across the q-axis (q unchanged, r and s swapped).
+// ReflectQ returns the fractional hex reflected across the q-axis, swapping r and s.
 func (h FractionalHex) ReflectQ() FractionalHex {
 	return FractionalHex{h.Q, h.S()}
 }
 
-// ReflectR returns the fractional hex reflected across the r-axis (r unchanged, q and s swapped).
+// ReflectR returns the fractional hex reflected across the r-axis, swapping q and s.
 func (h FractionalHex) ReflectR() FractionalHex {
 	return FractionalHex{h.S(), h.R}
 }
 
-// ReflectS returns the fractional hex reflected across the s-axis (s unchanged, q and r swapped).
+// ReflectS returns the fractional hex reflected across the s-axis, swapping q and r.
 func (h FractionalHex) ReflectS() FractionalHex {
 	return FractionalHex{h.R, h.Q}
 }
 
-// DistanceTo returns the hex distance between h and the given hex, without rounding to a hex.
+// DistanceTo returns the distance to the given fractional hex in steps.
 func (h FractionalHex) DistanceTo(hex FractionalHex) float64 {
 	return h.Subtract(hex).Length()
 }
 
-// Equal reports whether h and hex are the same hex within geom.Epsilon for float64.
+// Equal reports whether the fractional hexes have equal coordinates.
 func (h FractionalHex) Equal(hex FractionalHex) bool {
 	return geom.Equal(h.Q, hex.Q) && geom.Equal(h.R, hex.R)
 }
 
-// IsZero reports whether the hex is at the origin (0, 0), within the tolerance Equal applies.
+// IsZero reports whether the fractional hex is the origin.
 func (h FractionalHex) IsZero() bool {
 	return h.Equal(FractionalHex{})
 }
 
-// IsFinite reports whether Q and R are both numbers, neither NaN nor infinite: a position on
-// the grid, which Round takes to a hex where it panics on any other.
+// IsFinite reports whether both coordinates are neither NaN nor infinite, which Round needs.
 func (h FractionalHex) IsFinite() bool {
 	return geom.IsFinite(h.Q) && geom.IsFinite(h.R)
 }
 
-// Point returns the axial (q,r) as a geom.Point[float64].
+// Point returns Q and R as a point.
 func (h FractionalHex) Point() geom.Point[float64] {
 	return geom.Pt(h.Q, h.R)
 }
 
-// Round converts a FractionalHex to the nearest Hex while preserving q+r+s=0.
-// It is the [Hex] conversion of a fractional hex, the counterpart of [Hex.Float].
-// A point on an edge or a corner goes to the same side on every hex, since each coordinate
-// rounds a tie toward positive infinity: the rounding of a fractional hex moved by a whole one
-// is the rounded hex moved by it.
-// It converts through [geom.Cast], so it panics for a NaN or infinite coordinate, which has
-// no hex, and a finite coordinate beyond the range of int gives a platform-dependent hex.
+// Round returns the hex the fractional hex lies in. A position on an edge or a corner goes to the
+// same side on every hex, a tie of each coordinate going toward positive infinity, so rounding a
+// fractional hex moved by a whole one gives the rounded hex moved by it. It panics for a NaN or
+// infinite coordinate.
 func (h FractionalHex) Round() Hex {
 	q := geom.RoundHalfUp(h.Q)
 	r := geom.RoundHalfUp(h.R)
@@ -166,8 +159,7 @@ func (h FractionalHex) Round() Hex {
 	return Hex{geom.Cast[int](q), geom.Cast[int](r)}
 }
 
-// String returns a compact representation of the fractional hex as (q,r), printed as the
-// [geom.Point] of its coordinates is, with two decimals.
+// String returns the fractional hex as its coordinates, with two decimals: (q,r).
 func (h FractionalHex) String() string {
 	return h.Point().String()
 }

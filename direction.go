@@ -7,21 +7,16 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
-// Direction represents one of the six neighbor directions around a hex. The named constants
-// follow the cube coordinate axes, each step raising one coordinate and lowering another:
+// Direction is one of the six neighbor directions around a hex, named for the cube coordinates a
+// step changes:
 //
 //   - QPlus raises q and lowers r, QMinus the reverse.
 //   - RPlus raises r and lowers s, RMinus the reverse.
 //   - SPlus raises s and lowers q, SMinus the reverse.
 //
-// Directions are numbered by increasing angle in pixel space, matching geom.Direction:
-// counterclockwise in the standard math convention where Y grows upward, which appears
-// clockwise as drawn on a screen with Y pointing down. A negative step is therefore
-// counterclockwise on screen. Any other value wraps into [SMinus, QPlus]; only
-// DirectionNone stands outside the six.
-//
-// The angles are those of a pointy-top layout, where SMinus runs along the X axis. In a
-// flat-top layout every direction lies a twelfth of a turn, π/6, further along.
+// Directions are numbered by increasing angle, and every other value wraps into the six; only
+// DirectionNone stands outside them. The angles are those of a pointy-top layout, where SMinus runs
+// along the X axis; in a flat-top layout every direction lies π/6 further along.
 type Direction int
 
 const (
@@ -32,12 +27,11 @@ const (
 	RMinus                  // -R, flat-top N,  pointy-top NW, angle 4π/3
 	QPlus                   // +Q, flat-top NE, pointy-top NE, angle 5π/3
 
-	// DirectionNone is the absence of a direction. It names no neighbor, so Offset and Hex
-	// give a zero step for it and Angle has no angle to return.
+	// DirectionNone is the absence of a direction: it steps nowhere and has no angle.
 	DirectionNone Direction = -1
 )
 
-// Direction aliases for flat-top hexes (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight)
+// Direction aliases for flat-top layouts (Axial, OffsetOddQ, OffsetEvenQ, DoubleHeight).
 const (
 	FlatTopSouthEast = SMinus
 	FlatTopSouth     = RPlus
@@ -47,7 +41,7 @@ const (
 	FlatTopNorthEast = QPlus
 )
 
-// Direction aliases for pointy-top hexes (Axial, OffsetOddR, OffsetEvenR, DoubleWidth)
+// Direction aliases for pointy-top layouts (Axial, OffsetOddR, OffsetEvenR, DoubleWidth).
 const (
 	PointyTopEast      = SMinus
 	PointyTopSouthEast = RPlus
@@ -57,13 +51,12 @@ const (
 	PointyTopNorthEast = QPlus
 )
 
-// Directions lists the six directions ordered by increasing angle from SMinus.
-// It returns a fresh array, so a caller cannot alter the list.
+// Directions returns the six directions by increasing angle from SMinus.
 func Directions() [6]Direction {
 	return [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus}
 }
 
-// directionOffsets lists the axial neighbor vector of each direction, indexed by direction.
+// directionOffsets holds the axial step of each direction, indexed by direction.
 var directionOffsets = [6]geom.Vector[int]{
 	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
 	geom.Vec(0, 1),  // +R, flat-top S,  pointy-top SE
@@ -73,9 +66,8 @@ var directionOffsets = [6]geom.Vector[int]{
 	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE
 }
 
-// DirectionFromAngle returns the direction nearest to the given angle in radians in a
-// pointy-top layout, or DirectionNone for NaN and ±Inf. An angle measured in a flat-top
-// layout needs π/6 taken off first.
+// DirectionFromAngle returns the direction nearest to the angle in radians in a pointy-top layout,
+// or DirectionNone for a non-finite angle. An angle in a flat-top layout needs π/6 taken off first.
 func DirectionFromAngle(angle float64) Direction {
 	if math.IsNaN(angle) || math.IsInf(angle, 0) {
 		return DirectionNone
@@ -84,8 +76,8 @@ func DirectionFromAngle(angle float64) Direction {
 	return geom.Mod(Direction(math.Round(geom.NormalizeAngle(angle)/(geom.Pi/3))), 6)
 }
 
-// ParseDirection returns the direction with the given name, as String prints it, and an error
-// for any other string. "None" parses to DirectionNone.
+// ParseDirection returns the direction with the name String prints, and an error for any other
+// string.
 func ParseDirection(name string) (Direction, error) {
 	if name == DirectionNone.String() {
 		return DirectionNone, nil
@@ -100,10 +92,9 @@ func ParseDirection(name string) (Direction, error) {
 	return DirectionNone, fmt.Errorf("hex: unknown direction %q", name)
 }
 
-// Angle returns the angle of the direction in radians in a pointy-top layout, in [0, 2π), the
-// order the constants follow: SMinus is 0 and QPlus is 5π/3. A flat-top layout adds π/6.
-// It is NaN for DirectionNone, which has no angle.
-// Angle and [DirectionFromAngle] round-trip for every direction, DirectionNone included.
+// Angle returns the angle of the direction in radians in a pointy-top layout, in [0, 2π), and NaN
+// for DirectionNone; a flat-top layout adds π/6. DirectionFromAngle inverts it for every direction,
+// DirectionNone included.
 func (d Direction) Angle() float64 {
 	if d.IsNone() {
 		return math.NaN()
@@ -112,8 +103,7 @@ func (d Direction) Angle() float64 {
 	return float64(d.normalize()) * geom.Pi / 3
 }
 
-// normalize wraps d into [SMinus, QPlus], correctly for negative values, and leaves
-// DirectionNone alone.
+// normalize returns the direction wrapped into the six constants, DirectionNone kept.
 func (d Direction) normalize() Direction {
 	if d.IsNone() {
 		return DirectionNone
@@ -122,16 +112,13 @@ func (d Direction) normalize() Direction {
 	return geom.Mod(d, 6)
 }
 
-// Opposite returns the direction directly opposite to d, half a turn away, and DirectionNone
-// for DirectionNone.
+// Opposite returns the direction turned by half a turn.
 func (d Direction) Opposite() Direction {
 	return d.Turn(3)
 }
 
-// Turn advances d by steps sixths of a turn of increasing angle, the same sense as a
-// positive geom.Direction.Turn step: counterclockwise in math coordinates, clockwise as drawn
-// on a screen with Y pointing down. Negative steps go the other way.
-// Turn(3) is equivalent to Opposite(), and DirectionNone turns to itself.
+// Turn returns the direction advanced by steps sixth-turns of increasing angle; negative steps go
+// the other way.
 func (d Direction) Turn(steps int) Direction {
 	if d.IsNone() {
 		return DirectionNone
@@ -145,8 +132,7 @@ func (d Direction) IsNone() bool {
 	return d == DirectionNone
 }
 
-// Offset returns the axial neighbor offset vector for the given direction,
-// and the zero vector for DirectionNone.
+// Offset returns the axial step of the direction, and the zero vector for DirectionNone.
 func (d Direction) Offset() geom.Vector[int] {
 	if d.IsNone() {
 		return geom.Vector[int]{}
@@ -155,8 +141,7 @@ func (d Direction) Offset() geom.Vector[int] {
 	return directionOffsets[d.normalize()]
 }
 
-// Hex returns the unit Hex step in the direction, the [Hex] counterpart of [Direction.Offset],
-// and the zero hex for DirectionNone.
+// Hex returns the step of the direction as a hex, and the zero hex for DirectionNone.
 func (d Direction) Hex() Hex {
 	offset := d.Offset()
 
@@ -183,14 +168,12 @@ func (d Direction) String() string {
 	}
 }
 
-// MarshalText implements encoding.TextMarshaler with the name String prints, so a direction
-// is stored as "QPlus" in JSON and as a map key rather than as its number.
+// MarshalText implements encoding.TextMarshaler with the name String prints.
 func (d Direction) MarshalText() ([]byte, error) {
 	return []byte(d.String()), nil
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler, the inverse of MarshalText through
-// ParseDirection.
+// UnmarshalText implements encoding.TextUnmarshaler through ParseDirection.
 func (d *Direction) UnmarshalText(text []byte) error {
 	direction, err := ParseDirection(string(text))
 	if err != nil {

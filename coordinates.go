@@ -6,57 +6,47 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
-// CoordinateSystem lists supported hexagonal grid coordinate systems.
+// CoordinateSystem is a way of addressing the hexes of a grid by two integers.
 type CoordinateSystem int
 
 const (
-	// Axial stores q and r directly; s is derived as -q-r.
-	// This is the native system used throughout the package.
+	// Axial addresses a hex by its own q and r.
 	Axial CoordinateSystem = iota
 
-	// OffsetOddR is a pointy-top system where odd rows (r & 1 == 1) are shifted
-	// right by half a column. Useful for rectangular array storage.
+	// OffsetOddR addresses pointy-top rows, the odd ones shifted right by half a hex.
 	OffsetOddR
 
-	// OffsetEvenR is a pointy-top system where even rows (r & 1 == 0) are shifted
-	// right by half a column. Use OffsetOddR or OffsetEvenR depending on which
-	// row parity your data places at the left edge.
+	// OffsetEvenR addresses pointy-top rows, the even ones shifted right by half a hex.
 	OffsetEvenR
 
-	// OffsetOddQ is a flat-top system where odd columns (q & 1 == 1) are shifted
-	// down by half a row. Useful for rectangular array storage.
+	// OffsetOddQ addresses flat-top columns, the odd ones shifted down by half a hex.
 	OffsetOddQ
 
-	// OffsetEvenQ is a flat-top system where even columns (q & 1 == 0) are shifted
-	// down by half a row. Use OffsetOddQ or OffsetEvenQ depending on which
-	// column parity your data places at the top edge.
+	// OffsetEvenQ addresses flat-top columns, the even ones shifted down by half a hex.
 	OffsetEvenQ
 
-	// DoubleWidth is a pointy-top system that doubles the column axis: col = 2q+r, row = r.
-	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
-	// It addresses only the cells whose col and row share a parity; From maps any other
-	// coordinate to the cell beside it on the side of lower q, the same at every position.
+	// DoubleWidth addresses pointy-top rows with the column doubled (col = 2q+r, row = r), so
+	// every cell has the same six steps. It addresses only the cells whose col and row share a
+	// parity; From takes any other to the hex beside it on the side of lower q.
 	DoubleWidth
 
-	// DoubleHeight is a flat-top system that doubles the row axis: col = q, row = 2r+q.
-	// All six neighbors are reachable with fixed offsets — no per-cell parity check needed.
-	// It addresses only the cells whose col and row share a parity; From maps any other
-	// coordinate to the cell beside it on the side of lower r, the same at every position.
+	// DoubleHeight addresses flat-top columns with the row doubled (col = q, row = 2r+q), so every
+	// cell has the same six steps. It addresses only the cells whose col and row share a parity;
+	// From takes any other to the hex beside it on the side of lower r.
 	DoubleHeight
 
-	// CoordinateSystemNone is the absence of a coordinate system. It names no layout, so
-	// Offsets, Offset, Neighbor, To and From have nothing to convert for it and panic.
+	// CoordinateSystemNone is the absence of a coordinate system, for which Offsets, Offset,
+	// Neighbor, To and From panic.
 	CoordinateSystemNone CoordinateSystem = -1
 )
 
-// CoordinateSystems lists the seven coordinate systems in order. It returns a fresh array, so
-// a caller cannot alter the list.
+// CoordinateSystems returns the seven coordinate systems in order.
 func CoordinateSystems() [7]CoordinateSystem {
 	return [7]CoordinateSystem{Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight}
 }
 
-// ParseCoordinateSystem returns the coordinate system with the given name, as String prints it,
-// and an error for any other string. "None" parses to CoordinateSystemNone.
+// ParseCoordinateSystem returns the coordinate system with the name String prints, and an error for
+// any other string.
 func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
 	if name == CoordinateSystemNone.String() {
 		return CoordinateSystemNone, nil
@@ -71,8 +61,7 @@ func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
 	return CoordinateSystemNone, fmt.Errorf("hex: unknown coordinate system %q", name)
 }
 
-// IsNone reports whether the coordinate system is none of the seven. Like geom.Orientation, a
-// CoordinateSystem outside the constants is not normalized, so every such value counts as
+// IsNone reports whether the system is none of the seven, so every other value counts as
 // CoordinateSystemNone.
 func (s CoordinateSystem) IsNone() bool {
 	switch s {
@@ -83,9 +72,9 @@ func (s CoordinateSystem) IsNone() bool {
 	}
 }
 
-// Offsets returns the 6 neighbor offsets for the given coordinate index in this system,
-// indexed by [Direction]. For offset systems this accounts for row/column parity. It panics
-// for a system outside the seven.
+// Offsets returns the step to each neighbor of the cell at index, in the order of Directions; in an
+// offset system they depend on the parity of the row or column. It panics for a system outside the
+// seven.
 func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 	switch s {
 	case OffsetOddR:
@@ -107,9 +96,8 @@ func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 	}
 }
 
-// Offset returns the neighbor offset vector for the given coordinate index and direction
-// in this system. Out-of-range directions wrap into [SMinus, QPlus], and [DirectionNone]
-// gives the zero vector. It panics for a system outside the seven, whatever the direction.
+// Offset returns the step to the neighbor of the cell at index in the direction, and the zero
+// vector for DirectionNone. It panics for a system outside the seven, whatever the direction.
 func (s CoordinateSystem) Offset(index geom.Point[int], direction Direction) geom.Vector[int] {
 	offsets := s.Offsets(index)
 	if direction.IsNone() {
@@ -119,16 +107,13 @@ func (s CoordinateSystem) Offset(index geom.Point[int], direction Direction) geo
 	return offsets[direction.normalize()]
 }
 
-// Neighbor returns the coordinate beside index in the given direction in this system, the step
-// by [CoordinateSystem.Offset]. Out-of-range directions wrap into [SMinus, QPlus], and
-// [DirectionNone] gives index itself. It panics for a system outside the seven, whatever the
-// direction.
+// Neighbor returns the cell beside index in the direction, and index itself for DirectionNone. It
+// panics for a system outside the seven, whatever the direction.
 func (s CoordinateSystem) Neighbor(index geom.Point[int], direction Direction) geom.Point[int] {
 	return index.Add(s.Offset(index, direction))
 }
 
-// To converts an axial hex into this coordinate system as a geom.Point[int]. It panics for a
-// system outside the seven.
+// To returns the coordinates of the hex in the system. It panics for a system outside the seven.
 func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	switch s {
 	case OffsetOddR:
@@ -150,8 +135,7 @@ func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	}
 }
 
-// From converts a coordinate in this system into an axial Hex. It panics for a system outside
-// the seven.
+// From returns the hex at the coordinates in the system. It panics for a system outside the seven.
 func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 	switch s {
 	case OffsetOddR:
@@ -195,14 +179,12 @@ func (s CoordinateSystem) String() string {
 	}
 }
 
-// MarshalText implements encoding.TextMarshaler with the name String prints, so a coordinate
-// system is stored as "OffsetOddR" in JSON and as a map key rather than as its number.
+// MarshalText implements encoding.TextMarshaler with the name String prints.
 func (s CoordinateSystem) MarshalText() ([]byte, error) {
 	return []byte(s.String()), nil
 }
 
-// UnmarshalText implements encoding.TextUnmarshaler, the inverse of MarshalText through
-// ParseCoordinateSystem.
+// UnmarshalText implements encoding.TextUnmarshaler through ParseCoordinateSystem.
 func (s *CoordinateSystem) UnmarshalText(text []byte) error {
 	system, err := ParseCoordinateSystem(string(text))
 	if err != nil {
@@ -214,18 +196,17 @@ func (s *CoordinateSystem) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// toAxial returns the axial (q,r) as a geom.Point[int].
+// toAxial returns the axial coordinates of the hex.
 func toAxial(hex Hex) geom.Point[int] {
 	return hex.Point()
 }
 
-// fromAxial converts a geom.Point[int] (q,r) into an axial Hex.
+// fromAxial returns the hex at the axial coordinates.
 func fromAxial(index geom.Point[int]) Hex {
 	return Hex{index.X, index.Y}
 }
 
-// toOffsetOddR converts axial to odd-r offset coordinates.
-// Odd rows are shifted right by +1/2 column.
+// toOffsetOddR returns the odd-r coordinates of the hex.
 func toOffsetOddR(hex Hex) geom.Point[int] {
 	parity := hex.R & 1
 
@@ -235,7 +216,7 @@ func toOffsetOddR(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromOffsetOddR converts an odd-r offset coordinate to axial.
+// fromOffsetOddR returns the hex at the odd-r coordinates.
 func fromOffsetOddR(index geom.Point[int]) Hex {
 	parity := index.Y & 1
 
@@ -245,8 +226,7 @@ func fromOffsetOddR(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// toOffsetEvenR converts axial to even-r offset coordinates.
-// Even rows are shifted right by +1/2 column.
+// toOffsetEvenR returns the even-r coordinates of the hex.
 func toOffsetEvenR(hex Hex) geom.Point[int] {
 	parity := hex.R & 1
 
@@ -256,7 +236,7 @@ func toOffsetEvenR(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromOffsetEvenR converts an even-r offset coordinate to axial.
+// fromOffsetEvenR returns the hex at the even-r coordinates.
 func fromOffsetEvenR(index geom.Point[int]) Hex {
 	parity := index.Y & 1
 
@@ -266,8 +246,7 @@ func fromOffsetEvenR(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// toOffsetOddQ converts axial to odd-q offset coordinates.
-// Odd columns are shifted down by +1/2 row.
+// toOffsetOddQ returns the odd-q coordinates of the hex.
 func toOffsetOddQ(hex Hex) geom.Point[int] {
 	parity := hex.Q & 1
 
@@ -277,7 +256,7 @@ func toOffsetOddQ(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromOffsetOddQ converts an odd-q offset coordinate to axial.
+// fromOffsetOddQ returns the hex at the odd-q coordinates.
 func fromOffsetOddQ(index geom.Point[int]) Hex {
 	parity := index.X & 1
 
@@ -287,8 +266,7 @@ func fromOffsetOddQ(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// toOffsetEvenQ converts axial to even-q offset coordinates.
-// Even columns are shifted down by +1/2 row.
+// toOffsetEvenQ returns the even-q coordinates of the hex.
 func toOffsetEvenQ(hex Hex) geom.Point[int] {
 	parity := hex.Q & 1
 
@@ -298,7 +276,7 @@ func toOffsetEvenQ(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromOffsetEvenQ converts an even-q offset coordinate to axial.
+// fromOffsetEvenQ returns the hex at the even-q coordinates.
 func fromOffsetEvenQ(index geom.Point[int]) Hex {
 	parity := index.X & 1
 
@@ -308,7 +286,7 @@ func fromOffsetEvenQ(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// toDoubleWidth converts axial to double-width coordinates (doubling the q axis).
+// toDoubleWidth returns the double-width coordinates of the hex.
 func toDoubleWidth(hex Hex) geom.Point[int] {
 	col := 2*hex.Q + hex.R
 	row := hex.R
@@ -316,8 +294,7 @@ func toDoubleWidth(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromDoubleWidth converts a double-width coordinate to axial, flooring a coordinate of mixed
-// parity.
+// fromDoubleWidth returns the hex at the double-width coordinates, flooring a mixed parity.
 func fromDoubleWidth(index geom.Point[int]) Hex {
 	q := (index.X - index.Y) >> 1
 	r := index.Y
@@ -325,7 +302,7 @@ func fromDoubleWidth(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// toDoubleHeight converts axial to double-height coordinates (doubling the r axis).
+// toDoubleHeight returns the double-height coordinates of the hex.
 func toDoubleHeight(hex Hex) geom.Point[int] {
 	col := hex.Q
 	row := 2*hex.R + hex.Q
@@ -333,8 +310,7 @@ func toDoubleHeight(hex Hex) geom.Point[int] {
 	return geom.Pt(col, row)
 }
 
-// fromDoubleHeight converts a double-height coordinate to axial, flooring a coordinate of mixed
-// parity.
+// fromDoubleHeight returns the hex at the double-height coordinates, flooring a mixed parity.
 func fromDoubleHeight(index geom.Point[int]) Hex {
 	q := index.X
 	r := (index.Y - index.X) >> 1
@@ -342,8 +318,7 @@ func fromDoubleHeight(index geom.Point[int]) Hex {
 	return Hex{q, r}
 }
 
-// offsetsOddR lists neighbor vectors for odd-r offset coordinates as
-// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
+// offsetsOddR holds the odd-r steps to each neighbor, by row parity and then direction.
 var offsetsOddR = [2][6]geom.Vector[int]{
 	{
 		geom.Vec(1, 0),   // SMinus
@@ -363,8 +338,7 @@ var offsetsOddR = [2][6]geom.Vector[int]{
 	},
 }
 
-// offsetsEvenR lists neighbor vectors for even-r offset coordinates as
-// [parityRow][direction], where parityRow=0 for even rows and 1 for odd rows.
+// offsetsEvenR holds the even-r steps to each neighbor, by row parity and then direction.
 var offsetsEvenR = [2][6]geom.Vector[int]{
 	{
 		geom.Vec(1, 0),  // SMinus
@@ -384,8 +358,7 @@ var offsetsEvenR = [2][6]geom.Vector[int]{
 	},
 }
 
-// offsetsOddQ lists neighbor vectors for odd-q offset coordinates as
-// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
+// offsetsOddQ holds the odd-q steps to each neighbor, by column parity and then direction.
 var offsetsOddQ = [2][6]geom.Vector[int]{
 	{
 		geom.Vec(1, 0),   // SMinus
@@ -405,8 +378,7 @@ var offsetsOddQ = [2][6]geom.Vector[int]{
 	},
 }
 
-// offsetsEvenQ lists neighbor vectors for even-q offset coordinates as
-// [parityCol][direction], where parityCol=0 for even columns and 1 for odd columns.
+// offsetsEvenQ holds the even-q steps to each neighbor, by column parity and then direction.
 var offsetsEvenQ = [2][6]geom.Vector[int]{
 	{
 		geom.Vec(1, 1),  // SMinus
@@ -426,7 +398,7 @@ var offsetsEvenQ = [2][6]geom.Vector[int]{
 	},
 }
 
-// offsetsDoubleWidth lists neighbor vectors for double-width coordinates.
+// offsetsDoubleWidth holds the double-width step to each neighbor, by direction.
 var offsetsDoubleWidth = [6]geom.Vector[int]{
 	geom.Vec(2, 0),   // SMinus
 	geom.Vec(1, 1),   // RPlus
@@ -436,7 +408,7 @@ var offsetsDoubleWidth = [6]geom.Vector[int]{
 	geom.Vec(1, -1),  // QPlus
 }
 
-// offsetsDoubleHeight lists neighbor vectors for double-height coordinates.
+// offsetsDoubleHeight holds the double-height step to each neighbor, by direction.
 var offsetsDoubleHeight = [6]geom.Vector[int]{
 	geom.Vec(1, 1),   // SMinus
 	geom.Vec(0, 2),   // RPlus

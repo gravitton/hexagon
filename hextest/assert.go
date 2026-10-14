@@ -1,5 +1,6 @@
-// Package hextest provides assertions for tests of code built on package hex, comparing a
-// value field by field with the tolerance of its type and naming the field that differs.
+// Package hextest provides test assertions for code built on package hex. Each compares the
+// values field by field, exactly for a Hex and within geom.EpsilonRelative for a FractionalHex,
+// reports every field that differs by its name, and returns whether the values are equal.
 package hextest
 
 import (
@@ -10,16 +11,14 @@ import (
 	hex "github.com/gravitton/hexagon"
 )
 
-// Testing is what the assertions report a failure through, the part of testing.TB they call, so a
-// *testing.T, a *testing.B or a recorder of the caller's own is passed as it is. It is declared
-// here rather than taken from the assertion library underneath, which no signature names.
+// Testing is the part of testing.TB the assertions report through, so a *testing.T, a *testing.B or
+// a recorder of the caller's own can be passed.
 type Testing interface {
 	Helper()
 	Errorf(format string, args ...any)
 }
 
-// AssertHex asserts that actual equals expected. Axial coordinates are integers,
-// so the comparison is exact.
+// AssertHex asserts that actual equals expected.
 func AssertHex(t Testing, actual, expected hex.Hex, messages ...string) bool {
 	t.Helper()
 
@@ -35,8 +34,7 @@ func AssertHex(t Testing, actual, expected hex.Hex, messages ...string) bool {
 	return ok
 }
 
-// AssertFractionalHex asserts that actual equals expected within the relative tolerance
-// [geomtest.AssertNumber] applies, so the tolerance holds at any magnitude.
+// AssertFractionalHex asserts that actual equals expected.
 func AssertFractionalHex(t Testing, actual, expected hex.FractionalHex, messages ...string) bool {
 	t.Helper()
 

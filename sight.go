@@ -38,7 +38,7 @@ func (l sightLine) facing(offset Hex) (Hex, bool) {
 }
 
 // crossed returns an iterator over the hexes the line can meet strictly between its ends, from
-// its start towards the target. It takes a step at a time along the cube coordinate the segment
+// its start toward the target. It takes a step at a time along the cube coordinate the segment
 // covers the most of and yields the hexes of that step lying no further from the segment than a
 // hex reaches, one or two of them, so every hex that does not stand clear of it is among them.
 // The two ends of a step are quotients of a numerator that moves by the same amount at each
@@ -143,7 +143,7 @@ func (w wedge) arcOf(offset Hex) arc {
 	return arc{from, to}
 }
 
-// shadowCast is a sweep of the hexes around a source, ring by ring outwards, keeping the arcs
+// shadowCast is a sweep of the hexes around a source, ring by ring outward, keeping the arcs
 // the blocking hexes met so far hide. The shadows of the wedges follow one another, those of a
 // wedge in order and apart, and the hexes on an axis are kept as a flag: only a hex on the same
 // axis hides them.

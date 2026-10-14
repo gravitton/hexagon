@@ -1,94 +1,97 @@
-// Package hex provides hexagonal grid math for games and UI.
+// Package hex provides immutable hexagonal grid math for games and UI.
 //
-// A [Hex] is an axial coordinate pair (a 2-D projection of cube coordinates), with the third
-// cube coordinate derived rather than stored, and every method returns a new value.
-// [FractionalHex] is its floating-point companion, for interpolation and for rounding a
-// position from pixel space onto the grid.
+// No method changes its receiver: each returns a new value, or the receiver when nothing changes.
 //
-// The package covers neighbor lookup and [Direction], distance, area and perimeter traversal
-// (range, ring, spiral), line drawing, line of sight and field of view, rotation and
-// reflection in cube space, and conversion between seven
-// [CoordinateSystem] layouts.
+// # Types
 //
-// Pixel layout lives in github.com/gravitton/grid; the shapes and vectors this package builds
-// on live in github.com/gravitton/geometry.
+//   - [Hex] is a hex of the grid in axial coordinates, and [FractionalHex] a position between hex
+//     centers, for interpolation and for rounding a position from pixel space onto the grid.
+//   - Enums: [Direction], the six steps to a neighbor, and [CoordinateSystem], the seven ways to
+//     address a grid by two integers.
+//
+// Hex covers neighbors, distance, the traversals Range, Ring, Spiral and Line, line of sight and
+// field of view, and turning and reflection in cube space. Package hextest holds test assertions.
+// Pixel layout lives in github.com/gravitton/grid, and the shapes and vectors this package builds
+// on in github.com/gravitton/geometry.
 //
 // # Coordinates
 //
-// A hex is stored as the axial pair (q, r); s is -q-r and is derived on demand, so no value can
-// hold an inconsistent cube triple. Directions are ordered by increasing angle from SMinus
-// (flat-top SE, pointy-top E): counterclockwise in the standard math convention where Y grows
-// upward, which appears clockwise as drawn on a screen with Y pointing down. Direction.Turn,
-// Hex.Turn, FractionalHex.Turn and Ring all turn that way; negative steps go back.
+// A hex is stored as the axial pair (q, r); s is -q-r, derived on demand, so no value can hold an
+// inconsistent cube triple. Directions are ordered by increasing angle from [SMinus] (flat-top
+// southeast, pointy-top east): counterclockwise in math coordinates, where Y grows upward, which
+// appears clockwise as drawn on a screen with Y pointing down. Every Turn and the order of
+// [Directions], Neighbors and Ring follow it, and negative steps go the other way.
 //
 // # Enums
 //
-// Every out-of-range Direction wraps into [SMinus, QPlus], negatives included. Only
-// DirectionNone stands outside the six: it steps nowhere, turns to itself, and has no angle.
-// CoordinateSystemNone is its counterpart for the seven systems, and every value outside them
-// counts as none. Both enums have IsNone, String, a Parse function and text marshalling by name.
+// Every Direction wraps into [SMinus, QPlus], negatives included. Only [DirectionNone] stands
+// outside the six: it steps nowhere, turns to itself and has no angle. [CoordinateSystemNone] is
+// its counterpart for the seven systems, and every value outside them counts as none. Both enums
+// have IsNone, String, a Parse function and text marshalling by name.
 //
 // # Equality
 //
 // Axial coordinates are integers, so Hex.Equal is exact and a Hex works as a map key with ==.
-// Hex.Compare orders by q and then by r in the cmp.Compare convention: a total order, but an
-// arbitrary one in space, following neither distance nor angle. FractionalHex.Equal compares
-// within geom.Epsilon for float64.
+// Hex.Compare orders by q and then by r: a total order, but an arbitrary one in space, following
+// neither distance nor angle. FractionalHex.Equal and IsZero compare within [geom.Epsilon] for
+// float64.
 //
 // # Allocations
 //
-// Only a method whose result is a slice allocates, once: Range, Ring, Spiral
-// and Line with the exact capacity of the result, FieldOfView and FieldOfViewFunc with room for
-// every candidate. FieldOfViewRange is the one exception: it allocates room for the range and,
-// in every form, one buffer more for the shadows its sweep keeps. Each has a Seq form, an
-// iterator that walks the same hexes in the same order without a buffer at all, and
-// slices.AppendSeq collects it into a buffer the caller reuses, so a loop allocates nothing
-// once the buffer has room.
-// Neighbors and DiagonalNeighbors return an array, and HasLineOfSight tests each blocker
-// against the sight line without building anything.
+// Only a method whose result is a slice allocates, once: Range, Ring, Spiral and Line with the
+// exact capacity of the result, FieldOfView and FieldOfViewFunc with room for every candidate.
+// FieldOfViewRange is the one exception: it allocates room for the range and, in every form, one
+// buffer more for the shadows its sweep keeps. Each has a Seq form, an iterator that walks the same
+// hexes in the same order without a buffer at all, and slices.AppendSeq collects it into a buffer
+// the caller reuses, so a loop allocates nothing once the buffer has room; [RangeLen] and
+// [RingLen] size one. Every array a method returns, from Directions and Neighbors to
+// CoordinateSystem.Offsets, is a copy the caller owns, and HasLineOfSight builds nothing.
 //
 // # Visibility
 //
 // HasLineOfSight asks whether the straight segment between two hex centers is clear, exactly, in
-// integers. A blocking hex the segment runs through blocks it, however small the corner it
-// cuts; a hex the segment only touches at a corner does not; and where the segment runs along
-// the edge between two hexes, both must block. Neither end counts. The rule is the same from
-// either end, so sight is symmetric, and FieldOfView is the candidates it holds for: the field
-// symmetric shadow casting computes. Line is the traversal, one hex per step, so a blocker off
-// the Line can still clip the sight line.
+// integers. A blocking hex the segment runs through blocks it, however small the corner it cuts; a
+// hex the segment only touches at a corner does not; and where the segment runs along the edge
+// between two hexes, both must block. Neither end counts. The rule is the same from either end, so
+// sight is symmetric, and FieldOfView is the candidates it holds for: the field symmetric shadow
+// casting computes. Line is the traversal, one hex per step, so a blocker off the Line can still
+// clip the sight line.
 //
-// HasLineOfSightFunc and FieldOfViewFunc apply the same rule to a function reporting whether a
-// hex blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass
-// over the blockers for each target, and one more for each blocker the segment touches along an
-// edge, and the Func forms the distance to it, so the slice forms suit a small board or few
-// blockers and the Func forms a large or dense map.
+// HasLineOfSightFunc and FieldOfViewFunc apply the same rule to a function reporting whether a hex
+// blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass over the
+// blockers for each target, and one more for each blocker the segment touches along an edge, and
+// the Func forms the distance to it, so the slice forms suit a small board or few blockers and the
+// Func forms a large or dense map.
 //
 // FieldOfViewRange is the field of every hex within a radius, the hexes of Spiral that
-// FieldOfViewFunc keeps. It sweeps the rings outwards once, keeping the directions the blocking
-// hexes met so far hide, and asks about a hex at most once, so it costs the size of the range
-// where a line to every hex costs that times the radius.
+// FieldOfViewFunc keeps, found in one sweep outward. It asks about a hex at most once, so it costs
+// the size of the range where a line to every hex costs that times the radius.
 //
-// All of them multiply the coordinates pairwise, so they are exact while the square of the distance
-// between the hexes fits an int a few times over, far beyond any map on a 64-bit platform.
+// All of them multiply the coordinates pairwise, so they are exact while the square of the
+// distance between the hexes fits an int a few times over, far beyond any map on a 64-bit
+// platform.
 //
 // # Panics
 //
 // Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring and
 // Spiral, a zero radius gives the center alone, a line from a hex to itself is that one hex, no
-// candidates give nil from FieldOfView and FieldOfViewFunc, and DirectionNone gives the hex
-// itself from Neighbor and DiagonalNeighbor, and is the answer of DirectionTo for the hex itself.
+// candidates give nil from FieldOfView and FieldOfViewFunc, and DirectionNone gives the hex itself
+// from Neighbor and DiagonalNeighbor, and is the answer of DirectionTo for the hex itself.
 //
-// CoordinateSystem.Offsets, Offset, Neighbor, To and From, and Hex.To through it, panic for a
-// system outside the seven, CoordinateSystemNone included, as geom panics for an unknown
-// Orientation: the absence of a layout has nothing to convert. FractionalHex.Round panics for a
-// NaN or infinite coordinate through geom.Cast, and Hex.Lerp with it for a NaN or infinite t: a
-// non-finite position lies on no hex, and FractionalHex.IsFinite is the test for one. These are the only panics for a result that fits in memory:
-// a radius or a distance too large to allocate the slice for is outside the contract.
+// The only panics are for arguments with no meaning:
+//
+//   - a system outside the seven, CoordinateSystemNone included, to CoordinateSystem.Offsets,
+//     Offset, Neighbor, To and From, and to Hex.To through it: the absence of a layout has nothing
+//     to convert;
+//   - a NaN or infinite coordinate to [FractionalHex.Round], and a NaN or infinite t to Hex.Lerp
+//     through it: a non-finite position lies on no hex, and [FractionalHex.IsFinite] tests for one.
+//
+// A finite position beyond the range of int rounds to a platform-dependent hex, and a radius or a
+// distance too large to allocate the slice for is outside the contract.
 //
 // # Reproducibility
 //
-// Every product in FractionalHex arithmetic is rounded before it is added, so the compiler
-// cannot fuse it into a multiply-add on arm64 or amd64 v3, and the same inputs give the same
-// bits, and the same rounded hex, on every architecture. FractionalHex.Multiply rounds what it
-// returns for the same reason: it inlines into its caller, where a sum would fuse with it.
+// Every product in FractionalHex arithmetic is rounded before it is added, so no fused
+// multiply-add changes the result and the same inputs give the same bits, and the same rounded
+// hex, on every architecture.
 package hex
