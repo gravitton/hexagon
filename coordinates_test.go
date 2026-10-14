@@ -267,6 +267,51 @@ func TestCoordinateSystem_Neighbor(t *testing.T) {
 	})
 }
 
+func TestCoordinateSystem_Neighbors(t *testing.T) {
+	t.Run("by increasing angle", func(t *testing.T) {
+		assert.Equal(t, OffsetOddR.Neighbors(geom.Pt(0, 1)), [6]geom.Point[int]{geom.Pt(1, 1), geom.Pt(1, 2), geom.Pt(0, 2), geom.Pt(-1, 1), geom.Pt(0, 0), geom.Pt(1, 0)})
+	})
+	t.Run("is the neighbor in every direction, in order", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, h := range testHex.Spiral(2) {
+				index := system.To(h)
+				neighbors := system.Neighbors(index)
+				for i, direction := range Directions() {
+					assert.Equal(t, neighbors[i], system.Neighbor(index, direction), system.String()+" at "+h.String()+" towards "+direction.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("the coordinates of the neighbors of the hex", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			for _, h := range testHex.Spiral(3) {
+				neighbors := system.Neighbors(system.To(h))
+				for i, neighbor := range h.Neighbors() {
+					assert.Equal(t, neighbors[i], system.To(neighbor), system.String()+" at "+h.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("panics for a system outside the seven", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			CoordinateSystemNone.Neighbors(geom.Pt(0, 0))
+		}, "hex: unknown coordinate system -1")
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		for _, system := range CoordinateSystems() {
+			assert.Equal(t, testing.AllocsPerRun(100, func() {
+				sinkPoints = system.Neighbors(geom.Pt(1, 1))
+			}), 0.0, system.String()+": ")
+		}
+	})
+}
+
+func BenchmarkCoordinateSystem_Neighbors(b *testing.B) {
+	for b.Loop() {
+		sinkPoints = OffsetOddR.Neighbors(geom.Pt(1, 1))
+	}
+}
+
 func TestCoordinateSystem_To(t *testing.T) {
 	t.Run("the seven systems", func(t *testing.T) {
 		for _, test := range testConversions {
@@ -427,7 +472,7 @@ func TestCoordinateSystem_String(t *testing.T) {
 	})
 }
 
-func TestCoordinateSystem_Text(t *testing.T) {
+func TestCoordinateSystem_JSON(t *testing.T) {
 	t.Run("round-trips through JSON as the name", func(t *testing.T) {
 		systems := CoordinateSystems()
 		for _, system := range append(systems[:], CoordinateSystemNone) {

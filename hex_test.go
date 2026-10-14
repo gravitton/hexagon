@@ -24,6 +24,7 @@ var (
 	sinkDirections [6]Direction
 	sinkSystems    [7]CoordinateSystem
 	sinkPoint      geom.Point[int]
+	sinkPoints     [6]geom.Point[int]
 	sinkVector     geom.Vector[int]
 	sinkVectors    [6]geom.Vector[int]
 	sinkString     string
@@ -313,35 +314,35 @@ func BenchmarkHex_Turn(b *testing.B) {
 }
 
 func TestHex_TurnAround(t *testing.T) {
-	center := Pt(1, 1)
+	pivot := Pt(1, 1)
 	h := Pt(3, 0)
 
 	t.Run("zero and six steps are the identity", func(t *testing.T) {
-		hextest.AssertHex(t, h.TurnAround(center, 0), h)
-		hextest.AssertHex(t, h.TurnAround(center, 6), h)
+		hextest.AssertHex(t, h.TurnAround(pivot, 0), h)
+		hextest.AssertHex(t, h.TurnAround(pivot, 6), h)
 	})
-	t.Run("keeps the distance from the center", func(t *testing.T) {
+	t.Run("keeps the distance from the pivot", func(t *testing.T) {
 		for steps := 1; steps <= 5; steps++ {
-			assert.Equal(t, center.DistanceTo(h.TurnAround(center, steps)), center.DistanceTo(h))
+			assert.Equal(t, pivot.DistanceTo(h.TurnAround(pivot, steps)), pivot.DistanceTo(h))
 		}
 	})
 	t.Run("there and back returns to the start", func(t *testing.T) {
-		hextest.AssertHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
+		hextest.AssertHex(t, h.TurnAround(pivot, 1).TurnAround(pivot, -1), h)
 	})
 	t.Run("around the origin is Turn", func(t *testing.T) {
 		hextest.AssertHex(t, h.TurnAround(testHexZero, 1), h.Turn(1))
 		hextest.AssertHex(t, h.TurnAround(testHexZero, -1), h.Turn(-1))
 	})
-	t.Run("the center stays put", func(t *testing.T) {
+	t.Run("the pivot stays put", func(t *testing.T) {
 		for steps := -6; steps <= 6; steps++ {
-			hextest.AssertHex(t, center.TurnAround(center, steps), center, strconv.Itoa(steps)+": ")
+			hextest.AssertHex(t, pivot.TurnAround(pivot, steps), pivot, strconv.Itoa(steps)+": ")
 		}
 	})
 	t.Run("a step carries the ring one side along", func(t *testing.T) {
 		for _, radius := range []int{1, 2, 3} {
-			ring := center.Ring(radius)
+			ring := pivot.Ring(radius)
 			for i, on := range ring {
-				hextest.AssertHex(t, on.TurnAround(center, 1), ring[(i+radius)%len(ring)], on.String()+": ")
+				hextest.AssertHex(t, on.TurnAround(pivot, 1), ring[(i+radius)%len(ring)], on.String()+": ")
 			}
 		}
 	})
@@ -1660,6 +1661,23 @@ func TestHex_To(t *testing.T) {
 
 func TestHex_Point(t *testing.T) {
 	assert.Equal(t, testHex.Point(), geom.Pt(-1, 3))
+}
+
+func TestHex_Vector(t *testing.T) {
+	t.Run("q and r", func(t *testing.T) {
+		assert.Equal(t, testHex.Vector(), geom.Vec(-1, 3))
+	})
+	t.Run("moves a point as Add moves the hex", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			assert.Equal(t, testHex.Point().Add(h.Vector()), testHex.Add(h).Point(), h.String()+": ")
+		}
+	})
+	t.Run("of a direction's step is its offset", func(t *testing.T) {
+		directions := Directions()
+		for _, direction := range append(directions[:], DirectionNone) {
+			assert.Equal(t, direction.Hex().Vector(), direction.Offset(), direction.String()+": ")
+		}
+	})
 }
 
 func TestHex_Float(t *testing.T) {

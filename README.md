@@ -124,6 +124,7 @@ dir.Hex()      // Hex{1, -1}, the step as a hex; Offset gives it as a geom.Vecto
 dir.Angle()    // 5π/3
 
 hex.Directions()                // all six, by increasing angle, as a fresh array
+hex.DirectionOffsets()          // the Offset of each, in the same order
 hex.DirectionFromAngle(math.Pi) // SPlus, the nearest of the six
 hex.ParseDirection("QPlus")     // the name back to the constant, "None" to DirectionNone
 ```
@@ -245,7 +246,7 @@ segment meets, so they cost the distance however many hexes block: the forms for
 dense map. Both give the same answer.
 
 `FieldOfViewRange` is the field over a whole range: what a unit sees, or a blast reaches. It
-gives the hexes of `Spiral(radius)` that `FieldOfViewFunc` keeps, but sweeps the rings outwards
+gives the hexes of `Spiral(radius)` that `FieldOfViewFunc` keeps, but sweeps the rings outward
 once and asks `blocked` about each hex at most once, where a line to every hex walks the near
 ones again and again. At a radius of 40 it is about fifteen times faster; use `FieldOfViewFunc`
 for a handful of candidates.
@@ -307,6 +308,7 @@ system for it:
 hex.OffsetOddR.Offsets(index)                     // all 6, indexed by Direction
 hex.OffsetOddR.Offset(index, hex.PointyTopEast)   // just one
 hex.OffsetOddR.Neighbor(index, hex.PointyTopEast) // the index that offset steps to
+hex.OffsetOddR.Neighbors(index)                   // all 6 indices beside it, indexed by Direction
 ```
 
 `Direction.Offset()` is the axial case of the same thing, equal to `hex.Axial.Offset(index, direction)`.
@@ -348,7 +350,8 @@ vectors this package builds on in [`gravitton/geometry`](https://github.com/grav
 
 ```go
 a.Point()         // geom.Point[int]{2, -1}
-a.Float().Point() // geom.Point[float64]{2, -1}
+a.Vector()        // geom.Vector[int]{2, -1}, a hex as a step
+a.Float().Point() // geom.Point[float64]{2, -1}; Vector gives it as a geom.Vector[float64]
 
 json.Marshal(hex.Pt(2, -1))  // {"q":2,"r":-1}
 json.Marshal(hex.QPlus)      // "QPlus"

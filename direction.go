@@ -56,14 +56,9 @@ func Directions() [6]Direction {
 	return [6]Direction{SMinus, RPlus, QMinus, SPlus, RMinus, QPlus}
 }
 
-// directionOffsets holds the axial step of each direction, indexed by direction.
-var directionOffsets = [6]geom.Vector[int]{
-	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
-	geom.Vec(0, 1),  // +R, flat-top S,  pointy-top SE
-	geom.Vec(-1, 1), // -Q, flat-top SW, pointy-top SW
-	geom.Vec(-1, 0), // +S, flat-top NW, pointy-top W
-	geom.Vec(0, -1), // -R, flat-top N,  pointy-top NW
-	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE
+// DirectionOffsets returns the Offset of each direction in the order of Directions.
+func DirectionOffsets() [6]geom.Vector[int] {
+	return directionOffsets
 }
 
 // DirectionFromAngle returns the direction nearest to the angle in radians in a pointy-top layout,
@@ -139,6 +134,16 @@ func (d Direction) Offset() geom.Vector[int] {
 	}
 
 	return directionOffsets[d.normalize()]
+}
+
+// directionOffsets holds the axial step of each direction, indexed by direction.
+var directionOffsets = [6]geom.Vector[int]{
+	geom.Vec(1, 0),  // -S, flat-top SE, pointy-top E
+	geom.Vec(0, 1),  // +R, flat-top S,  pointy-top SE
+	geom.Vec(-1, 1), // -Q, flat-top SW, pointy-top SW
+	geom.Vec(-1, 0), // +S, flat-top NW, pointy-top W
+	geom.Vec(0, -1), // -R, flat-top N,  pointy-top NW
+	geom.Vec(1, -1), // +Q, flat-top NE, pointy-top NE
 }
 
 // Hex returns the step of the direction as a hex, and the zero hex for DirectionNone.

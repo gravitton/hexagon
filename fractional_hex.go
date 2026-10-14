@@ -91,10 +91,10 @@ func (h FractionalHex) Turn(steps int) FractionalHex {
 	}
 }
 
-// TurnAround returns the fractional hex turned about center by steps sixth-turns of increasing
-// angle; negative steps go the other way.
-func (h FractionalHex) TurnAround(center FractionalHex, steps int) FractionalHex {
-	return center.Add(h.Subtract(center).Turn(steps))
+// TurnAround returns the fractional hex turned about the pivot by steps sixth-turns of
+// increasing angle; negative steps go the other way.
+func (h FractionalHex) TurnAround(pivot FractionalHex, steps int) FractionalHex {
+	return pivot.Add(h.Subtract(pivot).Turn(steps))
 }
 
 // ReflectQ returns the fractional hex reflected across the q-axis, swapping r and s.
@@ -135,6 +135,11 @@ func (h FractionalHex) IsFinite() bool {
 // Point returns Q and R as a point.
 func (h FractionalHex) Point() geom.Point[float64] {
 	return geom.Pt(h.Q, h.R)
+}
+
+// Vector returns Q and R as a vector.
+func (h FractionalHex) Vector() geom.Vector[float64] {
+	return geom.Vec(h.Q, h.R)
 }
 
 // Round returns the hex the fractional hex lies in. A position on an edge or a corner goes to the

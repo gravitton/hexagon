@@ -44,6 +44,30 @@ func TestDirections(t *testing.T) {
 	})
 }
 
+func TestDirectionOffsets(t *testing.T) {
+	t.Run("lists the six steps by increasing angle", func(t *testing.T) {
+		assert.Equal(t, DirectionOffsets(), axialDirection)
+	})
+	t.Run("is the offset of every direction, in order", func(t *testing.T) {
+		offsets := DirectionOffsets()
+		for i, direction := range Directions() {
+			assert.Equal(t, offsets[i], direction.Offset(), direction.String()+": ")
+		}
+	})
+	t.Run("returns a fresh array", func(t *testing.T) {
+		offsets := DirectionOffsets()
+		offsets[0] = geom.Vec(9, 9)
+
+		assert.Equal(t, DirectionOffsets()[0], geom.Vec(1, 0))
+		assert.Equal(t, SMinus.Offset(), geom.Vec(1, 0))
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assert.Equal(t, testing.AllocsPerRun(100, func() {
+			sinkVectors = DirectionOffsets()
+		}), 0.0)
+	})
+}
+
 func TestDirectionFromAngle(t *testing.T) {
 	t.Run("round-trips with Angle", func(t *testing.T) {
 		for _, direction := range Directions() {
@@ -326,7 +350,7 @@ func TestDirection_String(t *testing.T) {
 	})
 }
 
-func TestDirection_Text(t *testing.T) {
+func TestDirection_JSON(t *testing.T) {
 	t.Run("round-trips through JSON as the name", func(t *testing.T) {
 		directions := Directions()
 		for _, direction := range append(directions[:], DirectionNone) {

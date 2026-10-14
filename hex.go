@@ -136,10 +136,10 @@ func (h Hex) Turn(steps int) Hex {
 	}
 }
 
-// TurnAround returns the hex turned about center by steps sixth-turns of increasing angle;
+// TurnAround returns the hex turned about the pivot by steps sixth-turns of increasing angle;
 // negative steps go the other way.
-func (h Hex) TurnAround(center Hex, steps int) Hex {
-	return center.Add(h.Subtract(center).Turn(steps))
+func (h Hex) TurnAround(pivot Hex, steps int) Hex {
+	return pivot.Add(h.Subtract(pivot).Turn(steps))
 }
 
 // ReflectQ returns the hex reflected across the q-axis, swapping r and s.
@@ -275,11 +275,11 @@ func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()
 }
 
-// DirectionTo returns the direction nearest to the angle toward target, and DirectionNone for the
-// hex itself. A target exactly between two directions takes the one the other is a sixth-turn
+// DirectionTo returns the direction nearest to the angle toward the given hex, and DirectionNone
+// for the hex itself. A hex exactly between two directions takes the one the other is a sixth-turn
 // past, the direction DiagonalNeighbor reaches it by.
-func (h Hex) DirectionTo(target Hex) Direction {
-	delta := target.Subtract(h)
+func (h Hex) DirectionTo(hex Hex) Direction {
+	delta := hex.Subtract(h)
 	for _, direction := range Directions() {
 		q, r, s := delta.Turn(-int(direction)).QRS()
 		if q >= r && r > s {
@@ -515,6 +515,11 @@ func (h Hex) To(system CoordinateSystem) geom.Point[int] {
 // Point returns Q and R as a point.
 func (h Hex) Point() geom.Point[int] {
 	return geom.Pt(h.Q, h.R)
+}
+
+// Vector returns Q and R as a vector.
+func (h Hex) Vector() geom.Vector[int] {
+	return geom.Vec(h.Q, h.R)
 }
 
 // Float converts the hex to a FractionalHex.

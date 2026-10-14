@@ -18,6 +18,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - **breaking** `Hex.AppendRange`, `AppendRing`, `AppendSpiral`, `AppendLine`, `AppendFieldOfView` and `AppendFieldOfViewFunc` are removed: `slices.AppendSeq(dst, h.RangeSeq(radius))` on the `Seq` form of each appends the same hexes into a reused buffer and allocates nothing once it has room
 
 ### Added
+- `CoordinateSystem.Neighbors` returns the six cells beside an index in the order of `Directions`, as an array
+- `DirectionOffsets` returns the `Offset` of each direction in the order of `Directions`
+- `Hex.Vector` and `FractionalHex.Vector` return `Q` and `R` as a `geom.Vector`
 - `FractionalHex.IsFinite` reports whether both coordinates are numbers, neither NaN nor infinite: the test for a fractional hex `Round` takes to a hex without panicking
 - `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` return the hexes within a radius visible past the hexes a function reports as blocking, in the order of `Spiral`: the field `FieldOfViewFunc` gives for the spiral, found in one sweep outwards that asks about each hex at most once, about fifteen times faster at a radius of 40
 

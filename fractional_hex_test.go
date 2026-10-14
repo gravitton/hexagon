@@ -210,20 +210,20 @@ func BenchmarkFractionalHex_Turn(b *testing.B) {
 }
 
 func TestFractionalHex_TurnAround(t *testing.T) {
-	center := FracPt(1.25, 0.75)
+	pivot := FracPt(1.25, 0.75)
 	h := FracPt(3.5, -0.5)
 
 	t.Run("zero and six steps are the identity", func(t *testing.T) {
-		hextest.AssertFractionalHex(t, h.TurnAround(center, 0), h)
-		hextest.AssertFractionalHex(t, h.TurnAround(center, 6), h)
+		hextest.AssertFractionalHex(t, h.TurnAround(pivot, 0), h)
+		hextest.AssertFractionalHex(t, h.TurnAround(pivot, 6), h)
 	})
-	t.Run("keeps the distance from the center", func(t *testing.T) {
+	t.Run("keeps the distance from the pivot", func(t *testing.T) {
 		for steps := 1; steps <= 5; steps++ {
-			assert.EqualDelta(t, center.DistanceTo(h.TurnAround(center, steps)), center.DistanceTo(h), geom.Delta, strconv.Itoa(steps)+": ")
+			assert.EqualDelta(t, pivot.DistanceTo(h.TurnAround(pivot, steps)), pivot.DistanceTo(h), geom.Delta, strconv.Itoa(steps)+": ")
 		}
 	})
 	t.Run("there and back returns to the start", func(t *testing.T) {
-		hextest.AssertFractionalHex(t, h.TurnAround(center, 1).TurnAround(center, -1), h)
+		hextest.AssertFractionalHex(t, h.TurnAround(pivot, 1).TurnAround(pivot, -1), h)
 	})
 	t.Run("around the origin is Turn", func(t *testing.T) {
 		hextest.AssertFractionalHex(t, h.TurnAround(FracPt(0, 0), 1), h.Turn(1))
@@ -363,6 +363,22 @@ func TestFractionalHex_IsFinite(t *testing.T) {
 
 func TestFractionalHex_Point(t *testing.T) {
 	assert.Equal(t, testFracHex.Point(), geom.Pt(10.9, -1.2))
+}
+
+func TestFractionalHex_Vector(t *testing.T) {
+	t.Run("q and r", func(t *testing.T) {
+		assert.Equal(t, testFracHex.Vector(), geom.Vec(10.9, -1.2))
+	})
+	t.Run("moves a point as Add moves the fractional hex", func(t *testing.T) {
+		for _, h := range testHexZero.Spiral(2) {
+			assert.Equal(t, testFracHex.Point().Add(h.Float().Vector()), testFracHex.Add(h.Float()).Point(), h.String()+": ")
+		}
+	})
+	t.Run("agrees with Hex.Vector on whole coordinates", func(t *testing.T) {
+		for _, h := range testHex.Spiral(2) {
+			assert.Equal(t, h.Float().Vector(), h.Vector().Float(), h.String()+": ")
+		}
+	})
 }
 
 func TestFractionalHex_Round(t *testing.T) {

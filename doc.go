@@ -41,8 +41,8 @@
 // Only a method whose result is a slice allocates, once: Range, Ring, Spiral and Line with the
 // exact capacity of the result, FieldOfView and FieldOfViewFunc with room for every candidate.
 // FieldOfViewRange is the one exception: it allocates room for the range and, in every form, one
-// buffer more for the shadows its sweep keeps. Each has a Seq form, an iterator that walks the same
-// hexes in the same order without a buffer at all, and slices.AppendSeq collects it into a buffer
+// buffer more, proportional to the radius. Each has a Seq form, an iterator that walks the same
+// hexes in the same order without a buffer for them, and slices.AppendSeq collects it into a buffer
 // the caller reuses, so a loop allocates nothing once the buffer has room; [RangeLen] and
 // [RingLen] size one. Every array a method returns, from Directions and Neighbors to
 // CoordinateSystem.Offsets, is a copy the caller owns, and HasLineOfSight builds nothing.
@@ -64,12 +64,11 @@
 // Func forms a large or dense map.
 //
 // FieldOfViewRange is the field of every hex within a radius, the hexes of Spiral that
-// FieldOfViewFunc keeps, found in one sweep outward. It asks about a hex at most once, so it costs
-// the size of the range where a line to every hex costs that times the radius.
+// FieldOfViewFunc keeps. It asks about a hex at most once, so it costs the size of the range where
+// a line to every hex costs that times the radius.
 //
-// All of them multiply the coordinates pairwise, so they are exact while the square of the
-// distance between the hexes fits an int a few times over, far beyond any map on a 64-bit
-// platform.
+// All of them are exact while the square of the distance between the hexes fits an int a few
+// times over, far beyond any map on a 64-bit platform.
 //
 // # Panics
 //

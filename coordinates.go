@@ -113,6 +113,17 @@ func (s CoordinateSystem) Neighbor(index geom.Point[int], direction Direction) g
 	return index.Add(s.Offset(index, direction))
 }
 
+// Neighbors returns the six cells beside index in the order of Directions. It panics for a system
+// outside the seven.
+func (s CoordinateSystem) Neighbors(index geom.Point[int]) [6]geom.Point[int] {
+	var neighbors [6]geom.Point[int]
+	for i, offset := range s.Offsets(index) {
+		neighbors[i] = index.Add(offset)
+	}
+
+	return neighbors
+}
+
 // To returns the coordinates of the hex in the system. It panics for a system outside the seven.
 func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	switch s {
