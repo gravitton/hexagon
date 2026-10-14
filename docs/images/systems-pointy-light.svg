@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="806" height="165" viewBox="0 0 806 165" role="img">
+<g transform="translate(27.6 30.0)">
+<polygon points="-0.0,-18.0 15.6,-9.0 15.6,9.0 0.0,18.0 -15.6,9.0 -15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="31.2,-18.0 46.8,-9.0 46.8,9.0 31.2,18.0 15.6,9.0 15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="62.4,-18.0 77.9,-9.0 77.9,9.0 62.4,18.0 46.8,9.0 46.8,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="93.5,-18.0 109.1,-9.0 109.1,9.0 93.5,18.0 77.9,9.0 77.9,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="124.7,-18.0 140.3,-9.0 140.3,9.0 124.7,18.0 109.1,9.0 109.1,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="15.6,9.0 31.2,18.0 31.2,36.0 15.6,45.0 -0.0,36.0 -0.0,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="46.8,9.0 62.4,18.0 62.4,36.0 46.8,45.0 31.2,36.0 31.2,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="77.9,9.0 93.5,18.0 93.5,36.0 77.9,45.0 62.4,36.0 62.4,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="109.1,9.0 124.7,18.0 124.7,36.0 109.1,45.0 93.5,36.0 93.5,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="140.3,9.0 155.9,18.0 155.9,36.0 140.3,45.0 124.7,36.0 124.7,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="-0.0,36.0 15.6,45.0 15.6,63.0 0.0,72.0 -15.6,63.0 -15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">-1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="31.2,36.0 46.8,45.0 46.8,63.0 31.2,72.0 15.6,63.0 15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="62.4,36.0 77.9,45.0 77.9,63.0 62.4,72.0 46.8,63.0 46.8,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="93.5,36.0 109.1,45.0 109.1,63.0 93.5,72.0 77.9,63.0 77.9,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="124.7,36.0 140.3,45.0 140.3,63.0 124.7,72.0 109.1,63.0 109.1,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="15.6,63.0 31.2,72.0 31.2,90.0 15.6,99.0 -0.0,90.0 -0.0,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">-1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="46.8,63.0 62.4,72.0 62.4,90.0 46.8,99.0 31.2,90.0 31.2,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="77.9,63.0 93.5,72.0 93.5,90.0 77.9,99.0 62.4,90.0 62.4,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="109.1,63.0 124.7,72.0 124.7,90.0 109.1,99.0 93.5,90.0 93.5,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="140.3,63.0 155.9,72.0 155.9,90.0 140.3,99.0 124.7,90.0 124.7,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+</g>
+<text x="97.7" y="149.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">Axial</text>
+<g transform="translate(231.1 30.0)">
+<polygon points="-0.0,-18.0 15.6,-9.0 15.6,9.0 0.0,18.0 -15.6,9.0 -15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="31.2,-18.0 46.8,-9.0 46.8,9.0 31.2,18.0 15.6,9.0 15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="62.4,-18.0 77.9,-9.0 77.9,9.0 62.4,18.0 46.8,9.0 46.8,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="93.5,-18.0 109.1,-9.0 109.1,9.0 93.5,18.0 77.9,9.0 77.9,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="124.7,-18.0 140.3,-9.0 140.3,9.0 124.7,18.0 109.1,9.0 109.1,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="15.6,9.0 31.2,18.0 31.2,36.0 15.6,45.0 -0.0,36.0 -0.0,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="46.8,9.0 62.4,18.0 62.4,36.0 46.8,45.0 31.2,36.0 31.2,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="77.9,9.0 93.5,18.0 93.5,36.0 77.9,45.0 62.4,36.0 62.4,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="109.1,9.0 124.7,18.0 124.7,36.0 109.1,45.0 93.5,36.0 93.5,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="140.3,9.0 155.9,18.0 155.9,36.0 140.3,45.0 124.7,36.0 124.7,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="-0.0,36.0 15.6,45.0 15.6,63.0 0.0,72.0 -15.6,63.0 -15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="31.2,36.0 46.8,45.0 46.8,63.0 31.2,72.0 15.6,63.0 15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="62.4,36.0 77.9,45.0 77.9,63.0 62.4,72.0 46.8,63.0 46.8,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="93.5,36.0 109.1,45.0 109.1,63.0 93.5,72.0 77.9,63.0 77.9,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="124.7,36.0 140.3,45.0 140.3,63.0 124.7,72.0 109.1,63.0 109.1,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="15.6,63.0 31.2,72.0 31.2,90.0 15.6,99.0 -0.0,90.0 -0.0,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="46.8,63.0 62.4,72.0 62.4,90.0 46.8,99.0 31.2,90.0 31.2,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="77.9,63.0 93.5,72.0 93.5,90.0 77.9,99.0 62.4,90.0 62.4,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="109.1,63.0 124.7,72.0 124.7,90.0 109.1,99.0 93.5,90.0 93.5,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="140.3,63.0 155.9,72.0 155.9,90.0 140.3,99.0 124.7,90.0 124.7,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+</g>
+<text x="301.2" y="149.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">OffsetOddR</text>
+<g transform="translate(450.1 30.0)">
+<polygon points="-0.0,-18.0 15.6,-9.0 15.6,9.0 0.0,18.0 -15.6,9.0 -15.6,-9.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="31.2,-18.0 46.8,-9.0 46.8,9.0 31.2,18.0 15.6,9.0 15.6,-9.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="62.4,-18.0 77.9,-9.0 77.9,9.0 62.4,18.0 46.8,9.0 46.8,-9.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="93.5,-18.0 109.1,-9.0 109.1,9.0 93.5,18.0 77.9,9.0 77.9,-9.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="124.7,-18.0 140.3,-9.0 140.3,9.0 124.7,18.0 109.1,9.0 109.1,-9.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="-15.6,9.0 -0.0,18.0 0.0,36.0 -15.6,45.0 -31.2,36.0 -31.2,18.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="-15.6" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="15.6,9.0 31.2,18.0 31.2,36.0 15.6,45.0 -0.0,36.0 -0.0,18.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="46.8,9.0 62.4,18.0 62.4,36.0 46.8,45.0 31.2,36.0 31.2,18.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="77.9,9.0 93.5,18.0 93.5,36.0 77.9,45.0 62.4,36.0 62.4,18.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="109.1,9.0 124.7,18.0 124.7,36.0 109.1,45.0 93.5,36.0 93.5,18.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="-0.0,36.0 15.6,45.0 15.6,63.0 0.0,72.0 -15.6,63.0 -15.6,45.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="31.2,36.0 46.8,45.0 46.8,63.0 31.2,72.0 15.6,63.0 15.6,45.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="62.4,36.0 77.9,45.0 77.9,63.0 62.4,72.0 46.8,63.0 46.8,45.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="93.5,36.0 109.1,45.0 109.1,63.0 93.5,72.0 77.9,63.0 77.9,45.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="124.7,36.0 140.3,45.0 140.3,63.0 124.7,72.0 109.1,63.0 109.1,45.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="-15.6,63.0 -0.0,72.0 0.0,90.0 -15.6,99.0 -31.2,90.0 -31.2,72.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="-15.6" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="15.6,63.0 31.2,72.0 31.2,90.0 15.6,99.0 -0.0,90.0 -0.0,72.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="46.8,63.0 62.4,72.0 62.4,90.0 46.8,99.0 31.2,90.0 31.2,72.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="77.9,63.0 93.5,72.0 93.5,90.0 77.9,99.0 62.4,90.0 62.4,72.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="109.1,63.0 124.7,72.0 124.7,90.0 109.1,99.0 93.5,90.0 93.5,72.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+</g>
+<text x="504.7" y="149.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">OffsetEvenR</text>
+<g transform="translate(638.0 30.0)">
+<polygon points="-0.0,-18.0 15.6,-9.0 15.6,9.0 0.0,18.0 -15.6,9.0 -15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="31.2,-18.0 46.8,-9.0 46.8,9.0 31.2,18.0 15.6,9.0 15.6,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="62.4,-18.0 77.9,-9.0 77.9,9.0 62.4,18.0 46.8,9.0 46.8,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="93.5,-18.0 109.1,-9.0 109.1,9.0 93.5,18.0 77.9,9.0 77.9,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">6</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="124.7,-18.0 140.3,-9.0 140.3,9.0 124.7,18.0 109.1,9.0 109.1,-9.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="3.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">8</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">0</tspan></text>
+<polygon points="15.6,9.0 31.2,18.0 31.2,36.0 15.6,45.0 -0.0,36.0 -0.0,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="46.8,9.0 62.4,18.0 62.4,36.0 46.8,45.0 31.2,36.0 31.2,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="77.9,9.0 93.5,18.0 93.5,36.0 77.9,45.0 62.4,36.0 62.4,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">5</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="109.1,9.0 124.7,18.0 124.7,36.0 109.1,45.0 93.5,36.0 93.5,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">7</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="140.3,9.0 155.9,18.0 155.9,36.0 140.3,45.0 124.7,36.0 124.7,18.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="30.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">9</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">1</tspan></text>
+<polygon points="-0.0,36.0 15.6,45.0 15.6,63.0 0.0,72.0 -15.6,63.0 -15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="0.0" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">0</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="31.2,36.0 46.8,45.0 46.8,63.0 31.2,72.0 15.6,63.0 15.6,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="31.2" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">2</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="62.4,36.0 77.9,45.0 77.9,63.0 62.4,72.0 46.8,63.0 46.8,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="62.4" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">4</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="93.5,36.0 109.1,45.0 109.1,63.0 93.5,72.0 77.9,63.0 77.9,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="93.5" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">6</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="124.7,36.0 140.3,45.0 140.3,63.0 124.7,72.0 109.1,63.0 109.1,45.0" fill="#fdfbf9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="124.7" y="57.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">8</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">2</tspan></text>
+<polygon points="15.6,63.0 31.2,72.0 31.2,90.0 15.6,99.0 -0.0,90.0 -0.0,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="15.6" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">1</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="46.8,63.0 62.4,72.0 62.4,90.0 46.8,99.0 31.2,90.0 31.2,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="46.8" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">3</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="77.9,63.0 93.5,72.0 93.5,90.0 77.9,99.0 62.4,90.0 62.4,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="77.9" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">5</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="109.1,63.0 124.7,72.0 124.7,90.0 109.1,99.0 93.5,90.0 93.5,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="109.1" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">7</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+<polygon points="140.3,63.0 155.9,72.0 155.9,90.0 140.3,99.0 124.7,90.0 124.7,72.0" fill="#e6e0d9" stroke="#cfc7be" stroke-width="1" stroke-linejoin="round"/>
+<text x="140.3" y="84.3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" text-anchor="middle"><tspan fill="#e8883a">9</tspan><tspan fill="#8a8178">,</tspan><tspan fill="#2f7fb8">3</tspan></text>
+</g>
+<text x="708.2" y="149.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#8a8178">DoubleWidth</text>
+</svg>
