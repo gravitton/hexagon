@@ -64,7 +64,7 @@ func DirectionOffsets() [6]geom.Vector[int] {
 // DirectionFromAngle returns the direction nearest to the angle in radians in a pointy-top layout,
 // or DirectionNone for a non-finite angle. An angle in a flat-top layout needs π/6 taken off first.
 func DirectionFromAngle(angle float64) Direction {
-	if math.IsNaN(angle) || math.IsInf(angle, 0) {
+	if !geom.IsFinite(angle) {
 		return DirectionNone
 	}
 

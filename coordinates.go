@@ -77,6 +77,8 @@ func (s CoordinateSystem) IsNone() bool {
 // seven.
 func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 	switch s {
+	case Axial:
+		return directionOffsets
 	case OffsetOddR:
 		return offsetsOddR[index.Y&1]
 	case OffsetEvenR:
@@ -89,8 +91,6 @@ func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 		return offsetsDoubleWidth
 	case DoubleHeight:
 		return offsetsDoubleHeight
-	case Axial:
-		return directionOffsets
 	default:
 		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
 	}
@@ -127,6 +127,8 @@ func (s CoordinateSystem) Neighbors(index geom.Point[int]) [6]geom.Point[int] {
 // To returns the coordinates of the hex in the system. It panics for a system outside the seven.
 func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	switch s {
+	case Axial:
+		return toAxial(hex)
 	case OffsetOddR:
 		return toOffsetOddR(hex)
 	case OffsetEvenR:
@@ -139,8 +141,6 @@ func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 		return toDoubleWidth(hex)
 	case DoubleHeight:
 		return toDoubleHeight(hex)
-	case Axial:
-		return toAxial(hex)
 	default:
 		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
 	}
@@ -149,6 +149,8 @@ func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 // From returns the hex at the coordinates in the system. It panics for a system outside the seven.
 func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 	switch s {
+	case Axial:
+		return fromAxial(index)
 	case OffsetOddR:
 		return fromOffsetOddR(index)
 	case OffsetEvenR:
@@ -161,8 +163,6 @@ func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 		return fromDoubleWidth(index)
 	case DoubleHeight:
 		return fromDoubleHeight(index)
-	case Axial:
-		return fromAxial(index)
 	default:
 		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
 	}

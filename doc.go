@@ -58,10 +58,10 @@
 // clip the sight line.
 //
 // HasLineOfSightFunc and FieldOfViewFunc apply the same rule to a function reporting whether a hex
-// blocks, and ask it only about the hexes the segment meets. The slice forms cost a pass over the
-// blockers for each target, and one more for each blocker the segment touches along an edge, and
-// the Func forms the distance to it, so the slice forms suit a small board or few blockers and the
-// Func forms a large or dense map.
+// blocks, and ask it only about the hexes that can block the segment, each at most once. The slice
+// forms cost a pass over the blockers for each target, and one more for each blocker the segment
+// touches along an edge, and the Func forms the distance to it, so the slice forms suit a small
+// board or few blockers and the Func forms a large or dense map.
 //
 // FieldOfViewRange is the field of every hex within a radius, the hexes of Spiral that
 // FieldOfViewFunc keeps. It asks about a hex at most once, so it costs the size of the range where
@@ -72,8 +72,8 @@
 //
 // # Panics
 //
-// Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring and
-// Spiral, a zero radius gives the center alone, a line from a hex to itself is that one hex, no
+// Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring, Spiral
+// and FieldOfViewRange and nothing from their Seq forms, a zero radius gives the center alone, a line from a hex to itself is that one hex, no
 // candidates give nil from FieldOfView and FieldOfViewFunc, and DirectionNone gives the hex itself
 // from Neighbor and DiagonalNeighbor, and is the answer of DirectionTo for the hex itself.
 //

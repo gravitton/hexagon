@@ -1,6 +1,10 @@
 // Package hextest provides test assertions for code built on package hex. Each compares the
 // values field by field, exactly for a Hex and within geom.EpsilonRelative for a FractionalHex,
 // reports every field that differs by its name, and returns whether the values are equal.
+//
+// The tolerance for a FractionalHex grows with its magnitude, where FractionalHex.Equal keeps
+// geom.Epsilon, so far from the origin two positions this accepts as equal can round to
+// different hexes. A test of what a position rounds to asserts the Hex Round returns.
 package hextest
 
 import (

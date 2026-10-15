@@ -334,8 +334,8 @@ func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 
 // HasLineOfSightFunc reports whether the segment between the centers of the hex and target is
 // clear of the hexes blocked reports, exactly when HasLineOfSight is for the same blockers. It asks
-// blocked only about the hexes the segment meets, from the hex toward target, never about either
-// end. A nil blocked blocks nothing.
+// blocked only about the hexes that can block the segment, each at most once, from the hex toward
+// target, never about either end. A nil blocked blocks nothing.
 func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 	if blocked == nil {
 		return true
@@ -343,17 +343,20 @@ func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 
 	line := h.sightLine(target)
 
+	var previous Hex
 	for offset := range line.crossed() {
-		clearance := line.clearance(offset)
-		if clearance > 0 || !blocked(h.Add(offset)) {
-			continue
+		switch clearance := line.clearance(offset); {
+		case clearance < 0:
+			if blocked(h.Add(offset)) {
+				return false
+			}
+		case clearance == 0:
+			if facing, edge := line.facing(offset); edge && facing != previous && blocked(h.Add(offset)) && blocked(h.Add(facing)) {
+				return false
+			}
 		}
-		if clearance < 0 {
-			return false
-		}
-		if facing, edge := line.facing(offset); edge && blocked(h.Add(facing)) {
-			return false
-		}
+
+		previous = offset
 	}
 
 	return true
@@ -472,7 +475,9 @@ func (h Hex) edgeStep() Hex {
 		return Hex{}
 	}
 
-	return Hex{(r - s) / h.width(), (s - q) / h.width()}
+	width := h.width()
+
+	return Hex{(r - s) / width, (s - q) / width}
 }
 
 // cross returns the cross product of the hexes as vectors, up to a positive factor: positive

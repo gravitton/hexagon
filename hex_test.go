@@ -1248,6 +1248,31 @@ func TestHex_HasLineOfSightFunc(t *testing.T) {
 			assert.True(t, asked <= 2*testHexZero.DistanceTo(target), target.String()+": ")
 		}
 	})
+	t.Run("asks about a hex at most once and only about one that can block", func(t *testing.T) {
+		for _, stride := range []int{1, 2, 3} {
+			blocking := everyNth(testHexZero.Range(7), stride)
+			for _, target := range testHexZero.Spiral(6) {
+				asked := map[Hex]int{}
+				testHexZero.HasLineOfSightFunc(target, func(h Hex) bool {
+					asked[h]++
+
+					return slices.Contains(blocking, h)
+				})
+
+				for h, times := range asked {
+					// A hex the segment only touches at a corner blocks neither alone nor with
+					// the neighbor beside it.
+					blocks := !testHexZero.HasLineOfSight(target, []Hex{h})
+					for _, neighbor := range h.Neighbors() {
+						blocks = blocks || !testHexZero.HasLineOfSight(target, []Hex{h, neighbor}) && testHexZero.HasLineOfSight(target, []Hex{neighbor})
+					}
+
+					assert.Equal(t, times, 1, target.String()+" asked about "+h.String()+": ")
+					assert.True(t, blocks, target.String()+" asked about "+h.String()+": ")
+				}
+			}
+		}
+	})
 	t.Run("stops at the first blocker", func(t *testing.T) {
 		asked := 0
 		assert.False(t, testHexZero.HasLineOfSightFunc(Pt(6, 0), func(h Hex) bool {
@@ -1574,6 +1599,19 @@ func TestHex_FieldOfViewRangeSeq(t *testing.T) {
 		assert.Equal(t, testing.AllocsPerRun(100, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(6, blocked))
 		}), 1.0)
+	})
+	t.Run("allocates the sweep once however many shadows it holds", func(t *testing.T) {
+		// A blocker on an axis casts a shadow into both wedges beside it, which these rings
+		// have on every axis: eleven shadows after the second ring.
+		axes := among([]Hex{Pt(0, 1), Pt(-1, 1), Pt(0, -1), Pt(2, 0), Pt(0, 2), Pt(-2, 2), Pt(-2, 0), Pt(2, -2)})
+		buffer := make([]Hex, 0, RangeLen(12))
+		for _, blocked := range []func(Hex) bool{axes, scattered(2), scattered(3)} {
+			for radius := 2; radius <= 12; radius++ {
+				assert.Equal(t, testing.AllocsPerRun(10, func() {
+					sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(radius, blocked))
+				}), 1.0, "within "+strconv.Itoa(radius)+": ")
+			}
+		}
 	})
 	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(6))

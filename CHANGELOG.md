@@ -31,6 +31,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `HasLineOfSightFunc` and the `FieldOfViewFunc` forms no longer ask `blocked` about the source and the target, which never block
 - `Hex.String` and `FractionalHex.String` print through the `geom.Point` of their coordinates rather than `fmt.Sprintf`, so each allocates the string it returns and nothing else; the text printed is unchanged
 - `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk the sight line without dividing, about a fifth faster on a long line; the hexes asked about and their order are unchanged
+- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms ask `blocked` about a hex at most once, where they asked twice about the two hexes beside an edge the segment runs along, and no longer about a hex the segment only touches at a corner, which never blocks
 - CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in a step of its own
 
 ### Fixed
