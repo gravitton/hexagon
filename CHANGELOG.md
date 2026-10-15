@@ -11,7 +11,10 @@ more expensive of the two. A breaking change is marked **breaking** in its entry
 lists them under **Breaking** at the top of its section. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.5.0...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.6.0...main)
+
+
+## [v1.6.0](https://github.com/gravitton/hexagon/compare/v1.5.0...v1.6.0) (2026-10-15)
 
 ### Breaking
 - **breaking** `Hex.RangeIntersection`, `AppendRangeIntersection` and `RangeIntersectionSeq` are removed: filter `RangeSeq` by `DistanceTo` the other center, or intersect two regions in `grid`
@@ -25,14 +28,14 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` return the hexes within a radius visible past the hexes a function reports as blocking, in the order of `Spiral`: the field `FieldOfViewFunc` gives for the spiral, found in one sweep outwards that asks about each hex at most once, about fifteen times faster at a radius of 40
 
 ### Changed
-- `FractionalHex.Round` rounds each coordinate with `geom.RoundHalfUp`, a tie toward positive infinity, where `math.Round` took it away from zero: a point on an edge goes to the same side on every hex, where a hex at the origin lost the edges its neighbours on either side both claimed. Requires the `geometry` release after v1.15.0
+- `FractionalHex.Round` rounds each coordinate with `geom.RoundHalfUp`, a tie toward positive infinity, where `math.Round` took it away from zero: a point on an edge goes to the same side on every hex, where a hex at the origin lost the edges its neighbours on either side both claimed
 - The `hextest` helpers take `hextest.Testing`, declared in the package with the `Helper` and `Errorf` methods they call, rather than `assert.Testing`, so no signature names the assertion library; a `*testing.T` and any `assert.Testing` still pass as they are
 - `FieldOfView` and `FieldOfViewFunc` return `nil` for no candidates, where they returned an empty slice
-- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms no longer ask `blocked` about the source and the target, which never block
+- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms ask `blocked` only about a hex that can block, each at most once: no longer about the source, the target or a hex the segment only touches at a corner, and once rather than twice about the two hexes beside an edge the segment runs along
 - `Hex.String` and `FractionalHex.String` print through the `geom.Point` of their coordinates rather than `fmt.Sprintf`, so each allocates the string it returns and nothing else; the text printed is unchanged
-- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk the sight line without dividing, about a fifth faster on a long line; the hexes asked about and their order are unchanged
-- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms ask `blocked` about a hex at most once, where they asked twice about the two hexes beside an edge the segment runs along, and no longer about a hex the segment only touches at a corner, which never blocks
-- CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in a step of its own
+- `HasLineOfSightFunc` and the `FieldOfViewFunc` forms walk the sight line without dividing, about a fifth faster on a long line
+- Requires `geometry` v1.17.0, up from v1.15.0
+- CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in the test step
 
 ### Fixed
 - `FractionalHex.Multiply` rounds each product before returning it, so a sum it feeds gives the same bits on every architecture
