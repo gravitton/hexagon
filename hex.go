@@ -110,9 +110,10 @@ func (h Hex) Multiply(factor int) Hex {
 	return Hex{h.Q * factor, h.R * factor}
 }
 
-// Lerp returns the hex the position interpolated toward the given one lies in, extrapolated
-// outside [0, 1]. Line is nudged off the boundaries between hexes and Lerp is not, so on a tie the
-// two can pick different hexes. It panics for a NaN or infinite t.
+// Lerp returns the hex in which the position interpolated from the hex toward the given one by t
+// lies, extrapolated outside [0, 1]. Line is nudged off the boundaries between hexes and Lerp is
+// not, so on a tie the two can pick different hexes. It panics for a t that is NaN or infinite or
+// carries the position past the range of float64.
 func (h Hex) Lerp(hex Hex, t float64) Hex {
 	return h.Float().Lerp(hex.Float(), t).Round()
 }
@@ -310,7 +311,7 @@ func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
 }
 
 // HasLineOfSight reports whether the segment between the centers of the hex and target is clear of
-// the blocking hexes. Neither end counts as a blocker. It is stricter than Line: a hex off the line
+// the blocking hexes. Neither end counts as a blocker. It differs from Line: a hex off the line
 // can block the segment, and a hex of the line the segment only touches does not.
 func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
 	line := h.sightLine(target)
@@ -351,7 +352,8 @@ func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 				return false
 			}
 		case clearance == 0:
-			if facing, edge := line.facing(offset); edge && facing != previous && blocked(h.Add(offset)) && blocked(h.Add(facing)) {
+			facing, edge := line.facing(offset)
+			if edge && facing != previous && blocked(h.Add(offset)) && blocked(h.Add(facing)) {
 				return false
 			}
 		}
@@ -406,7 +408,7 @@ func (h Hex) FieldOfViewFuncSeq(candidates []Hex, blocked func(Hex) bool) iter.S
 
 // FieldOfViewRange returns the hexes of Spiral(radius) that FieldOfViewFunc sees past the hexes
 // blocked reports, in that order. It asks blocked about each hex at most once, and returns nil for
-// a negative radius.
+// a negative radius. A nil blocked blocks nothing.
 func (h Hex) FieldOfViewRange(radius int, blocked func(Hex) bool) []Hex {
 	if radius < 0 {
 		return nil
@@ -498,7 +500,7 @@ func (h Hex) Equal(hex Hex) bool {
 }
 
 // Compare returns -1, 0 or +1 as the hex sorts before, with or after the given one, by Q and then
-// by R, as cmp.Compare does.
+// by R.
 func (h Hex) Compare(hex Hex) int {
 	if c := cmp.Compare(h.Q, hex.Q); c != 0 {
 		return c

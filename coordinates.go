@@ -6,7 +6,8 @@ import (
 	geom "github.com/gravitton/geometry"
 )
 
-// CoordinateSystem is a way of addressing the hexes of a grid by two integers.
+// CoordinateSystem is a way of addressing the hexes of a grid by two integers. Every value outside
+// the seven counts as CoordinateSystemNone.
 type CoordinateSystem int
 
 const (
@@ -36,7 +37,7 @@ const (
 	DoubleHeight
 
 	// CoordinateSystemNone is the absence of a coordinate system, for which Offsets, Offset,
-	// Neighbor, To and From panic.
+	// Neighbor, Neighbors, To and From panic.
 	CoordinateSystemNone CoordinateSystem = -1
 )
 

@@ -112,7 +112,7 @@ func (d Direction) Opposite() Direction {
 	return d.Turn(3)
 }
 
-// Turn returns the direction advanced by steps sixth-turns of increasing angle; negative steps go
+// Turn returns the direction turned by steps sixth-turns of increasing angle; negative steps go
 // the other way.
 func (d Direction) Turn(steps int) Direction {
 	if d.IsNone() {
