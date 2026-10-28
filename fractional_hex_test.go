@@ -422,9 +422,9 @@ func TestFractionalHex_Round(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHex = testFracHex.Round()
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -473,9 +473,9 @@ func TestFractionalHex_String(t *testing.T) {
 		assert.Equal(t, FracPt(-0.001, math.Copysign(0, -1)).String(), "(0.00,0.00)")
 	})
 	t.Run("allocates the string alone", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkString = testFracHex.String()
-		}), 1.0)
+		}, 1.0)
 	})
 }
 

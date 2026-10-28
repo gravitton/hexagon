@@ -84,7 +84,8 @@
 //   - a system outside the seven, CoordinateSystemNone included, to CoordinateSystem.Offsets,
 //     [CoordinateSystem.Offset], [CoordinateSystem.Neighbor], [CoordinateSystem.Neighbors],
 //     [CoordinateSystem.To] and [CoordinateSystem.From], and to [Hex.To] through them: the absence
-//     of a layout has nothing to convert;
+//     of a layout has nothing to convert, and the panic value is an error that errors.Is matches
+//     to [ErrUnknownCoordinateSystem];
 //   - a NaN or infinite coordinate to [FractionalHex.Round], and to [Hex.Lerp] through it a t that
 //     is NaN or infinite or carries the position past the range of float64: a non-finite position
 //     lies on no hex, and [FractionalHex.IsFinite] tests for one.

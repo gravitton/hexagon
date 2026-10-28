@@ -93,7 +93,7 @@ func (s CoordinateSystem) Offsets(index geom.Point[int]) [6]geom.Vector[int] {
 	case DoubleHeight:
 		return offsetsDoubleHeight
 	default:
-		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
+		panic(fmt.Errorf("%w %d", ErrUnknownCoordinateSystem, s))
 	}
 }
 
@@ -143,7 +143,7 @@ func (s CoordinateSystem) To(hex Hex) geom.Point[int] {
 	case DoubleHeight:
 		return toDoubleHeight(hex)
 	default:
-		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
+		panic(fmt.Errorf("%w %d", ErrUnknownCoordinateSystem, s))
 	}
 }
 
@@ -165,7 +165,7 @@ func (s CoordinateSystem) From(index geom.Point[int]) Hex {
 	case DoubleHeight:
 		return fromDoubleHeight(index)
 	default:
-		panic(fmt.Sprintf("hex: unknown coordinate system %d", s))
+		panic(fmt.Errorf("%w %d", ErrUnknownCoordinateSystem, s))
 	}
 }
 

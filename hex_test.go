@@ -250,9 +250,9 @@ func TestHex_Lerp(t *testing.T) {
 		})
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHex = a.Lerp(b, 0.3)
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -456,9 +456,9 @@ func TestHex_Neighbors(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHex = testHex.Neighbors()[0]
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -521,9 +521,9 @@ func TestHex_DiagonalNeighbors(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHex = testHex.DiagonalNeighbors()[0]
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -565,9 +565,9 @@ func TestHex_Range(t *testing.T) {
 		assert.True(t, slices.IsSortedFunc(testHex.Range(3), Hex.Compare))
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHex.Range(3)
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -603,17 +603,17 @@ func TestHex_RangeSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHex.RangeSeq(3) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(3))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.RangeSeq(3))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -659,9 +659,9 @@ func TestHex_Ring(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHex.Ring(3)
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -697,17 +697,17 @@ func TestHex_RingSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHex.RingSeq(3) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RingLen(3))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.RingSeq(3))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -745,9 +745,9 @@ func TestHex_Spiral(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHex.Spiral(3)
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -783,17 +783,17 @@ func TestHex_SpiralSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHex.SpiralSeq(3) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(3))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.SpiralSeq(3))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -934,9 +934,9 @@ func TestHex_Line(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHexZero.Line(Pt(4, -1))
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -1001,17 +1001,17 @@ func TestHex_LineSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHexZero.LineSeq(Pt(4, -1)) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, 5)
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.LineSeq(Pt(4, -1)))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1121,9 +1121,9 @@ func TestHex_HasLineOfSight(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		blocking := []Hex{Pt(9, 9)}
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkBool = testHexZero.HasLineOfSight(Pt(4, -1), blocking)
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1292,9 +1292,9 @@ func TestHex_HasLineOfSightFunc(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		blocked := among([]Hex{Pt(9, 9)})
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkBool = testHexZero.HasLineOfSightFunc(Pt(4, -1), blocked)
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1355,9 +1355,9 @@ func TestHex_FieldOfView(t *testing.T) {
 	})
 	t.Run("allocates once", func(t *testing.T) {
 		blocking := []Hex{Pt(1, 0), Pt(-1, 2)}
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHexZero.FieldOfView(candidates, blocking)
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -1396,17 +1396,17 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHexZero.FieldOfViewSeq(candidates, blocking) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, len(candidates))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(candidates, blocking))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1429,9 +1429,9 @@ func TestHex_FieldOfViewFunc(t *testing.T) {
 	t.Run("allocates once at the number of candidates", func(t *testing.T) {
 		blocked := among([]Hex{Pt(1, 0), Pt(-1, 2)})
 		assert.Equal(t, cap(testHexZero.FieldOfViewFunc(candidates, blocked)), len(candidates))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHexZero.FieldOfViewFunc(candidates, blocked)
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -1464,17 +1464,17 @@ func TestHex_FieldOfViewFuncSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHexZero.FieldOfViewFuncSeq(candidates, blocked) {
 				sinkHex = h
 			}
-		}), 0.0)
+		}, 0.0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, len(candidates))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewFuncSeq(candidates, blocked))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1535,9 +1535,9 @@ func TestHex_FieldOfViewRange(t *testing.T) {
 	t.Run("allocates the result at the length of the range and the sweep", func(t *testing.T) {
 		blocked := scattered(11)
 		assert.Equal(t, cap(testHexZero.FieldOfViewRange(10, blocked)), RangeLen(10))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = testHexZero.FieldOfViewRange(10, blocked)
-		}), 2.0)
+		}, 2.0)
 	})
 }
 
@@ -1588,17 +1588,17 @@ func TestHex_FieldOfViewRangeSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates the sweep alone", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			for h := range testHexZero.FieldOfViewRangeSeq(6, blocked) {
 				sinkHex = h
 			}
-		}), 1.0)
+		}, 1.0)
 	})
 	t.Run("slices.AppendSeq allocates the sweep alone with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(6))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(6, blocked))
-		}), 1.0)
+		}, 1.0)
 	})
 	t.Run("allocates the sweep once however many shadows it holds", func(t *testing.T) {
 		// A blocker on an axis casts a shadow into both wedges beside it, which these rings
@@ -1615,10 +1615,10 @@ func TestHex_FieldOfViewRangeSeq(t *testing.T) {
 	})
 	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(6))
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(6, nil))
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewRangeSeq(1, blocked))
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -1738,9 +1738,9 @@ func TestHex_String(t *testing.T) {
 		assert.Equal(t, Pt(math.MinInt64, math.MaxInt64).String(), "(-9223372036854775808,9223372036854775807)")
 	})
 	t.Run("allocates the string alone", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkString = Pt(math.MinInt64, math.MaxInt64).String()
-		}), 1.0)
+		}, 1.0)
 	})
 }
 
@@ -1980,4 +1980,16 @@ func ExampleHex_Compare() {
 
 	fmt.Println(hexes)
 	// Output: [(-1,0) (1,-3) (1,2)]
+}
+
+// assertAllocations asserts that f allocates the expected number of times on average. It checks
+// nothing under the race detector, which allocates on its own.
+func assertAllocations(t *testing.T, f func(), expected float64, messages ...string) {
+	t.Helper()
+
+	if race {
+		return
+	}
+
+	assert.Equal(t, testing.AllocsPerRun(100, f), expected, messages...)
 }

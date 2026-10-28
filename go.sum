@@ -1,4 +1,4 @@
-github.com/gravitton/assert v1.6.0 h1:c5BY/UYnuZTv27AUJZdK2DZGl9GDluqh207Ad4Mz9ow=
-github.com/gravitton/assert v1.6.0/go.mod h1:yVqrLcw3zNJ/nttsqylX+C5Z12Yow7cC6ZB4k92pHik=
+github.com/gravitton/assert v1.7.0 h1:DzkPN5bKV/Cj6bx4qVkb0nOnslGwKTjDEy+Qf2khbwQ=
+github.com/gravitton/assert v1.7.0/go.mod h1:yVqrLcw3zNJ/nttsqylX+C5Z12Yow7cC6ZB4k92pHik=
 github.com/gravitton/geometry v1.17.0 h1:A+i9/sWbaNZQGWJEzQmD4+LjDjgxCGz1wVazCpSVv40=
 github.com/gravitton/geometry v1.17.0/go.mod h1:4HP8/HP6weJUx4Nju3sYpjGKfKlngpPbIT90iPy3oIo=

@@ -38,9 +38,9 @@ func TestDirections(t *testing.T) {
 		assert.Equal(t, PointyTopNorthEast, QPlus)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkDirections = Directions()
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -62,9 +62,9 @@ func TestDirectionOffsets(t *testing.T) {
 		assert.Equal(t, SMinus.Offset(), geom.Vec(1, 0))
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkVectors = DirectionOffsets()
-		}), 0.0)
+		}, 0.0)
 	})
 }
 

@@ -20,9 +20,9 @@ func TestCoordinateSystems(t *testing.T) {
 		assert.Equal(t, CoordinateSystems()[0], Axial)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assert.Equal(t, testing.AllocsPerRun(100, func() {
+		assertAllocations(t, func() {
 			sinkSystems = CoordinateSystems()
-		}), 0.0)
+		}, 0.0)
 	})
 }
 
@@ -136,7 +136,7 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystem(99).Offsets(geom.Pt(0, 0))
-		}, "hex: unknown coordinate system 99")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("returns a fresh array", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
@@ -147,9 +147,9 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkVectors = system.Offsets(geom.Pt(1, 1))
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 }
@@ -211,20 +211,20 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkVector = system.Offset(geom.Pt(1, 1), RPlus)
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystemNone.Offset(geom.Pt(0, 0), SMinus)
-		}, "hex: unknown coordinate system -1")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("panics for a system outside the seven with no direction", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystemNone.Offset(geom.Pt(0, 0), DirectionNone)
-		}, "hex: unknown coordinate system -1")
+		}, ErrUnknownCoordinateSystem)
 	})
 }
 
@@ -256,13 +256,13 @@ func TestCoordinateSystem_Neighbor(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystemNone.Neighbor(geom.Pt(0, 0), DirectionNone)
-		}, "hex: unknown coordinate system -1")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkPoint = system.Neighbor(geom.Pt(1, 1), RPlus)
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 }
@@ -295,13 +295,13 @@ func TestCoordinateSystem_Neighbors(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystemNone.Neighbors(geom.Pt(0, 0))
-		}, "hex: unknown coordinate system -1")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkPoints = system.Neighbors(geom.Pt(1, 1))
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 }
@@ -329,7 +329,7 @@ func TestCoordinateSystem_To(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystem(99).To(testHexZero)
-		}, "hex: unknown coordinate system 99")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("no two hexes share a coordinate", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
@@ -352,9 +352,9 @@ func TestCoordinateSystem_To(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkPoint = system.To(testHex)
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 }
@@ -409,13 +409,13 @@ func TestCoordinateSystem_From(t *testing.T) {
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
 		assert.PanicsWith(t, func() {
 			CoordinateSystem(99).From(geom.Pt(0, 0))
-		}, "hex: unknown coordinate system 99")
+		}, ErrUnknownCoordinateSystem)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assert.Equal(t, testing.AllocsPerRun(100, func() {
+			assertAllocations(t, func() {
 				sinkHex = system.From(geom.Pt(3, 5))
-			}), 0.0, system.String()+": ")
+			}, 0.0, system.String()+": ")
 		}
 	})
 }

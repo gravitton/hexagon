@@ -13,6 +13,12 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.6.0...main)
 
+### Added
+- `ErrUnknownCoordinateSystem` – the sentinel a panic of a coordinate system outside the seven matches with `errors.Is`
+
+### Changed
+- **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
+- Require `assert` v1.7.0 for the tests
 
 ## [v1.6.0](https://github.com/gravitton/hexagon/compare/v1.5.0...v1.6.0) (2026-10-15)
 
