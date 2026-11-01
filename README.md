@@ -35,7 +35,7 @@ the ones the code beside them returns.
 
 - **Axial coordinates**: two integers per hex, the third cube coordinate derived.
 - **Immutable**: every method returns a new value, and a `Hex` is a map key that compares with `==`.
-- **Traversal**: neighbors, range, ring, spiral and lines, each with an allocation-free `Seq` form.
+- **Traversal**: neighbors, range, ring, spiral, sectors and lines, each with an allocation-free `Seq` form.
 - **Visibility**: exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
 - **Cube space**: rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
 - **Directions**: six of them, by increasing angle, with flat-top and pointy-top compass aliases.
@@ -118,10 +118,11 @@ clockwise as drawn on a screen with Y pointing down. Each has a compass alias in
 
 ```go
 dir := hex.QPlus
-dir.Opposite() // QMinus
-dir.Turn(1)    // SMinus, one step of increasing angle
-dir.Hex()      // Hex{1, -1}, the step as a hex; Offset gives it as a geom.Vector[int]
-dir.Angle()    // 5π/3
+dir.Opposite()         // QMinus
+dir.Turn(1)            // SMinus, one step of increasing angle
+dir.TurnsTo(hex.RPlus) // 2, the fewest steps there
+dir.Hex()              // Hex{1, -1}, the step as a hex; Offset gives it as a geom.Vector[int]
+dir.Angle()            // 5π/3
 
 hex.Directions()                // all six, by increasing angle, as a fresh array
 hex.DirectionOffsets()          // the Offset of each, in the same order
@@ -173,7 +174,7 @@ h.Ring(2)   // the 12 hexes at exactly radius 2, in order around
 h.Spiral(2) // the same hexes as Range, ordered center-outward
 
 a, b := hex.Pt(-3, 1), hex.Pt(3, -2)
-a.Line(b) // the 7 hexes from a to b in a straight line
+a.LineTo(b) // the 7 hexes from a to b in a straight line
 ```
 
 `Ring(1)` is exactly `Neighbors()`. A negative radius gives `nil`, a zero radius the center alone.
@@ -196,6 +197,25 @@ buffer := make([]hex.Hex, 0, hex.RangeLen(2)) // 19 hexes within radius 2; RingL
 buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 ```
 
+### Sectors
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
+  <img alt="The sector of radius 4 toward one direction, numbered ring by ring, widening evenly on both sides, and two neighboring sectors sharing the hexes on their border" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
+</picture>
+</p>
+
+```go
+h.Sector(4, hex.QPlus) // the 12 hexes of the cone toward that direction, without h; also SectorSeq
+hex.SectorLen(4)       // 12, sizes a buffer as RangeLen does
+```
+
+A sector is the cone in front of a unit: the hexes within 30° either side of the direction, both
+borders included, so it is the same on both sides. Its rings are 1, 3, 3, 5, 5 hexes wide, as a
+straight edge falls on a hex grid, and two neighboring sectors share the hexes on their border.
+
 ### Line of sight
 
 Sight runs along the exact segment between two hex centers, in integers. A blocker the segment
@@ -213,15 +233,19 @@ where the segment runs along the edge between two hexes, it takes both of them t
 ```go
 a, b := hex.Pt(0, 0), hex.Pt(2, 2)
 
-a.HasLineOfSight(b, []hex.Hex{hex.Pt(1, 1)})               // false, through it
-a.HasLineOfSight(b, []hex.Hex{hex.Pt(1, 0)})               // true, one beside the edge
-a.HasLineOfSight(b, []hex.Hex{hex.Pt(1, 0), hex.Pt(0, 1)}) // false, both beside the edge
+among := func(walls ...hex.Hex) func(hex.Hex) bool {
+	return func(h hex.Hex) bool {
+		return slices.Contains(walls, h)
+	}
+}
 
-a.HasLineOfSightFunc(b, blocked) // the same rule, asking blocked(hex) along the segment
+a.HasLineOfSight(b, among(hex.Pt(1, 1)))               // false, through it
+a.HasLineOfSight(b, among(hex.Pt(1, 0)))               // true, one beside the edge
+a.HasLineOfSight(b, among(hex.Pt(1, 0), hex.Pt(0, 1))) // false, both beside the edge
 ```
 
 The rule reads the same from either end, so two hexes always see each other or neither does,
-and neither end ever blocks. It is stricter than `Line`, which picks one hex per step.
+and neither end ever blocks. It is stricter than `LineTo`, which picks one hex per step.
 
 ### Field of view
 
@@ -234,22 +258,20 @@ and neither end ever blocks. It is stricter than `Line`, which picks one hex per
 </p>
 
 ```go
-a.FieldOfView(candidates, blocking)    // the candidates a has line of sight to; also FieldOfViewSeq
-a.FieldOfViewFunc(candidates, blocked) // also FieldOfViewFuncSeq
-a.FieldOfViewRange(5, blocked)         // every visible hex within radius 5; also FieldOfViewRangeSeq
+a.HasLineOfSight(c, blocked) // whether a sees one candidate c
+a.FieldOfView(5, blocked)   // every visible hex within radius 5; also FieldOfViewSeq
 ```
 
-The slice forms cost one pass over the blockers per target, whatever the distance, and are the
-faster ones on a small board or with few blockers. The `Func` forms take a
-`blocked func(hex.Hex) bool`, a lookup in a map or a grid, and ask it only about the hexes the
-segment meets, so they cost the distance however many hexes block: the forms for a large or
-dense map. Both give the same answer.
+`blocked` is a `func(hex.Hex) bool`, and `HasLineOfSight` asks it only about the hexes the segment
+meets, so it costs the distance however many hexes block. `slices.Contains` on a short
+list of walls is enough on a small board; on a larger one use a lookup in a `map[hex.Hex]bool` or
+a grid, since a long list is scanned for every hex asked about.
 
-`FieldOfViewRange` is the field over a whole range: what a unit sees, or a blast reaches. It
-gives the hexes of `Spiral(radius)` that `FieldOfViewFunc` keeps, but sweeps the rings outward
+`FieldOfView` is the field over a whole range: what a unit sees, or a blast reaches. It
+gives the hexes of `Spiral(radius)` that `HasLineOfSight` sees, but sweeps the rings outward
 once and asks `blocked` about each hex at most once, where a line to every hex walks the near
-ones again and again. At a radius of 40 it is about fifteen times faster; use `FieldOfViewFunc`
-for a handful of candidates.
+ones again and again. At a radius of 40 it is about fifteen times faster; filter by
+`HasLineOfSight` for a handful of candidates.
 
 ### Rotation and reflection
 
@@ -294,7 +316,7 @@ rectangular map is stored in. Every system converts both ways without loss.
 
 ```go
 a := hex.Pt(2, -1)
-a.To(hex.OffsetOddR)                // geom.Point[int]{1, -1}; or hex.OffsetOddR.To(a)
+hex.OffsetOddR.To(a)                // geom.Point[int]{1, -1}
 hex.OffsetOddR.From(geom.Pt(1, -1)) // back to Hex{2, -1}
 
 hex.CoordinateSystems()            // all seven, as a fresh array

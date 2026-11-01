@@ -255,5 +255,5 @@
 <text x="-65.0" y="25.6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle"><tspan fill="#1c1713">a</tspan></text>
 <text x="52.0" y="-41.9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle"><tspan fill="#1c1713">b</tspan></text>
 </g>
-<text x="744.5" y="197.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#a39a90">a.Line(b)</text>
+<text x="744.5" y="197.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#a39a90">a.LineTo(b)</text>
 </svg>
