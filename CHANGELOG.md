@@ -11,7 +11,18 @@ more expensive of the two. A breaking change is marked **breaking** in its entry
 lists them under **Breaking** at the top of its section. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.6.0...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.7.0...main)
+
+## [v1.7.0](https://github.com/gravitton/hexagon/compare/v1.6.0...v1.7.0) (2026-11-01)
+
+### Breaking
+- **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
+- **breaking** `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` are renamed `FieldOfView` and `FieldOfViewSeq`
+- **breaking** `Hex.HasLineOfSightFunc` is renamed `HasLineOfSight`
+- **breaking** `Hex.Line` and `LineSeq` are renamed `LineTo` and `LineToSeq`
+- **breaking** `Hex.HasLineOfSight` taking a `[]Hex` of blockers is removed: the sight methods take `blocked func(Hex) bool`, as `slices.Contains` in a closure on a short list or a lookup in a map on a larger one
+- **breaking** `Hex.FieldOfView`, `FieldOfViewSeq`, `FieldOfViewFunc` and `FieldOfViewFuncSeq` over given candidates are removed: filter them by `HasLineOfSight`
+- **breaking** `Hex.To` is removed: use `CoordinateSystem.To`
 
 ### Added
 - `ErrUnknownCoordinateSystem` – the sentinel a panic of a coordinate system outside the seven matches with `errors.Is`
@@ -19,16 +30,12 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Sector` and `SectorSeq` return the cone of hexes within a radius and 30° either side of a direction, and `SectorLen` their number
 
 ### Changed
-- **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
-- **breaking** `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` are renamed `FieldOfView` and `FieldOfViewSeq`
-- **breaking** `Hex.HasLineOfSightFunc` is renamed `HasLineOfSight`
-- **breaking** `Hex.Line` and `LineSeq` are renamed `LineTo` and `LineToSeq`
 - Require `assert` v1.7.0 for the tests
 
-### Removed
-- **breaking** `Hex.HasLineOfSight` taking a `[]Hex` of blockers: the sight methods take `blocked func(Hex) bool`, as `slices.Contains` in a closure on a short list or a lookup in a map on a larger one
-- **breaking** `Hex.FieldOfView`, `FieldOfViewSeq`, `FieldOfViewFunc` and `FieldOfViewFuncSeq` over given candidates: filter them by `HasLineOfSight`
-- **breaking** `Hex.To`: use `CoordinateSystem.To`
+### Fixed
+- `Hex.Length` and `DistanceTo` no longer go negative from a distance of 2^62, where the sum of the cube coordinates overflowed
+- `FractionalHex.Length` and `DistanceTo` take the largest cube coordinate, without the rounding error a sum picks up, so `FracPt(1.4, -1.8).Length()` is exactly `1.8`
+- `Hex.SpiralSeq` yields hexes for the largest radius, where it yielded none, so a nearest-first search needs no bound
 
 ## [v1.6.0](https://github.com/gravitton/hexagon/compare/v1.5.0...v1.6.0) (2026-10-15)
 
