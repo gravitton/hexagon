@@ -245,7 +245,8 @@ a.HasLineOfSight(b, among(hex.Pt(1, 0), hex.Pt(0, 1))) // false, both beside the
 ```
 
 The rule reads the same from either end, so two hexes always see each other or neither does,
-and neither end ever blocks. It is stricter than `LineTo`, which picks one hex per step.
+and neither end ever blocks. It differs from `LineTo`, which picks one hex per step: a hex off the
+line can block the sight, and a hex of the line the segment only touches does not.
 
 ### Field of view
 

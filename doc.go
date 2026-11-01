@@ -9,10 +9,11 @@
 //   - Enums: [Direction], the six steps to a neighbor, and [CoordinateSystem], the seven ways to
 //     address a grid by two integers.
 //
-// Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral] and
-// [Hex.LineTo], line of sight and field of view, and turning and reflection in cube space. Package
-// hextest holds test assertions. Pixel layout lives in github.com/gravitton/grid, and the shapes
-// and vectors this package builds on in github.com/gravitton/geometry.
+// Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral],
+// [Hex.Sector] and [Hex.LineTo], line of sight and field of view, and turning and reflection in
+// cube space. Package hextest holds test assertions. Pixel layout lives in
+// github.com/gravitton/grid, and the shapes and vectors this package builds on in
+// github.com/gravitton/geometry.
 //
 // # Coordinates
 //
@@ -88,7 +89,9 @@
 //     lies on no hex, and [FractionalHex.IsFinite] tests for one.
 //
 // A finite position beyond the range of int rounds to a platform-dependent hex, and a radius or a
-// distance too large to allocate the slice for is outside the contract.
+// distance too large to allocate the slice for is outside the contract. So is a radius near the
+// range of int to RangeSeq, which starts from its far edge; RingSeq, SpiralSeq and SectorSeq walk
+// from the center, so a search with no bound on its radius uses SpiralSeq and breaks.
 //
 // # Reproducibility
 //
