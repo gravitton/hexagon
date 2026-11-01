@@ -122,6 +122,16 @@ func (d Direction) Turn(steps int) Direction {
 	return geom.Mod(d.normalize()+Direction(geom.Mod(steps, 6)), 6)
 }
 
+// TurnsTo returns the fewest steps Turn takes from the direction to the given one, from -2 to 3,
+// and 0 if either is DirectionNone.
+func (d Direction) TurnsTo(direction Direction) int {
+	if d.IsNone() || direction.IsNone() {
+		return 0
+	}
+
+	return int(geom.Mod(direction.normalize()-d.normalize()+2, 6)) - 2
+}
+
 // IsNone reports whether the direction is DirectionNone.
 func (d Direction) IsNone() bool {
 	return d == DirectionNone
