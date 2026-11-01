@@ -800,6 +800,18 @@ func TestHex_SpiralSeq(t *testing.T) {
 			assert.Fail(t, "yielded a hex")
 		}
 	})
+	t.Run("the largest radius walks outward until the loop breaks", func(t *testing.T) {
+		nearest := testHex.Spiral(2)
+		walked := make([]Hex, 0, len(nearest))
+		for h := range testHex.SpiralSeq(math.MaxInt) {
+			walked = append(walked, h)
+			if len(walked) == len(nearest) {
+				break
+			}
+		}
+
+		assert.Equal(t, walked, nearest)
+	})
 	t.Run("stops when the loop breaks", func(t *testing.T) {
 		for _, radius := range []int{0, 1, 3} {
 			for stop := range len(testHex.Spiral(radius)) {

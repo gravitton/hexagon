@@ -271,7 +271,7 @@ func (h Hex) Spiral(radius int) []Hex {
 // SpiralSeq returns an iterator over the hexes of Spiral, in the same order.
 func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		for r := range radius + 1 {
+		for r := 0; r <= radius; r++ {
 			for hex := range h.RingSeq(r) {
 				if !yield(hex) {
 					return
