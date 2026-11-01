@@ -7,24 +7,19 @@ import (
 )
 
 // sightLine is the segment between the centers of two hexes as the sight test reads it, every
-// hex given as its offset from the one the segment starts at: the step to the target, the
-// length of the segment and the reach of a hex to either side of it in the units dot and cross
-// return, and the step across the edge the segment runs along, zero where it runs along none.
+// hex given as its offset from the one the segment starts at: the step to the target, the reach
+// of a hex to either side of it in the unit of three times cross, and the step across the edge
+// the segment runs along, zero where it runs along none.
 type sightLine struct {
 	sight  Hex
-	reach  int
 	width  int
 	across Hex
 }
 
-// clearance returns how far the hex at offset stands clear of the segment: negative where the
-// segment runs through it, zero where it only touches it, at a corner or along an edge, and
-// positive where it misses it or does not reach it strictly between its ends.
+// clearance returns how far the hex at offset, one of those crossed gives, stands clear of the
+// segment: negative where the segment runs through it, zero where it only touches it, at a corner
+// or along an edge, and positive where it misses it.
 func (l sightLine) clearance(offset Hex) int {
-	if along := l.sight.dot(offset); along <= 0 || along >= l.reach {
-		return 1
-	}
-
 	aside := 3 * l.sight.cross(offset)
 
 	return max(aside, -aside) - l.width

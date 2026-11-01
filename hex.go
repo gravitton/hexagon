@@ -53,6 +53,15 @@ func RingLen(radius int) int {
 	return max(6*radius, 1)
 }
 
+// SectorLen returns the length of Sector for the radius (r(r+1)/2), and zero for a negative one.
+func SectorLen(radius int) int {
+	if radius < 0 {
+		return 0
+	}
+
+	return radius * (radius + 1) / 2
+}
+
 // parseCoordinates returns the two coordinates of the form String prints, naming the type of the
 // value in its errors.
 func parseCoordinates[T geom.Number](s, name string) (T, T, error) {
@@ -111,7 +120,7 @@ func (h Hex) Multiply(factor int) Hex {
 }
 
 // Lerp returns the hex in which the position interpolated from the hex toward the given one by t
-// lies, extrapolated outside [0, 1]. Line is nudged off the boundaries between hexes and Lerp is
+// lies, extrapolated outside [0, 1]. LineTo is nudged off the boundaries between hexes and Lerp is
 // not, so on a tie the two can pick different hexes. It panics for a t that is NaN or infinite or
 // carries the position past the range of float64.
 func (h Hex) Lerp(hex Hex, t float64) Hex {
@@ -271,6 +280,42 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	}
 }
 
+// Sector returns the hexes within radius of the hex that DirectionTo gives the direction for, ring
+// by ring outward, by increasing angle in each ring, so the six sectors of a radius are its Range
+// without the hex. It returns nil for a radius under one and for DirectionNone.
+func (h Hex) Sector(radius int, direction Direction) []Hex {
+	if radius < 1 || direction.IsNone() {
+		return nil
+	}
+
+	return slices.AppendSeq(make([]Hex, 0, SectorLen(radius)), h.SectorSeq(radius, direction))
+}
+
+// SectorSeq returns an iterator over the hexes of Sector, in the same order.
+func (h Hex) SectorSeq(radius int, direction Direction) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		if direction.IsNone() {
+			return
+		}
+
+		before, after := direction.Turn(1).Hex(), direction.Turn(2).Hex()
+		for ring := 1; ring <= radius; ring++ {
+			corner := h.Add(direction.Hex().Multiply(ring))
+
+			for step := -(ring - 1) / 2; step <= ring/2; step++ {
+				edge := after
+				if step < 0 {
+					edge = before
+				}
+
+				if !yield(corner.Add(edge.Multiply(step))) {
+					return
+				}
+			}
+		}
+	}
+}
+
 // DistanceTo returns the distance to the given hex in steps.
 func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()
@@ -291,19 +336,19 @@ func (h Hex) DirectionTo(hex Hex) Direction {
 	return DirectionNone
 }
 
-// Line returns the hexes of the straight line from the hex to target, one a step, both ends
-// included. The line is nudged off the boundaries between hexes, so it never lands on a tie, except
-// far enough from the origin that float64 cannot resolve the nudge.
-func (h Hex) Line(target Hex) []Hex {
-	return slices.AppendSeq(make([]Hex, 0, h.DistanceTo(target)+1), h.LineSeq(target))
+// LineTo returns the hexes of the straight line from the hex to the given one, one a step, both
+// ends included. The line is nudged off the boundaries between hexes, so it never lands on a tie,
+// except far enough from the origin that float64 cannot resolve the nudge.
+func (h Hex) LineTo(hex Hex) []Hex {
+	return slices.AppendSeq(make([]Hex, 0, h.DistanceTo(hex)+1), h.LineToSeq(hex))
 }
 
-// LineSeq returns an iterator over the hexes of Line, in the same order.
-func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
+// LineToSeq returns an iterator over the hexes of LineTo, in the same order.
+func (h Hex) LineToSeq(hex Hex) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		n := h.DistanceTo(target)
+		n := h.DistanceTo(hex)
 		for i := 0; i <= n; i++ {
-			if !yield(h.lineAt(target, i, n)) {
+			if !yield(h.lineAt(hex, i, n)) {
 				return
 			}
 		}
@@ -311,33 +356,11 @@ func (h Hex) LineSeq(target Hex) iter.Seq[Hex] {
 }
 
 // HasLineOfSight reports whether the segment between the centers of the hex and target is clear of
-// the blocking hexes. Neither end counts as a blocker. It differs from Line: a hex off the line
-// can block the segment, and a hex of the line the segment only touches does not.
-func (h Hex) HasLineOfSight(target Hex, blocking []Hex) bool {
-	line := h.sightLine(target)
-
-	for _, blocker := range blocking {
-		offset := blocker.Subtract(h)
-
-		clearance := line.clearance(offset)
-		if clearance < 0 {
-			return false
-		}
-		if clearance == 0 {
-			if facing, edge := line.facing(offset); edge && slices.Contains(blocking, h.Add(facing)) {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-// HasLineOfSightFunc reports whether the segment between the centers of the hex and target is
-// clear of the hexes blocked reports, exactly when HasLineOfSight is for the same blockers. It asks
+// the hexes blocked reports. Neither end counts as a blocker. It differs from LineTo: a hex off the
+// line can block the segment, and a hex of the line the segment only touches does not. It asks
 // blocked only about the hexes that can block the segment, each at most once, from the hex toward
-// target, never about either end. A nil blocked blocks nothing.
-func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
+// target. A nil blocked blocks nothing.
+func (h Hex) HasLineOfSight(target Hex, blocked func(Hex) bool) bool {
 	if blocked == nil {
 		return true
 	}
@@ -364,61 +387,19 @@ func (h Hex) HasLineOfSightFunc(target Hex, blocked func(Hex) bool) bool {
 	return true
 }
 
-// FieldOfView returns the candidates HasLineOfSight sees from the hex past the blocking hexes, in
-// the order given, and nil for no candidates.
-func (h Hex) FieldOfView(candidates []Hex, blocking []Hex) []Hex {
-	if len(candidates) == 0 {
-		return nil
-	}
-
-	return slices.AppendSeq(make([]Hex, 0, len(candidates)), h.FieldOfViewSeq(candidates, blocking))
-}
-
-// FieldOfViewSeq returns an iterator over the hexes of FieldOfView, in the same order.
-func (h Hex) FieldOfViewSeq(candidates []Hex, blocking []Hex) iter.Seq[Hex] {
-	return func(yield func(Hex) bool) {
-		for _, candidate := range candidates {
-			if h.HasLineOfSight(candidate, blocking) && !yield(candidate) {
-				return
-			}
-		}
-	}
-}
-
-// FieldOfViewFunc returns the candidates HasLineOfSightFunc sees from the hex past the hexes
-// blocked reports, in the order given, and nil for no candidates.
-func (h Hex) FieldOfViewFunc(candidates []Hex, blocked func(Hex) bool) []Hex {
-	if len(candidates) == 0 {
-		return nil
-	}
-
-	return slices.AppendSeq(make([]Hex, 0, len(candidates)), h.FieldOfViewFuncSeq(candidates, blocked))
-}
-
-// FieldOfViewFuncSeq returns an iterator over the hexes of FieldOfViewFunc, in the same order.
-func (h Hex) FieldOfViewFuncSeq(candidates []Hex, blocked func(Hex) bool) iter.Seq[Hex] {
-	return func(yield func(Hex) bool) {
-		for _, candidate := range candidates {
-			if h.HasLineOfSightFunc(candidate, blocked) && !yield(candidate) {
-				return
-			}
-		}
-	}
-}
-
-// FieldOfViewRange returns the hexes of Spiral(radius) that FieldOfViewFunc sees past the hexes
-// blocked reports, in that order. It asks blocked about each hex at most once, and returns nil for
-// a negative radius. A nil blocked blocks nothing.
-func (h Hex) FieldOfViewRange(radius int, blocked func(Hex) bool) []Hex {
+// FieldOfView returns the hexes of Spiral(radius) that HasLineOfSight sees past the hexes blocked
+// reports, in that order. It asks blocked about each hex at most once, and returns nil for a
+// negative radius. A nil blocked blocks nothing.
+func (h Hex) FieldOfView(radius int, blocked func(Hex) bool) []Hex {
 	if radius < 0 {
 		return nil
 	}
 
-	return slices.AppendSeq(make([]Hex, 0, RangeLen(radius)), h.FieldOfViewRangeSeq(radius, blocked))
+	return slices.AppendSeq(make([]Hex, 0, RangeLen(radius)), h.FieldOfViewSeq(radius, blocked))
 }
 
-// FieldOfViewRangeSeq returns an iterator over the hexes of FieldOfViewRange, in the same order.
-func (h Hex) FieldOfViewRangeSeq(radius int, blocked func(Hex) bool) iter.Seq[Hex] {
+// FieldOfViewSeq returns an iterator over the hexes of FieldOfView, in the same order.
+func (h Hex) FieldOfViewSeq(radius int, blocked func(Hex) bool) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
 		if radius < 0 || !yield(h) {
 			return
@@ -445,7 +426,7 @@ func (h Hex) FieldOfViewRangeSeq(radius int, blocked func(Hex) bool) iter.Seq[He
 func (h Hex) sightLine(target Hex) sightLine {
 	sight := target.Subtract(h)
 
-	return sightLine{sight, sight.dot(sight), sight.width(), sight.edgeStep()}
+	return sightLine{sight, sight.width(), sight.edgeStep()}
 }
 
 // lineAt returns the hex at step i of the n steps of the line from the hex to target, both nudged
@@ -488,12 +469,6 @@ func (h Hex) cross(hex Hex) int {
 	return h.Q*hex.R - h.R*hex.Q
 }
 
-// dot returns the dot product of the hexes as vectors, up to a positive factor: the sum of the
-// products of their cube coordinates.
-func (h Hex) dot(hex Hex) int {
-	return h.Q*hex.Q + h.R*hex.R + (h.Q+h.R)*(hex.Q+hex.R)
-}
-
 // Equal reports whether the hexes have equal coordinates.
 func (h Hex) Equal(hex Hex) bool {
 	return h == hex
@@ -512,11 +487,6 @@ func (h Hex) Compare(hex Hex) int {
 // IsZero reports whether the hex is the origin.
 func (h Hex) IsZero() bool {
 	return h == Hex{}
-}
-
-// To returns the coordinates of the hex in the system. It panics for a system outside the seven.
-func (h Hex) To(system CoordinateSystem) geom.Point[int] {
-	return system.To(h)
 }
 
 // Point returns Q and R as a point.

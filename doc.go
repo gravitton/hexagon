@@ -10,7 +10,7 @@
 //     address a grid by two integers.
 //
 // Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral] and
-// [Hex.Line], line of sight and field of view, and turning and reflection in cube space. Package
+// [Hex.LineTo], line of sight and field of view, and turning and reflection in cube space. Package
 // hextest holds test assertions. Pixel layout lives in github.com/gravitton/grid, and the shapes
 // and vectors this package builds on in github.com/gravitton/geometry.
 //
@@ -38,15 +38,14 @@
 //
 // # Allocations
 //
-// Only a method whose result is a slice allocates, once: Range, Ring, Spiral and Line with the
-// exact capacity of the result, [Hex.FieldOfView] and [Hex.FieldOfViewFunc] with room for every
-// candidate. [Hex.FieldOfViewRange] is the one exception: it allocates room for the range and, in
-// every form, one buffer more, proportional to the radius, unless blocked is nil or the radius is
-// under two. Each has a Seq form, an iterator that walks the same hexes in the same order without a
-// buffer for them, and slices.AppendSeq collects it into a buffer the caller reuses, so a loop
-// allocates nothing once the buffer has room; [RangeLen] and [RingLen] size one. Every array a
-// method returns, from Directions and Neighbors to [CoordinateSystem.Offsets], is a copy the caller
-// owns, and [Hex.HasLineOfSight] builds nothing.
+// Only a method whose result is a slice allocates, once: Range, Ring, Spiral, Sector and LineTo
+// with the exact capacity of the result. [Hex.FieldOfView] is the one exception: it allocates room
+// for the range and, in every form, one buffer more, proportional to the radius, unless blocked is
+// nil or the radius is under two. Each has a Seq form, an iterator that walks the same hexes in the
+// same order without a buffer for them, and slices.AppendSeq collects it into a buffer the caller
+// reuses, so a loop allocates nothing once the buffer has room; [RangeLen], [RingLen] and
+// [SectorLen] size one. Every array a method returns, from Directions and Neighbors to
+// [CoordinateSystem.Offsets], is a copy the caller owns, and [Hex.HasLineOfSight] builds nothing.
 //
 // # Visibility
 //
@@ -54,19 +53,17 @@
 // integers. A blocking hex the segment runs through blocks it, however small the corner it cuts; a
 // hex the segment only touches at a corner does not; and where the segment runs along the edge
 // between two hexes, both must block. Neither end counts. The rule is the same from either end, so
-// sight is symmetric, and FieldOfView is the candidates it holds for: the field symmetric shadow
-// casting computes. Line is the traversal, one hex per step, so a blocker off the Line can still
-// clip the sight line.
+// sight is symmetric: the field symmetric shadow casting computes. LineTo is the traversal, one hex
+// per step, so a blocker off the LineTo can still clip the sight line.
 //
-// [Hex.HasLineOfSightFunc] and FieldOfViewFunc apply the same rule to a function reporting whether
-// a hex blocks, and ask it only about the hexes that can block the segment, each at most once. The
-// slice forms cost a pass over the blockers for each target, and one more for each blocker the
-// segment touches along an edge, and the Func forms the distance to it, so the slice forms suit a
-// small board or few blockers and the Func forms a large or dense map.
+// HasLineOfSight takes a function reporting whether a hex blocks, and asks it only about the hexes
+// that can block the segment, each at most once, so it costs the distance however many hexes
+// block. A lookup in a map or a grid suits a map of any size, and slices.Contains on a list
+// of blockers is enough while the list is short.
 //
-// FieldOfViewRange is the field of every hex within a radius, the hexes of Spiral that
-// FieldOfViewFunc keeps. It asks about a hex at most once, so it costs the size of the range where
-// a line to every hex costs that times the radius.
+// FieldOfView is the field of every hex within a radius, the hexes of Spiral that HasLineOfSight
+// sees. It asks about a hex at most once, so it costs the size of the range where a line to every
+// hex costs that times the radius.
 //
 // All of them are exact while the square of the distance between the hexes fits an int a few
 // times over, far beyond any map on a 64-bit platform.
@@ -74,18 +71,18 @@
 // # Panics
 //
 // Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring, Spiral
-// and FieldOfViewRange and nothing from their Seq forms, a zero radius gives the center alone, a
-// line from a hex to itself is that one hex, no candidates give nil from FieldOfView and
-// FieldOfViewFunc, and DirectionNone gives the hex itself from [Hex.Neighbor] and
+// and FieldOfView and nothing from their Seq forms, a zero radius gives the center alone, a line
+// from a hex to itself is that one hex. [Hex.Sector] leaves the center out, so it gives nil for a
+// radius under one and for DirectionNone, which gives the hex itself from [Hex.Neighbor] and
 // [Hex.DiagonalNeighbor], and is the answer of [Hex.DirectionTo] for the hex itself.
 //
 // The only panics are for arguments with no meaning:
 //
 //   - a system outside the seven, CoordinateSystemNone included, to CoordinateSystem.Offsets,
 //     [CoordinateSystem.Offset], [CoordinateSystem.Neighbor], [CoordinateSystem.Neighbors],
-//     [CoordinateSystem.To] and [CoordinateSystem.From], and to [Hex.To] through them: the absence
-//     of a layout has nothing to convert, and the panic value is an error that errors.Is matches
-//     to [ErrUnknownCoordinateSystem];
+//     [CoordinateSystem.To] and [CoordinateSystem.From]: the absence of a layout has nothing to
+//     convert, and the panic value is an error that errors.Is matches to
+//     [ErrUnknownCoordinateSystem];
 //   - a NaN or infinite coordinate to [FractionalHex.Round], and to [Hex.Lerp] through it a t that
 //     is NaN or infinite or carries the position past the range of float64: a non-finite position
 //     lies on no hex, and [FractionalHex.IsFinite] tests for one.
