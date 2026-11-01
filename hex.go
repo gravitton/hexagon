@@ -53,13 +53,14 @@ func RingLen(radius int) int {
 	return max(6*radius, 1)
 }
 
-// SectorLen returns the length of Sector for the radius (r(r+1)/2), and zero for a negative one.
+// SectorLen returns the length of Sector for the radius (r+r²/2, rounded down), and zero for a
+// negative one.
 func SectorLen(radius int) int {
 	if radius < 0 {
 		return 0
 	}
 
-	return radius * (radius + 1) / 2
+	return radius + radius*radius/2
 }
 
 // parseCoordinates returns the two coordinates of the form String prints, naming the type of the
@@ -280,9 +281,10 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	}
 }
 
-// Sector returns the hexes within radius of the hex that DirectionTo gives the direction for, ring
-// by ring outward, by increasing angle in each ring, so the six sectors of a radius are its Range
-// without the hex. It returns nil for a radius under one and for DirectionNone.
+// Sector returns the hexes within radius of the hex and within a twelfth of a turn either side of
+// the direction, both borders included, ring by ring outward, by increasing angle in each ring. A
+// hex on a border is in the sectors of both directions beside it. The hex itself is left out, so it
+// returns nil for a radius under one, and for DirectionNone.
 func (h Hex) Sector(radius int, direction Direction) []Hex {
 	if radius < 1 || direction.IsNone() {
 		return nil
@@ -302,7 +304,7 @@ func (h Hex) SectorSeq(radius int, direction Direction) iter.Seq[Hex] {
 		for ring := 1; ring <= radius; ring++ {
 			corner := h.Add(direction.Hex().Multiply(ring))
 
-			for step := -(ring - 1) / 2; step <= ring/2; step++ {
+			for step := -ring / 2; step <= ring/2; step++ {
 				edge := after
 				if step < 0 {
 					edge = before

@@ -150,19 +150,22 @@ func TestRingLen(t *testing.T) {
 }
 
 func TestSectorLen(t *testing.T) {
-	t.Run("triangular numbers", func(t *testing.T) {
+	t.Run("rings of odd width", func(t *testing.T) {
 		assert.Equal(t, SectorLen(0), 0)
 		assert.Equal(t, SectorLen(1), 1)
-		assert.Equal(t, SectorLen(2), 3)
-		assert.Equal(t, SectorLen(10), 55)
+		assert.Equal(t, SectorLen(2), 4)
+		assert.Equal(t, SectorLen(3), 7)
+		assert.Equal(t, SectorLen(4), 12)
+		assert.Equal(t, SectorLen(5), 17)
+		assert.Equal(t, SectorLen(10), 60)
 	})
 	t.Run("negative radius is empty", func(t *testing.T) {
 		assert.Equal(t, SectorLen(-1), 0)
 		assert.Equal(t, SectorLen(-5), 0)
 	})
-	t.Run("six sectors are the range without the center", func(t *testing.T) {
-		for radius := range 10 {
-			assert.Equal(t, 6*SectorLen(radius), RangeLen(radius)-1, strconv.Itoa(radius)+": ")
+	t.Run("matches Sector", func(t *testing.T) {
+		for radius := 1; radius < 10; radius++ {
+			assert.Equal(t, SectorLen(radius), len(testHex.Sector(radius, RMinus)), strconv.Itoa(radius)+": ")
 		}
 	})
 }
@@ -833,13 +836,35 @@ func TestHex_Sector(t *testing.T) {
 	})
 	t.Run("ring by ring by increasing angle", func(t *testing.T) {
 		assert.Equal(t, testHexZero.Sector(1, SMinus), []Hex{Pt(1, 0)})
-		assert.Equal(t, testHexZero.Sector(2, SMinus), []Hex{Pt(1, 0), Pt(2, 0), Pt(1, 1)})
-		assert.Equal(t, testHexZero.Sector(3, SMinus), []Hex{Pt(1, 0), Pt(2, 0), Pt(1, 1), Pt(3, -1), Pt(3, 0), Pt(2, 1)})
+		assert.Equal(t, testHexZero.Sector(2, SMinus), []Hex{Pt(1, 0), Pt(2, -1), Pt(2, 0), Pt(1, 1)})
+		assert.Equal(t, testHexZero.Sector(3, SMinus), []Hex{Pt(1, 0), Pt(2, -1), Pt(2, 0), Pt(1, 1), Pt(3, -1), Pt(3, 0), Pt(2, 1)})
 	})
 	t.Run("a direction wraps", func(t *testing.T) {
 		assert.Equal(t, testHex.Sector(4, Direction(7)), testHex.Sector(4, RPlus))
 	})
-	t.Run("every hex has the direction and each ring has its radius of them", func(t *testing.T) {
+	t.Run("is the hexes within a twelfth of a turn of the axis", func(t *testing.T) {
+		for _, direction := range Directions() {
+			sector := testHex.Sector(9, direction)
+			for h := range testHex.RangeSeq(9) {
+				delta := h.Subtract(testHex).Turn(-int(direction))
+				q, r, s := delta.QRS()
+				inside := q > 0 && s < 0 && 2*geom.Abs(r) <= delta.Length()
+				assert.Equal(t, slices.Contains(sector, h), inside, direction.String()+" at "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("is the same on both sides of its axis", func(t *testing.T) {
+		sector := testHexZero.Sector(9, SMinus)
+		mirrored := make([]Hex, 0, len(sector))
+		for _, h := range sector {
+			mirrored = append(mirrored, h.ReflectR().Turn(3))
+		}
+		slices.SortFunc(sector, Hex.Compare)
+		slices.SortFunc(mirrored, Hex.Compare)
+
+		assert.Equal(t, mirrored, sector)
+	})
+	t.Run("a ring has an odd width", func(t *testing.T) {
 		for _, direction := range Directions() {
 			sector := testHex.Sector(9, direction)
 			for ring := 1; ring <= 9; ring++ {
@@ -848,22 +873,39 @@ func TestHex_Sector(t *testing.T) {
 					if testHex.DistanceTo(h) == ring {
 						count++
 					}
-					assert.Equal(t, testHex.DirectionTo(h), direction, h.String()+": ")
 				}
-				assert.Equal(t, count, ring, direction.String()+" at "+strconv.Itoa(ring)+": ")
+				assert.Equal(t, count, 1+2*(ring/2), direction.String()+" at "+strconv.Itoa(ring)+": ")
 			}
 		}
 	})
-	t.Run("the six sectors are the range without the center", func(t *testing.T) {
-		for _, radius := range []int{1, 2, 3, 8} {
-			var union []Hex
-			for _, direction := range Directions() {
-				union = append(union, testHex.Sector(radius, direction)...)
+	t.Run("the nearest direction is its own, or the one before on a border", func(t *testing.T) {
+		for _, direction := range Directions() {
+			for _, h := range testHex.Sector(9, direction) {
+				nearest := testHex.DirectionTo(h)
+				assert.True(t, nearest == direction || nearest == direction.Turn(-1), h.String()+": ")
 			}
-			union = append(union, testHex)
-			slices.SortFunc(union, Hex.Compare)
+		}
+	})
+	t.Run("the six cover the range, and only a border is in two", func(t *testing.T) {
+		for _, radius := range []int{1, 2, 3, 8} {
+			times := map[Hex]int{}
+			for _, direction := range Directions() {
+				for _, h := range testHex.Sector(radius, direction) {
+					times[h]++
+				}
+			}
 
-			assert.Equal(t, union, testHex.Range(radius), strconv.Itoa(radius)+": ")
+			for h := range testHex.RangeSeq(radius) {
+				_, r, _ := h.Subtract(testHex).Turn(-int(testHex.DirectionTo(h))).QRS()
+				switch {
+				case h == testHex:
+					assert.Equal(t, times[h], 0)
+				case 2*geom.Abs(r) == testHex.DistanceTo(h):
+					assert.Equal(t, times[h], 2, h.String()+": ")
+				default:
+					assert.Equal(t, times[h], 1, h.String()+": ")
+				}
+			}
 		}
 	})
 	t.Run("the next hex of a ring is a neighbor, and rings grow outward", func(t *testing.T) {
@@ -1736,7 +1778,7 @@ func ExampleRingLen() {
 
 func ExampleSectorLen() {
 	fmt.Println(SectorLen(1), SectorLen(2), SectorLen(3))
-	// Output: 1 3 6
+	// Output: 1 4 7
 }
 
 func ExampleHex_Turn() {
@@ -1808,7 +1850,7 @@ func ExampleHex_SpiralSeq() {
 
 func ExampleHex_Sector() {
 	fmt.Println(Pt(0, 0).Sector(2, SMinus))
-	// Output: [(1,0) (2,0) (1,1)]
+	// Output: [(1,0) (2,-1) (2,0) (1,1)]
 }
 
 func ExampleHex_DirectionTo() {

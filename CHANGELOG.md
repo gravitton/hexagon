@@ -16,7 +16,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 ### Added
 - `ErrUnknownCoordinateSystem` – the sentinel a panic of a coordinate system outside the seven matches with `errors.Is`
 - `Direction.TurnsTo` returns the fewest sixth-turns from one direction to another, the inverse of `Turn`
-- `Hex.Sector` and `SectorSeq` return the hexes within a radius nearest to a direction, and `SectorLen` their number: the six sectors of a radius split its range without the center
+- `Hex.Sector` and `SectorSeq` return the cone of hexes within a radius and 30° either side of a direction, and `SectorLen` their number
 
 ### Changed
 - **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
