@@ -102,7 +102,7 @@ func (h Hex) QRS() (int, int, int) {
 
 // Length returns the distance from the origin in steps.
 func (h Hex) Length() int {
-	return (geom.Abs(h.Q) + geom.Abs(h.R) + geom.Abs(h.S())) / 2
+	return max(geom.Abs(h.Q), geom.Abs(h.R), geom.Abs(h.S()))
 }
 
 // Add returns the sum of the hexes.

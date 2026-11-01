@@ -88,6 +88,9 @@ func TestFractionalHex_Length(t *testing.T) {
 			assert.EqualDelta(t, h.Float().Length(), float64(h.Length()), geom.Delta)
 		}
 	})
+	t.Run("takes the largest coordinate exactly", func(t *testing.T) {
+		assert.Equal(t, FracPt(1.4, -1.8).Length(), 1.8)
+	})
 }
 
 func TestFractionalHex_Add(t *testing.T) {

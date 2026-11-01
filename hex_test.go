@@ -197,6 +197,17 @@ func TestHex_Length(t *testing.T) {
 			assert.True(t, h.Length() <= 3, h.String()+": ")
 		}
 	})
+	t.Run("half the sum of the cube coordinates", func(t *testing.T) {
+		for _, h := range testHex.Spiral(9) {
+			q, r, s := h.QRS()
+			assert.Equal(t, h.Length(), (geom.Abs(q)+geom.Abs(r)+geom.Abs(s))/2, h.String()+": ")
+		}
+	})
+	t.Run("does not overflow where that sum would", func(t *testing.T) {
+		assert.Equal(t, Pt(1<<62, 0).Length(), 1<<62)
+		assert.Equal(t, Pt(-1<<62, 1<<61).Length(), 1<<62)
+		assert.Equal(t, Pt(0, 0).DistanceTo(Pt(1<<62, 0)), 1<<62)
+	})
 }
 
 func TestHex_Add(t *testing.T) {
@@ -1429,6 +1440,16 @@ func runsThrough(source, target, hex Hex) bool {
 	return leave-enter > geom.Delta
 }
 
+// everyNth returns the hexes at every stride-th place of the given ones.
+func everyNth(hexes []Hex, stride int) []Hex {
+	var result []Hex
+	for i := stride - 1; i < len(hexes); i += stride {
+		result = append(result, hexes[i])
+	}
+
+	return result
+}
+
 func TestHex_FieldOfView(t *testing.T) {
 	everything := func(Hex) bool {
 		return true
@@ -1518,6 +1539,17 @@ func FuzzHex_FieldOfView(f *testing.F) {
 
 		assert.Equal(t, source.FieldOfView(radius, blocked), seenBy(source, radius, blocked), source.String()+" within "+strconv.Itoa(radius)+": ")
 	})
+}
+
+func seenBy(source Hex, radius int, blocked func(Hex) bool) []Hex {
+	var seen []Hex
+	for _, h := range source.Spiral(radius) {
+		if source.HasLineOfSight(h, blocked) {
+			seen = append(seen, h)
+		}
+	}
+
+	return seen
 }
 
 func TestHex_FieldOfViewSeq(t *testing.T) {
@@ -1701,6 +1733,18 @@ func TestHex_JSON(t *testing.T) {
 	hextest.AssertHex(t, decoded, testHex)
 }
 
+// assertAllocations asserts that f allocates the expected number of times on average. It checks
+// nothing under the race detector, which allocates on its own.
+func assertAllocations(t *testing.T, f func(), expected float64, messages ...string) {
+	t.Helper()
+
+	if race {
+		return
+	}
+
+	assert.Equal(t, testing.AllocsPerRun(100, f), expected, messages...)
+}
+
 // among returns the predicate holding for the given hexes and no other.
 func among(hexes []Hex) func(Hex) bool {
 	return func(hex Hex) bool {
@@ -1710,31 +1754,10 @@ func among(hexes []Hex) func(Hex) bool {
 
 // scattered returns the predicate holding for one hex in modulus, spread over the plane by a
 // linear form of the coordinates.
-func seenBy(source Hex, radius int, blocked func(Hex) bool) []Hex {
-	var seen []Hex
-	for _, h := range source.Spiral(radius) {
-		if source.HasLineOfSight(h, blocked) {
-			seen = append(seen, h)
-		}
-	}
-
-	return seen
-}
-
 func scattered(modulus int) func(Hex) bool {
 	return func(hex Hex) bool {
 		return geom.Mod(hex.Q*7+hex.R*13, modulus) == 3%modulus
 	}
-}
-
-// everyNth returns the hexes at every stride-th place of the given ones.
-func everyNth(hexes []Hex, stride int) []Hex {
-	var result []Hex
-	for i := stride - 1; i < len(hexes); i += stride {
-		result = append(result, hexes[i])
-	}
-
-	return result
 }
 
 var (
@@ -1904,16 +1927,4 @@ func ExampleHex_Compare() {
 
 	fmt.Println(hexes)
 	// Output: [(-1,0) (1,-3) (1,2)]
-}
-
-// assertAllocations asserts that f allocates the expected number of times on average. It checks
-// nothing under the race detector, which allocates on its own.
-func assertAllocations(t *testing.T, f func(), expected float64, messages ...string) {
-	t.Helper()
-
-	if race {
-		return
-	}
-
-	assert.Equal(t, testing.AllocsPerRun(100, f), expected, messages...)
 }

@@ -48,7 +48,7 @@ func (h FractionalHex) QRS() (float64, float64, float64) {
 
 // Length returns the distance from the origin in steps.
 func (h FractionalHex) Length() float64 {
-	return (math.Abs(h.Q) + math.Abs(h.R) + math.Abs(h.S())) / 2
+	return max(math.Abs(h.Q), math.Abs(h.R), math.Abs(h.S()))
 }
 
 // Add returns the sum of the fractional hexes.
