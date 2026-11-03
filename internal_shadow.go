@@ -57,8 +57,10 @@ type shadowCast struct {
 }
 
 // newShadowCast returns a sweep with room for the shadows of every ring within radius: one for
-// each hex a wedge has on the last ring asked about, the two on its axes included, since a
-// blocker on an axis casts a shadow into both wedges beside it. The shadows swept against and
+// each hex a wedge has on the last ring asked about, the two on its axes included. A wedge holds
+// no more after ring d: from one axis step to the next, a shadow covers at least the 3/(3k+1)
+// of a hex off the axes on ring k, or the 2/(3k+1) of one on an axis, and two at most start on
+// an axis, so d+1 of them fill it. The shadows swept against and
 // those being cast share one buffer, a half each.
 func newShadowCast(radius int) shadowCast {
 	room := 6 * radius
