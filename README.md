@@ -39,7 +39,7 @@ the ones the code beside them returns.
 - **Visibility**: exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
 - **Cube space**: rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
 - **Directions**: six of them, by increasing angle, with flat-top and pointy-top compass aliases.
-- **Seven coordinate systems**: offset and doubled, converting losslessly both ways.
+- **Seven coordinate systems**: axial, offset and doubled, converting losslessly both ways.
 - **Reproducible**: fractional hexes round the same on amd64 and arm64.
 - **Extras**: `geometry` interop, JSON, name parsing and `hextest` assertions.
 
@@ -156,7 +156,8 @@ h.DiagonalNeighbors()        // the six hexes two steps away, each between two n
 h.DirectionTo(hex.Pt(4, -1)) // SMinus, the direction nearest to another hex
 ```
 
-A hex exactly between two directions, as a diagonal neighbor is, takes the one the other is a sixth-turn past.
+A hex exactly between two directions, as a diagonal neighbor is, takes the earlier of the two by
+increasing angle.
 
 ### Range, ring, spiral and line
 
@@ -263,8 +264,8 @@ a.HasLineOfSight(c, blocked) // whether a sees one candidate c
 a.FieldOfView(5, blocked)   // every visible hex within radius 5; also FieldOfViewSeq
 ```
 
-`blocked` is a `func(hex.Hex) bool`, and `HasLineOfSight` asks it only about the hexes the segment
-meets, so it costs the distance however many hexes block. `slices.Contains` on a short
+`blocked` is a `func(hex.Hex) bool`, and `HasLineOfSight` asks it only about the hexes that can
+block the segment, so it costs the distance however many hexes block. `slices.Contains` on a short
 list of walls is enough on a small board; on a larger one use a lookup in a `map[hex.Hex]bool` or
 a grid, since a long list is scanned for every hex asked about.
 
@@ -368,8 +369,8 @@ take: it panics on a NaN or an infinity.
 
 ### Interop
 
-Pixel layout lives in [`gravitton/grid`](https://github.com/gravitton/grid), the shapes and
-vectors this package builds on in [`gravitton/geometry`](https://github.com/gravitton/geometry).
+The shapes and vectors this package builds on are in
+[`gravitton/geometry`](https://github.com/gravitton/geometry).
 
 ```go
 a.Point()         // geom.Point[int]{2, -1}
@@ -383,8 +384,8 @@ json.Marshal(hex.OffsetOddR) // "OffsetOddR"
 
 ### Testing
 
-The `hextest` package has one assertion per type, comparing with the tolerance of the asserted
-type, so the helpers stay out of the main package:
+The `hextest` package has one assertion per type, exact for a `Hex` and within a relative
+tolerance for a `FractionalHex`, so the helpers stay out of the main package:
 
 ```go
 import "github.com/gravitton/hexagon/hextest"
@@ -398,11 +399,9 @@ Full reference: [pkg.go.dev][link-go-dev-reference].
 ## Not planned, by design
 
 This package is the coordinate math alone: a hex knows its neighbors, its distances and its
-shape on the grid, and nothing about where it is drawn or what it holds. That layer is
-[`gravitton/grid`](https://github.com/gravitton/grid), which builds on this package and holds
-everything it leaves out: pixel layout, storage of a value per hex, pathfinding, the hexagon as a
-drawn shape, and sets of cells with union, intersection and difference, as `grid.Region`, over
-the indices square and hexagonal grids share.
+shape on the grid, and nothing about where it is drawn or what it holds. Pixel layout, storage
+of a value per hex, pathfinding, the hexagon as a drawn shape, and sets of cells with union,
+intersection and difference are left out.
 
 ## Credits
 

@@ -224,8 +224,7 @@ func (h Hex) RangeSeq(radius int) iter.Seq[Hex] {
 }
 
 // Ring returns the hexes at exactly distance radius from the hex, by increasing angle from the
-// SMinus corner, so the ring of radius one is Neighbors. It returns nil for a negative radius and
-// the hex alone for zero.
+// SMinus corner. It returns nil for a negative radius and the hex alone for zero.
 func (h Hex) Ring(radius int) []Hex {
 	if radius < 0 {
 		return nil
@@ -324,8 +323,8 @@ func (h Hex) DistanceTo(hex Hex) int {
 }
 
 // DirectionTo returns the direction nearest to the angle toward the given hex, and DirectionNone
-// for the hex itself. A hex exactly between two directions takes the one the other is a sixth-turn
-// past, the direction DiagonalNeighbor reaches it by.
+// for the hex itself. A hex exactly between two directions takes the earlier of the two by
+// increasing angle, the direction DiagonalNeighbor reaches it by.
 func (h Hex) DirectionTo(hex Hex) Direction {
 	delta := hex.Subtract(h)
 	for _, direction := range Directions() {
@@ -361,7 +360,7 @@ func (h Hex) LineToSeq(hex Hex) iter.Seq[Hex] {
 // the hexes blocked reports. Neither end counts as a blocker. It differs from LineTo: a hex off the
 // line can block the segment, and a hex of the line the segment only touches does not. It asks
 // blocked only about the hexes that can block the segment, each at most once, from the hex toward
-// target. A nil blocked blocks nothing.
+// target.
 func (h Hex) HasLineOfSight(target Hex, blocked func(Hex) bool) bool {
 	if blocked == nil {
 		return true
@@ -391,7 +390,7 @@ func (h Hex) HasLineOfSight(target Hex, blocked func(Hex) bool) bool {
 
 // FieldOfView returns the hexes of Spiral(radius) that HasLineOfSight sees past the hexes blocked
 // reports, in that order. It asks blocked about each hex at most once, and returns nil for a
-// negative radius. A nil blocked blocks nothing.
+// negative radius.
 func (h Hex) FieldOfView(radius int, blocked func(Hex) bool) []Hex {
 	if radius < 0 {
 		return nil

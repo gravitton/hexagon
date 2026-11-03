@@ -62,8 +62,7 @@ func ParseCoordinateSystem(name string) (CoordinateSystem, error) {
 	return CoordinateSystemNone, fmt.Errorf("hex: unknown coordinate system %q", name)
 }
 
-// IsNone reports whether the system is none of the seven, so every other value counts as
-// CoordinateSystemNone.
+// IsNone reports whether the system is outside the seven, CoordinateSystemNone included.
 func (s CoordinateSystem) IsNone() bool {
 	switch s {
 	case Axial, OffsetOddR, OffsetEvenR, OffsetOddQ, OffsetEvenQ, DoubleWidth, DoubleHeight:

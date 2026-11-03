@@ -11,9 +11,8 @@
 //
 // Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral],
 // [Hex.Sector] and [Hex.LineTo], line of sight and field of view, and turning and reflection in
-// cube space. Package hextest holds test assertions. Pixel layout lives in
-// github.com/gravitton/grid, and the shapes and vectors this package builds on in
-// github.com/gravitton/geometry.
+// cube space. Package hextest holds test assertions. The shapes and vectors this package builds on
+// are in github.com/gravitton/geometry.
 //
 // # Coordinates
 //
@@ -55,12 +54,13 @@
 // hex the segment only touches at a corner does not; and where the segment runs along the edge
 // between two hexes, both must block. Neither end counts. The rule is the same from either end, so
 // sight is symmetric: the field symmetric shadow casting computes. LineTo is the traversal, one hex
-// per step, so a blocker off the LineTo can still clip the sight line.
+// per step, so a hex off the line LineTo picks can block the sight, and a hex of it the segment
+// only touches does not.
 //
-// HasLineOfSight takes a function reporting whether a hex blocks, and asks it only about the hexes
-// that can block the segment, each at most once, so it costs the distance however many hexes
-// block. A lookup in a map or a grid suits a map of any size, and slices.Contains on a list
-// of blockers is enough while the list is short.
+// HasLineOfSight and FieldOfView take a function reporting whether a hex blocks, and a nil one
+// blocks nothing. HasLineOfSight asks it only about the hexes that can block the segment, each at
+// most once, so it costs the distance however many hexes block. A lookup in a map or a grid suits
+// a board of any size, and slices.Contains on a list of blockers is enough while the list is short.
 //
 // FieldOfView is the field of every hex within a radius, the hexes of Spiral that HasLineOfSight
 // sees. It asks about a hex at most once, so it costs the size of the range where a line to every
