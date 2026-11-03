@@ -53,14 +53,22 @@ func RingLen(radius int) int {
 	return max(6*radius, 1)
 }
 
-// SectorLen returns the length of Sector for the radius (r+r²/2, rounded down), and zero for a
-// negative one.
-func SectorLen(radius int) int {
-	if radius < 0 {
+// SectorLen returns the length of Sector for the radius and the turns (r+t·r(r+1)/2, less ⌈r/2⌉
+// for odd t, and 3r(r+1) from six turns on), and zero for a negative radius or negative turns.
+func SectorLen(radius, turns int) int {
+	if radius < 0 || turns < 0 {
 		return 0
 	}
+	if turns >= 6 {
+		return 3 * radius * (radius + 1)
+	}
 
-	return radius + radius*radius/2
+	length := radius + turns*radius*(radius+1)/2
+	if turns%2 == 1 {
+		return length - (radius+1)/2
+	}
+
+	return length
 }
 
 // parseCoordinates returns the two coordinates of the form String prints, naming the type of the
@@ -280,37 +288,45 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	}
 }
 
-// Sector returns the hexes within radius of the hex and within a twelfth of a turn either side of
-// the direction, both borders included, ring by ring outward, by increasing angle in each ring. A
-// hex on a border is in the sectors of both directions beside it. The hex itself is left out, so it
-// returns nil for a radius under one, and for DirectionNone.
-func (h Hex) Sector(radius int, direction Direction) []Hex {
-	if radius < 1 || direction.IsNone() {
+// Sector returns the hexes within radius of the hex and within turns sixth-turns about the
+// direction, half of them either side, both borders included, ring by ring outward, by increasing
+// angle in each ring. Zero turns is the ray along the direction, and six or more the whole range,
+// each ring from the hex opposite the direction. Two sectors of one turn about neighboring
+// directions share the hexes on their border. The hex itself is left out, so it returns nil for a
+// radius under one, for negative turns and for DirectionNone.
+func (h Hex) Sector(radius int, direction Direction, turns int) []Hex {
+	if radius < 1 || turns < 0 || direction.IsNone() {
 		return nil
 	}
 
-	return slices.AppendSeq(make([]Hex, 0, SectorLen(radius)), h.SectorSeq(radius, direction))
+	return slices.AppendSeq(make([]Hex, 0, SectorLen(radius, turns)), h.SectorSeq(radius, direction, turns))
 }
 
 // SectorSeq returns an iterator over the hexes of Sector, in the same order.
-func (h Hex) SectorSeq(radius int, direction Direction) iter.Seq[Hex] {
+func (h Hex) SectorSeq(radius int, direction Direction, turns int) iter.Seq[Hex] {
 	return func(yield func(Hex) bool) {
-		if direction.IsNone() {
+		if turns < 0 || direction.IsNone() {
 			return
 		}
 
-		before, after := direction.Turn(1).Hex(), direction.Turn(2).Hex()
+		turns = min(turns, 6)
 		for ring := 1; ring <= radius; ring++ {
-			corner := h.Add(direction.Hex().Multiply(ring))
+			reach := turns * ring / 2
+			start := (6*ring - reach) % (6 * ring)
+			side, step := direction.Turn(start/ring), start%ring
+			edge := side.Turn(2).Hex()
+			hex := h.Add(side.Hex().Multiply(ring)).Add(edge.Multiply(step))
 
-			for step := -ring / 2; step <= ring/2; step++ {
-				edge := after
-				if step < 0 {
-					edge = before
+			for range min(2*reach+1, 6*ring) {
+				if !yield(hex) {
+					return
 				}
 
-				if !yield(corner.Add(edge.Multiply(step))) {
-					return
+				hex = hex.Add(edge)
+				step++
+				if step == ring {
+					edge = edge.Turn(1)
+					step = 0
 				}
 			}
 		}

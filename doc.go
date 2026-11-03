@@ -74,8 +74,9 @@
 // Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring, Spiral
 // and FieldOfView and nothing from their Seq forms, a zero radius gives the center alone, a line
 // from a hex to itself is that one hex. [Hex.Sector] leaves the center out, so it gives nil for a
-// radius under one and for DirectionNone, which gives the hex itself from [Hex.Neighbor] and
-// [Hex.DiagonalNeighbor], and is the answer of [Hex.DirectionTo] for the hex itself.
+// radius under one, for negative turns and for DirectionNone, which gives the hex itself from
+// [Hex.Neighbor] and [Hex.DiagonalNeighbor], and is the answer of [Hex.DirectionTo] for the hex
+// itself.
 //
 // The only panics are for arguments with no meaning:
 //

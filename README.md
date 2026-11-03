@@ -204,18 +204,21 @@ buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
-  <img alt="The sector of radius 4 toward one direction, numbered ring by ring, widening evenly on both sides, and two neighboring sectors sharing the hexes on their border" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
+  <img alt="The sector of radius 4 and one turn toward one direction, numbered ring by ring, widening evenly on both sides, the wider sector of two turns, and two neighboring sectors sharing the hexes on their border" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
 </picture>
 </p>
 
 ```go
-h.Sector(4, hex.QPlus) // the 12 hexes of the cone toward that direction, without h; also SectorSeq
-hex.SectorLen(4)       // 12, sizes a buffer as RangeLen does
+h.Sector(4, hex.QPlus, 1) // the 12 hexes of the cone a sixth-turn wide toward that direction, without h; also SectorSeq
+h.Sector(4, hex.QPlus, 2) // the 24 hexes of the cone two sixth-turns wide
+hex.SectorLen(4, 1)       // 12, sizes a buffer as RangeLen does
 ```
 
-A sector is the cone in front of a unit: the hexes within 30° either side of the direction, both
-borders included, so it is the same on both sides. Its rings are 1, 3, 3, 5, 5 hexes wide, as a
-straight edge falls on a hex grid, and two neighboring sectors share the hexes on their border.
+A sector is the cone in front of a unit: the hexes within a number of sixth-turns about the
+direction, half either side, both borders included, so it is the same on both sides. A width of one
+turn is 30° either side, with rings 1, 3, 3, 5, 5 hexes wide, as a straight edge falls on a hex grid,
+and two neighboring sectors of one turn share the hexes on their border. Zero turns is the ray along
+the direction, and six the whole range around the hex.
 
 ### Line of sight
 
