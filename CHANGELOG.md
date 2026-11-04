@@ -18,6 +18,7 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ### Added
 - `Hex.SectorContains` reports whether a hex is in a sector without walking it
+- `Hex.FieldOfViewSector` and `FieldOfViewSectorSeq` return the hexes of a sector the source sees, sweeping only the cone and asking `blocked` only about hexes that can hide one of it
 
 ### Changed
 - Require `geometry` v1.18.0

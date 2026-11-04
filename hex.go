@@ -443,20 +443,49 @@ func (h Hex) FieldOfViewSeq(radius int, blocked func(Hex) bool) iter.Seq[Hex] {
 			return
 		}
 
-		var sweep shadowCast
-		if blocked != nil && radius > 1 {
-			sweep = newShadowCast(radius)
+		h.fieldOfView(radius, view{SMinus, 6}, blocked, yield)
+	}
+}
+
+// FieldOfViewSector returns the hexes of Sector(radius, direction, turns) that HasLineOfSight sees
+// past the hexes blocked reports, in that order. It asks blocked only about the hexes that can hide
+// one of them, each at most once: those of the sector, and beside an edge a border runs along, the
+// hex outside it. It returns nil where Sector does.
+func (h Hex) FieldOfViewSector(radius int, direction Direction, turns int, blocked func(Hex) bool) []Hex {
+	if radius < 1 || turns < 0 || direction.IsNone() {
+		return nil
+	}
+
+	return slices.AppendSeq(make([]Hex, 0, SectorLen(radius, turns)), h.FieldOfViewSectorSeq(radius, direction, turns, blocked))
+}
+
+// FieldOfViewSectorSeq returns an iterator over the hexes of FieldOfViewSector, in the same order.
+func (h Hex) FieldOfViewSectorSeq(radius int, direction Direction, turns int, blocked func(Hex) bool) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		if turns < 0 || direction.IsNone() {
+			return
 		}
 
-		for distance := 1; distance < radius; distance++ {
-			if !sweep.ring(h, distance, blocked, yield) {
-				return
-			}
-		}
+		h.fieldOfView(radius, newView(direction, turns), blocked, yield)
+	}
+}
 
-		if radius > 0 {
-			sweep.ring(h, radius, nil, yield)
+// fieldOfView yields the hexes of the view within radius, the hex itself left out, that no hex
+// blocked reports hides, ring by ring outward.
+func (h Hex) fieldOfView(radius int, part view, blocked func(Hex) bool, yield func(Hex) bool) {
+	var sweep shadowCast
+	if blocked != nil && radius > 1 {
+		sweep = newShadowCast(radius)
+	}
+
+	for distance := 1; distance < radius; distance++ {
+		if !sweep.ring(h, distance, part, blocked, yield) {
+			return
 		}
+	}
+
+	if radius > 0 {
+		sweep.ring(h, radius, part, nil, yield)
 	}
 }
 

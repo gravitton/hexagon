@@ -1597,7 +1597,7 @@ func TestHex_FieldOfView(t *testing.T) {
 			for _, radius := range []int{1, 2, 3, 7, 16, 33} {
 				for _, modulus := range []int{1, 2, 3, 4, 5, 7, 11, 23, 97} {
 					blocked := scattered(modulus)
-					assert.Equal(t, source.FieldOfView(radius, blocked), seenBy(source, radius, blocked), source.String()+" within "+strconv.Itoa(radius)+" past one in "+strconv.Itoa(modulus)+": ")
+					assert.Equal(t, source.FieldOfView(radius, blocked), seenAmong(source, source.Spiral(radius), blocked), source.String()+" within "+strconv.Itoa(radius)+" past one in "+strconv.Itoa(modulus)+": ")
 				}
 			}
 		}
@@ -1650,19 +1650,8 @@ func FuzzHex_FieldOfView(f *testing.F) {
 			return geom.Mod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
 		}
 
-		assert.Equal(t, source.FieldOfView(radius, blocked), seenBy(source, radius, blocked), source.String()+" within "+strconv.Itoa(radius)+": ")
+		assert.Equal(t, source.FieldOfView(radius, blocked), seenAmong(source, source.Spiral(radius), blocked), source.String()+" within "+strconv.Itoa(radius)+": ")
 	})
-}
-
-func seenBy(source Hex, radius int, blocked func(Hex) bool) []Hex {
-	var seen []Hex
-	for _, h := range source.Spiral(radius) {
-		if source.HasLineOfSight(h, blocked) {
-			seen = append(seen, h)
-		}
-	}
-
-	return seen
 }
 
 func TestHex_FieldOfViewSeq(t *testing.T) {
@@ -1714,6 +1703,197 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 		assertAllocations(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(6, nil))
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(1, blocked))
+		}, 0.0)
+	})
+}
+
+func TestHex_FieldOfViewSector(t *testing.T) {
+	everything := func(Hex) bool {
+		return true
+	}
+
+	t.Run("a radius under one sees nothing", func(t *testing.T) {
+		assert.True(t, testHex.FieldOfViewSector(0, QPlus, 2, everything) == nil)
+		assert.True(t, testHex.FieldOfViewSector(-1, QPlus, 2, everything) == nil)
+	})
+	t.Run("negative turns see nothing", func(t *testing.T) {
+		assert.True(t, testHex.FieldOfViewSector(4, QPlus, -1, everything) == nil)
+	})
+	t.Run("DirectionNone sees nothing", func(t *testing.T) {
+		assert.True(t, testHex.FieldOfViewSector(4, DirectionNone, 2, everything) == nil)
+	})
+	t.Run("a nil blocked shows the sector", func(t *testing.T) {
+		for turns := range 8 {
+			assert.Equal(t, testHex.FieldOfViewSector(5, QPlus, turns, nil), testHex.Sector(5, QPlus, turns), strconv.Itoa(turns)+" turns: ")
+		}
+	})
+	t.Run("the nearest ring is visible whatever blocks", func(t *testing.T) {
+		assert.Equal(t, testHex.FieldOfViewSector(5, RMinus, 3, everything), testHex.Sector(1, RMinus, 3))
+	})
+	t.Run("a hex outside closes a border edge together with the one inside", func(t *testing.T) {
+		assert.True(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0)})), Pt(1, 1)))
+		assert.True(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(0, 1)})), Pt(1, 1)))
+		assert.False(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1)))
+	})
+	t.Run("agrees with HasLineOfSight over the sector", func(t *testing.T) {
+		for _, source := range []Hex{testHexZero, Pt(40, -17)} {
+			for _, radius := range []int{1, 2, 3, 7, 12} {
+				for turns := range 8 {
+					for _, direction := range Directions() {
+						for _, modulus := range []int{1, 2, 3, 5, 11, 97} {
+							blocked := scattered(modulus)
+							message := source.String() + " within " + strconv.Itoa(radius) + " " + direction.String() + " " + strconv.Itoa(turns) + " past one in " + strconv.Itoa(modulus) + ": "
+							assert.Equal(t, source.FieldOfViewSector(radius, direction, turns, blocked), seenAmong(source, source.Sector(radius, direction, turns), blocked), message)
+						}
+					}
+				}
+			}
+		}
+	})
+	t.Run("holds the hexes of FieldOfView the sector contains", func(t *testing.T) {
+		blocked := scattered(3)
+		for turns := range 8 {
+			for _, direction := range Directions() {
+				var expected []Hex
+				for _, hex := range testHex.FieldOfView(9, blocked) {
+					if testHex.SectorContains(9, direction, turns, hex) {
+						expected = append(expected, hex)
+					}
+				}
+
+				actual := testHex.FieldOfViewSector(9, direction, turns, blocked)
+				slices.SortFunc(expected, Hex.Compare)
+				slices.SortFunc(actual, Hex.Compare)
+				assert.Equal(t, actual, expected, direction.String()+" "+strconv.Itoa(turns)+": ")
+			}
+		}
+	})
+	t.Run("asks once, never about the last ring, and outside only beside a border edge", func(t *testing.T) {
+		for turns := range 8 {
+			for _, direction := range Directions() {
+				for _, modulus := range []int{2, 5, 11} {
+					asked := map[Hex]int{}
+					testHex.FieldOfViewSector(12, direction, turns, func(hex Hex) bool {
+						asked[hex]++
+
+						return scattered(modulus)(hex)
+					})
+
+					for hex, times := range asked {
+						message := direction.String() + " " + strconv.Itoa(turns) + " " + hex.String() + ": "
+						ring := testHex.DistanceTo(hex)
+						assert.Equal(t, times, 1, message)
+						assert.True(t, ring > 0 && ring < 12, message)
+						assert.True(t, testHex.SectorContains(12, direction, turns, hex) || turns%2 == 1 && ring%2 == 1 && besideOnRing(testHex, hex, 12, direction, turns), message)
+					}
+				}
+			}
+		}
+	})
+	t.Run("asks about fewer hexes than FieldOfView", func(t *testing.T) {
+		count := func(asked *int) func(Hex) bool {
+			return func(hex Hex) bool {
+				*asked++
+
+				return scattered(11)(hex)
+			}
+		}
+
+		var cone, field int
+		testHexZero.FieldOfViewSector(20, QPlus, 1, count(&cone))
+		testHexZero.FieldOfView(20, count(&field))
+		assert.True(t, 3*cone < field, strconv.Itoa(cone)+" of "+strconv.Itoa(field)+": ")
+	})
+	t.Run("allocates the result at the length of the sector and the sweep", func(t *testing.T) {
+		blocked := scattered(11)
+		assert.Equal(t, cap(testHexZero.FieldOfViewSector(10, QPlus, 3, blocked)), SectorLen(10, 3))
+		assertAllocations(t, func() {
+			sinkHexes = testHexZero.FieldOfViewSector(10, QPlus, 3, blocked)
+		}, 2.0)
+	})
+}
+
+func BenchmarkHex_FieldOfViewSector(b *testing.B) {
+	blocked := scattered(11)
+
+	for b.Loop() {
+		sinkHexes = testHexZero.FieldOfViewSector(40, QPlus, 1, blocked)
+	}
+}
+
+func FuzzHex_FieldOfViewSector(f *testing.F) {
+	f.Add(0, 0, 6, 0, 1, 1, 0, 2)
+	f.Add(-1, 3, 12, 3, 3, 7, 13, 11)
+	f.Add(40, -17, 20, 5, 5, 3, -5, 4)
+	f.Add(-1000000, 999999, 9, 1, 2, 1, 1, 3)
+
+	f.Fuzz(func(t *testing.T, q, r, radius, direction, turns, factorQ, factorR, modulus int) {
+		if max(geom.Abs(q), geom.Abs(r), geom.Abs(factorQ), geom.Abs(factorR)) > 1e6 || radius < 0 || radius > 24 || geom.Abs(direction) > 12 || turns < -1 || turns > 8 || modulus < 1 || modulus > 1000 {
+			t.Skip()
+		}
+
+		source := Pt(q, r)
+		blocked := func(hex Hex) bool {
+			return geom.Mod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
+		}
+
+		message := source.String() + " within " + strconv.Itoa(radius) + " " + strconv.Itoa(direction) + " " + strconv.Itoa(turns) + ": "
+		assert.Equal(t, source.FieldOfViewSector(radius, Direction(direction), turns, blocked), seenAmong(source, source.Sector(radius, Direction(direction), turns), blocked), message)
+	})
+}
+
+// besideOnRing reports whether the hex has a neighbor on its own ring around source that the
+// sector contains.
+func besideOnRing(source, hex Hex, radius int, direction Direction, turns int) bool {
+	for _, neighbor := range hex.Neighbors() {
+		if source.DistanceTo(neighbor) == source.DistanceTo(hex) && source.SectorContains(radius, direction, turns, neighbor) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func TestHex_FieldOfViewSectorSeq(t *testing.T) {
+	blocked := scattered(5)
+
+	t.Run("yields the hexes of FieldOfViewSector in order", func(t *testing.T) {
+		assert.Equal(t, slices.Collect(testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked)), testHexZero.FieldOfViewSector(6, RPlus, 3, blocked))
+	})
+	t.Run("yields nothing for negative turns or DirectionNone", func(t *testing.T) {
+		assert.Equal(t, len(slices.Collect(testHexZero.FieldOfViewSectorSeq(6, RPlus, -1, blocked))), 0)
+		assert.Equal(t, len(slices.Collect(testHexZero.FieldOfViewSectorSeq(6, DirectionNone, 3, blocked))), 0)
+	})
+	t.Run("stops when the loop breaks", func(t *testing.T) {
+		for stop := range len(testHexZero.FieldOfViewSector(6, RPlus, 3, blocked)) {
+			walked := 0
+			for range testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked) {
+				if walked == stop {
+					break
+				}
+				walked++
+			}
+			assert.Equal(t, walked, stop)
+		}
+	})
+	t.Run("allocates the sweep alone", func(t *testing.T) {
+		assertAllocations(t, func() {
+			for h := range testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked) {
+				sinkHex = h
+			}
+		}, 1.0)
+	})
+	t.Run("slices.AppendSeq allocates the sweep alone with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, SectorLen(6, 3))
+		assertAllocations(t, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked))
+		}, 1.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
+		buffer := make([]Hex, 0, SectorLen(6, 3))
+		assertAllocations(t, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, nil))
+			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(1, RPlus, 3, blocked))
 		}, 0.0)
 	})
 }
@@ -1871,6 +2051,19 @@ func scattered(modulus int) func(Hex) bool {
 	return func(hex Hex) bool {
 		return geom.Mod(hex.Q*7+hex.R*13, modulus) == 3%modulus
 	}
+}
+
+// seenAmong returns the given hexes source has a line of sight to past the hexes blocked reports,
+// in their order.
+func seenAmong(source Hex, hexes []Hex, blocked func(Hex) bool) []Hex {
+	var seen []Hex
+	for _, h := range hexes {
+		if source.HasLineOfSight(h, blocked) {
+			seen = append(seen, h)
+		}
+	}
+
+	return seen
 }
 
 var (
@@ -2057,6 +2250,43 @@ func ExampleHex_HasLineOfSight() {
 	// Output:
 	// false
 	// true
+}
+
+func ExampleHex_FieldOfView() {
+	walls := map[Hex]bool{
+		Pt(1, -2): true, Pt(2, -2): true, Pt(2, -1): true,
+		Pt(-2, 0): true, Pt(-2, 1): true,
+		Pt(0, 2): true, Pt(1, 2): true,
+		Pt(-1, -2): true,
+	}
+	blocked := func(h Hex) bool {
+		return walls[h]
+	}
+
+	visible := Pt(0, 0).FieldOfView(5, blocked)
+	fmt.Println(len(visible), "of", RangeLen(5))
+	fmt.Println(slices.Contains(visible, Pt(3, 0)), slices.Contains(visible, Pt(3, -2)))
+	// Output:
+	// 48 of 91
+	// true false
+}
+
+func ExampleHex_FieldOfViewSector() {
+	walls := map[Hex]bool{
+		Pt(1, -2): true, Pt(2, -2): true, Pt(2, -1): true,
+		Pt(-2, 0): true, Pt(-2, 1): true,
+		Pt(0, 2): true, Pt(1, 2): true,
+		Pt(-1, -2): true,
+	}
+	blocked := func(h Hex) bool {
+		return walls[h]
+	}
+
+	fmt.Println(len(Pt(0, 0).FieldOfViewSector(5, SMinus, 2, blocked)), "of", SectorLen(5, 2))
+	fmt.Println(Pt(0, 0).FieldOfViewSector(2, SMinus, 2, blocked))
+	// Output:
+	// 18 of 35
+	// [(1,-1) (1,0) (0,1) (2,-2) (2,-1) (2,0) (1,1) (0,2)]
 }
 
 func ExampleHex_Compare() {

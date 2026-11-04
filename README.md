@@ -231,6 +231,8 @@ a cone attack. Together with `HasLineOfSight` it asks whether a unit sees one ta
 h.SectorContains(5, facing, 2, enemy) && h.HasLineOfSight(enemy, blocked)
 ```
 
+For every hex the unit sees in its arc, `FieldOfViewSector` below sweeps the cone once.
+
 ### Line of sight
 
 Sight runs along the exact segment between two hex centers, in integers. A blocker the segment
@@ -269,13 +271,15 @@ line can block the sight, and a hex of the line the segment only touches does no
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/field-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/field-light.svg">
-  <img alt="The field of view of a hex among walls: lines to seven candidates, seen or hidden, and every hex within radius 5, seen or hidden" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/field-light.svg">
+  <img alt="The field of view of a hex among walls: lines to seven candidates, seen or hidden, every hex within radius 5, seen or hidden, and the hexes of the cone two turns wide, seen or hidden" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/field-light.svg">
 </picture>
 </p>
 
 ```go
 a.HasLineOfSight(c, blocked) // whether a sees one candidate c
-a.FieldOfView(5, blocked)   // every visible hex within radius 5; also FieldOfViewSeq
+a.FieldOfView(5, blocked)   // the 48 hexes visible within radius 5; also FieldOfViewSeq
+
+a.FieldOfViewSector(5, hex.SMinus, 2, blocked) // the 18 visible of the 35 hexes of Sector(5, hex.SMinus, 2); also FieldOfViewSectorSeq
 ```
 
 `blocked` is a `func(hex.Hex) bool`, and `HasLineOfSight` asks it only about the hexes that can
@@ -288,6 +292,10 @@ gives the hexes of `Spiral(radius)` that `HasLineOfSight` sees, but sweeps the r
 once and asks `blocked` about each hex at most once, where a line to every hex walks the near
 ones again and again. At a radius of 40 it is about fifteen times faster; filter by
 `HasLineOfSight` for a handful of candidates.
+
+`FieldOfViewSector` is the field of a cone, what a unit facing one way sees. It sweeps only the
+part of the rings the cone covers and asks `blocked` only about the hexes that can hide one of the
+sector, so a cone of one turn costs about a third of the whole field.
 
 ### Rotation and reflection
 
