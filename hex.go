@@ -333,6 +333,27 @@ func (h Hex) SectorSeq(radius int, direction Direction, turns int) iter.Seq[Hex]
 	}
 }
 
+// SectorContains reports whether the hex is in Sector of the same radius, direction and turns,
+// without walking it.
+func (h Hex) SectorContains(radius int, direction Direction, turns int, hex Hex) bool {
+	ring := h.DistanceTo(hex)
+	if ring < 1 || ring > radius || turns < 0 || direction.IsNone() {
+		return false
+	}
+
+	q, r := hex.Subtract(h).Turn(-int(direction)).QR()
+	if r < 0 {
+		q, r = q+r, -r
+	}
+
+	position := ring - q
+	if q == -ring {
+		position = 3*ring - r
+	}
+
+	return position <= min(turns, 6)*ring/2
+}
+
 // DistanceTo returns the distance to the given hex in steps.
 func (h Hex) DistanceTo(hex Hex) int {
 	return h.Subtract(hex).Length()

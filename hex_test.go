@@ -1066,6 +1066,49 @@ func TestHex_SectorSeq(t *testing.T) {
 	})
 }
 
+func TestHex_SectorContains(t *testing.T) {
+	t.Run("the hexes of the cone", func(t *testing.T) {
+		assert.True(t, testHexZero.SectorContains(2, SMinus, 1, Pt(1, 0)))
+		assert.True(t, testHexZero.SectorContains(2, SMinus, 1, Pt(2, -1)))
+		assert.True(t, testHexZero.SectorContains(2, SMinus, 1, Pt(1, 1)))
+		assert.False(t, testHexZero.SectorContains(2, SMinus, 1, Pt(1, -1)))
+		assert.False(t, testHexZero.SectorContains(2, SMinus, 1, Pt(3, 0)))
+	})
+	t.Run("leaves the hex itself out", func(t *testing.T) {
+		assert.False(t, testHex.SectorContains(3, SMinus, 6, testHex))
+	})
+	t.Run("a radius under one, negative turns and DirectionNone contain nothing", func(t *testing.T) {
+		assert.False(t, testHexZero.SectorContains(0, SMinus, 1, Pt(1, 0)))
+		assert.False(t, testHexZero.SectorContains(3, SMinus, -1, Pt(1, 0)))
+		assert.False(t, testHexZero.SectorContains(3, DirectionNone, 1, Pt(1, 0)))
+	})
+	t.Run("agrees with Sector", func(t *testing.T) {
+		all := Directions()
+		directions := append(all[:], DirectionNone, Direction(7), Direction(-2))
+		for radius := -1; radius <= 6; radius++ {
+			for turns := -1; turns <= 8; turns++ {
+				for _, direction := range directions {
+					sector := testHex.Sector(radius, direction, turns)
+					for h := range testHex.RangeSeq(max(radius, 0) + 1) {
+						assert.Equal(t, testHex.SectorContains(radius, direction, turns, h), slices.Contains(sector, h), strconv.Itoa(radius)+" "+strconv.Itoa(turns)+" "+direction.String()+" at "+h.String()+": ")
+					}
+				}
+			}
+		}
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assertAllocations(t, func() {
+			sinkBool = testHex.SectorContains(9, QPlus, 3, Pt(5, -9))
+		}, 0.0)
+	})
+}
+
+func BenchmarkHex_SectorContains(b *testing.B) {
+	for b.Loop() {
+		sinkBool = testHex.SectorContains(9, QPlus, 3, Pt(5, -9))
+	}
+}
+
 func TestHex_DistanceTo(t *testing.T) {
 	t.Run("steps between hexes", func(t *testing.T) {
 		assert.Equal(t, testHex.DistanceTo(Pt(0, 3)), 1)
@@ -1947,6 +1990,28 @@ func ExampleHex_Sector() {
 	// Output:
 	// [(1,0) (2,-1) (2,0) (1,1)]
 	// [(1,-1) (1,0) (0,1)]
+}
+
+func ExampleHex_SectorContains() {
+	h := Pt(0, 0)
+
+	fmt.Println(h.SectorContains(4, QPlus, 1, Pt(2, -3)))
+	fmt.Println(h.SectorContains(4, QPlus, 1, Pt(3, -1)))
+
+	walls := map[Hex]bool{Pt(2, -1): true}
+	blocked := func(h Hex) bool {
+		return walls[h]
+	}
+
+	for _, enemy := range []Hex{Pt(3, 0), Pt(3, -2), Pt(-3, 0)} {
+		fmt.Println(enemy, h.SectorContains(5, SMinus, 2, enemy) && h.HasLineOfSight(enemy, blocked))
+	}
+	// Output:
+	// true
+	// false
+	// (3,0) true
+	// (3,-2) false
+	// (-3,0) false
 }
 
 func ExampleHex_DirectionTo() {

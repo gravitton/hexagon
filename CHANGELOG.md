@@ -16,6 +16,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 ### Breaking
 - **breaking** `Hex.Sector`, `SectorSeq` and `SectorLen` take the width of the cone in sixth-turns after the direction: one turn is the former 30° either side, zero the ray along the direction, six or more the whole range around the hex
 
+### Added
+- `Hex.SectorContains` reports whether a hex is in a sector without walking it
+
 ### Changed
 - Require `geometry` v1.18.0
 - CI runs the shared workflow of `gravitton/.github`, with the same steps, and can be started by hand

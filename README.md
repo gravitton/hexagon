@@ -205,7 +205,7 @@ buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
-  <img alt="The sector of radius 4 and one turn toward one direction, numbered ring by ring, widening evenly on both sides, the wider sector of two turns, and two neighboring sectors sharing the hexes on their border" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
+  <img alt="The sector of radius 4 and one turn toward one direction, numbered ring by ring, widening evenly on both sides, with one hex on its border outlined, the wider sector of two turns, and two neighboring sectors sharing the hexes on their border" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/sectors-light.svg">
 </picture>
 </p>
 
@@ -214,15 +214,22 @@ h.Sector(4, hex.QPlus, 1) // the 12 hexes of the cone a sixth-turn wide toward t
 h.Sector(4, hex.QPlus, 2) // the 24 hexes of the cone two sixth-turns wide
 hex.SectorLen(4, 1)       // 12, sizes a buffer as RangeLen does
 
-h.SectorContains(4, hex.QPlus, 1, hex.Pt(2, -3)) // true, without walking the cone
+h.SectorContains(4, hex.QPlus, 1, hex.Pt(2, -3)) // true, the outlined hex on the border, without walking the cone
 ```
 
 A sector is the cone in front of a unit: the hexes within a number of sixth-turns about the
 direction, half either side, both borders included, so it is the same on both sides. A width of one
 turn is 30° either side, with rings 1, 3, 3, 5, 5 hexes wide, as a straight edge falls on a hex grid,
 and two neighboring sectors of one turn share the hexes on their border. Zero turns is the ray along
-the direction, and six the whole range around the hex. `SectorContains` asks about one hex, so a
-field of view filtered by it is the part of the field inside the cone.
+the direction, and six the whole range around the hex.
+
+`SectorContains` answers for one hex in constant time and without allocating, where looking it up
+in `Sector` builds the whole cone: whether an enemy is in a unit's facing arc, or a hex in reach of
+a cone attack. Together with `HasLineOfSight` it asks whether a unit sees one target in its arc:
+
+```go
+h.SectorContains(5, facing, 2, enemy) && h.HasLineOfSight(enemy, blocked)
+```
 
 ### Line of sight
 
