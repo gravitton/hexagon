@@ -12,6 +12,7 @@
 [![Build Status][ico-workflow]][link-workflow]
 [![Coverage Status][ico-coverage]][link-coverage]
 [![Go Dev Reference][ico-go-dev-reference]][link-go-dev-reference]
+[![Go Version][ico-go-version]][link-go]
 [![Software License][ico-license]][link-licence]
 
 Hexagonal grid math library for game development
@@ -212,13 +213,16 @@ buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 h.Sector(4, hex.QPlus, 1) // the 12 hexes of the cone a sixth-turn wide toward that direction, without h; also SectorSeq
 h.Sector(4, hex.QPlus, 2) // the 24 hexes of the cone two sixth-turns wide
 hex.SectorLen(4, 1)       // 12, sizes a buffer as RangeLen does
+
+h.SectorContains(4, hex.QPlus, 1, hex.Pt(2, -3)) // true, without walking the cone
 ```
 
 A sector is the cone in front of a unit: the hexes within a number of sixth-turns about the
 direction, half either side, both borders included, so it is the same on both sides. A width of one
 turn is 30° either side, with rings 1, 3, 3, 5, 5 hexes wide, as a straight edge falls on a hex grid,
 and two neighboring sectors of one turn share the hexes on their border. Zero turns is the ray along
-the direction, and six the whole range around the hex.
+the direction, and six the whole range around the hex. `SectorContains` asks about one hex, so a
+field of view filtered by it is the part of the field inside the cone.
 
 ### Line of sight
 
@@ -417,13 +421,15 @@ intersection and difference are left out.
 The MIT License (MIT). Please see [License File][link-licence] for more information.
 
 
-[ico-license]:              https://img.shields.io/github/license/gravitton/hexagon.svg?style=flat-square&color=blue
+[ico-license]:              https://img.shields.io/github/license/gravitton/hexagon.svg?style=flat-square&color=lightgrey
 [ico-workflow]:             https://img.shields.io/github/actions/workflow/status/gravitton/hexagon/main.yml?branch=main&style=flat-square
-[ico-release]:              https://img.shields.io/github/v/release/gravitton/hexagon?style=flat-square&color=blue
-[ico-go-dev-reference]:     https://img.shields.io/badge/go.dev-reference-blue?style=flat-square
+[ico-release]:              https://img.shields.io/github/v/release/gravitton/hexagon?style=flat-square&color=e8883a
+[ico-go-version]:           https://img.shields.io/github/go-mod/go-version/gravitton/hexagon?style=flat-square&color=007d9c
+[ico-go-dev-reference]:     https://img.shields.io/badge/go.dev-reference-007d9c?style=flat-square
 [ico-coverage]:             https://img.shields.io/coverallsCoverage/github/gravitton/hexagon?style=flat-square
 
 [link-release]:             https://github.com/gravitton/hexagon/releases
+[link-go]:                  https://go.dev/doc/devel/release
 [link-contributors]:        https://github.com/gravitton/hexagon/contributors
 [link-licence]:             ./LICENSE.md
 [link-workflow]:            https://github.com/gravitton/hexagon/actions
