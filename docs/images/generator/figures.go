@@ -453,10 +453,6 @@ func fractional(p *panel, f hex.FractionalHex) geom.Point[float64] {
 	return zero.Add(q.Multiply(f.Q)).Add(r.Multiply(f.R))
 }
 
-func offset(column, row int) hex.Hex {
-	return hex.OffsetOddR.From(geom.Pt(column, row))
-}
-
 func set(hexes ...hex.Hex) map[hex.Hex]bool {
 	s := make(map[hex.Hex]bool, len(hexes))
 	for _, h := range hexes {

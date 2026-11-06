@@ -25,12 +25,11 @@ Hexagonal grid math library for game development
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-light.svg">
-  <img alt="A hex map: the field of view of a unit among walls, a line to the farthest hex it sees, and the range of a second unit" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-light.svg">
+  <img alt="A map of walls, rough ground, a scout and a goal in hexes: the scout's field of view of radius 6, its line to the goal, hidden behind a wall, and its field of view in a sector of two sixth-turns toward the goal" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-light.svg">
 </picture>
 </p>
 
-Every picture in this README is drawn from the package's own results: the hexes coloured are
-the ones the code beside them returns.
+Every picture in this README is drawn from what the package returns for the call beside it.
 
 ## Features
 
@@ -418,12 +417,18 @@ hextest.AssertFractionalHex(t, got, hex.FracPt(1.5, -0.5), "after lerp: ")
 
 Full reference: [pkg.go.dev][link-go-dev-reference].
 
-## Not planned, by design
+## Out of scope
 
 This package is the coordinate math alone: a hex knows its neighbors, its distances and its
-shape on the grid, and nothing about where it is drawn or what it holds. Pixel layout, storage
-of a value per hex, pathfinding, the hexagon as a drawn shape, and sets of cells with union,
-intersection and difference are left out.
+shape on the grid, and nothing about where it is drawn or what it holds. What it leaves out is
+in [`gravitton/grid`][link-grid-hexagons], built on it:
+
+- **Pixel layout** – `grid.HexLayout` places hexes on a plane, flat-top or pointy-top, in any
+  coordinate system, and finds the hex under a point.
+- **A hexagon as a drawn shape** – `HexLayout.Polygon` gives the `geom.RegularPolygon` of a hex.
+- **Storage of a value per hex** – `grid.NewHexFlatTop` and `NewHexPointyTop` hold one per cell.
+- **Pathfinding** – `Grid.Path` and its searches, the same on hexes as on squares.
+- **Sets of cells** – `grid.Region`, a `container.Set` with union, intersection and difference.
 
 ## Credits
 
@@ -450,3 +455,4 @@ The MIT License (MIT). Please see [License File][link-licence] for more informat
 [link-workflow]:            https://github.com/gravitton/hexagon/actions
 [link-go-dev-reference]:    https://pkg.go.dev/github.com/gravitton/hexagon
 [link-coverage]:            https://coveralls.io/github/gravitton/hexagon
+[link-grid-hexagons]:       https://github.com/gravitton/grid#hexagons
