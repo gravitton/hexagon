@@ -5,6 +5,7 @@ package main
 import (
 	"cmp"
 	"fmt"
+	"strconv"
 	"strings"
 
 	geom "github.com/gravitton/geometry"
@@ -24,6 +25,8 @@ const (
 )
 
 type point = geom.Point[float64]
+
+type pixel float64
 
 type style struct {
 	fill   string
@@ -95,7 +98,7 @@ func (c *canvas) shape(element string, points []point, s style) {
 	coordinates := make([]string, len(points))
 	for i, at := range points {
 		c.cover(at)
-		coordinates[i] = fmt.Sprintf("%.1f,%.1f", at.X, at.Y)
+		coordinates[i] = fmt.Sprintf("%s,%s", pixel(at.X), pixel(at.Y))
 	}
 
 	fmt.Fprintf(&c.body, `<%s points="%s"%s stroke-linejoin="round"/>`+"\n", element, strings.Join(coordinates, " "), s)
@@ -104,13 +107,13 @@ func (c *canvas) shape(element string, points []point, s style) {
 func (c *canvas) line(a, b point, s style) {
 	c.cover(a)
 	c.cover(b)
-	fmt.Fprintf(&c.body, `<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f"%s stroke-linecap="round"/>`+"\n", a.X, a.Y, b.X, b.Y, s)
+	fmt.Fprintf(&c.body, `<line x1="%s" y1="%s" x2="%s" y2="%s"%s stroke-linecap="round"/>`+"\n", pixel(a.X), pixel(a.Y), pixel(b.X), pixel(b.Y), s)
 }
 
 func (c *canvas) circle(at point, radius float64, s style) {
 	c.cover(at.AddXY(-radius, -radius))
 	c.cover(at.AddXY(radius, radius))
-	fmt.Fprintf(&c.body, `<circle cx="%.1f" cy="%.1f" r="%g"%s/>`+"\n", at.X, at.Y, radius, s)
+	fmt.Fprintf(&c.body, `<circle cx="%s" cy="%s" r="%g"%s/>`+"\n", pixel(at.X), pixel(at.Y), radius, s)
 }
 
 func (c *canvas) arrow(from, to point, s style) {
@@ -147,7 +150,7 @@ func (c *canvas) text(at point, f font, spans ...span) {
 	if f.halo {
 		halo = fmt.Sprintf(` stroke="%s" stroke-width="4" stroke-linejoin="round" paint-order="stroke"`, c.theme.cell)
 	}
-	fmt.Fprintf(&c.body, `<text x="%.1f" y="%.1f" font-family="%s" font-size="%g" text-anchor="%s"%s`, at.X, at.Y+f.size*0.35, family, f.size, anchor, halo)
+	fmt.Fprintf(&c.body, `<text x="%s" y="%s" font-family="%s" font-size="%g" text-anchor="%s"%s`, pixel(at.X), pixel(at.Y+f.size*0.35), family, f.size, anchor, halo)
 	if len(spans) == 1 {
 		fmt.Fprintf(&c.body, ` fill="%s">%s</text>`+"\n", spans[0].color, spans[0].text)
 		return
@@ -165,8 +168,17 @@ func (c *canvas) content(id int) string {
 		return c.body.String()
 	}
 
-	return fmt.Sprintf(`<clipPath id="view-%d"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="6"/></clipPath>`+"\n"+`<g clip-path="url(#view-%d)">`+"\n%s</g>\n",
-		id, c.view.Min.X, c.view.Min.Y, c.view.Width(), c.view.Height(), id, c.body.String())
+	return fmt.Sprintf(`<clipPath id="view-%d"><rect x="%s" y="%s" width="%s" height="%s" rx="6"/></clipPath>`+"\n"+`<g clip-path="url(#view-%d)">`+"\n%s</g>\n",
+		id, pixel(c.view.Min.X), pixel(c.view.Min.Y), pixel(c.view.Width()), pixel(c.view.Height()), id, c.body.String())
+}
+
+func (p pixel) String() string {
+	text := strconv.FormatFloat(float64(p), 'f', 1, 64)
+	if text == "-0.0" {
+		return "0.0"
+	}
+
+	return text
 }
 
 func (s style) String() string {
@@ -212,14 +224,14 @@ func render(t theme, panels []*panel) (string, error) {
 	for i, p := range panels {
 		left := x + (slots[i]-p.bounds.Width())/2 - p.bounds.Min.X
 		top := margin + (height-p.height())/2 - p.bounds.Min.Y
-		fmt.Fprintf(&svg, `<g transform="translate(%.1f %.1f)">`+"\n%s</g>\n", left, top, p.content(i))
+		fmt.Fprintf(&svg, `<g transform="translate(%s %s)">`+"\n%s</g>\n", pixel(left), pixel(top), p.content(i))
 		if p.caption != "" {
-			fmt.Fprintf(&svg, `<text x="%.1f" y="%.1f" font-family="%s" font-size="%g" text-anchor="middle" fill="%s">%s</text>`+"\n",
-				x+slots[i]/2, margin+height+captionAt-4, mono, captionPt, t.muted, p.caption)
+			fmt.Fprintf(&svg, `<text x="%s" y="%s" font-family="%s" font-size="%g" text-anchor="middle" fill="%s">%s</text>`+"\n",
+				pixel(x+slots[i]/2), pixel(margin+height+captionAt-4), mono, captionPt, t.muted, p.caption)
 		}
 		if p.note != "" {
-			fmt.Fprintf(&svg, `<text x="%.1f" y="%.1f" font-family="%s" font-size="%g" text-anchor="middle" fill="%s">%s</text>`+"\n",
-				x+slots[i]/2, margin+height+captionAt+noteAt-4, sans, notePt, t.muted, p.note)
+			fmt.Fprintf(&svg, `<text x="%s" y="%s" font-family="%s" font-size="%g" text-anchor="middle" fill="%s">%s</text>`+"\n",
+				pixel(x+slots[i]/2), pixel(margin+height+captionAt+noteAt-4), sans, notePt, t.muted, p.note)
 		}
 		x += slots[i] + gap
 	}

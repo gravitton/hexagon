@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="245" viewBox="0 0 960 245" role="img">
 <g transform="translate(369.0 110.7)">
-<polygon points="-0.0,-38.0 32.9,-19.0 32.9,19.0 0.0,38.0 -32.9,19.0 -32.9,-19.0" fill="#e8883a" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="0.0,-38.0 32.9,-19.0 32.9,19.0 0.0,38.0 -32.9,19.0 -32.9,-19.0" fill="#e8883a" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <polygon points="65.8,-38.0 98.7,-19.0 98.7,19.0 65.8,38.0 32.9,19.0 32.9,-19.0" fill="#70451f" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="65.8" y="-6.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">SMinus</text>
 <text x="65.8" y="6.3" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">East</text>
 <text x="65.8" y="19.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">0 · 0°</text>
-<polygon points="32.9,19.0 65.8,38.0 65.8,76.0 32.9,95.0 -0.0,76.0 -0.0,38.0" fill="#5c5121" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="32.9,19.0 65.8,38.0 65.8,76.0 32.9,95.0 0.0,76.0 0.0,38.0" fill="#5c5121" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="32.9" y="50.2" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">RPlus</text>
 <text x="32.9" y="63.3" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">SouthEast</text>
 <text x="32.9" y="76.2" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">1 · 60°</text>
-<polygon points="-32.9,19.0 -0.0,38.0 0.0,76.0 -32.9,95.0 -65.8,76.0 -65.8,38.0" fill="#2f4f27" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-32.9,19.0 0.0,38.0 0.0,76.0 -32.9,95.0 -65.8,76.0 -65.8,38.0" fill="#2f4f27" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="-32.9" y="50.2" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">QMinus</text>
 <text x="-32.9" y="63.3" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">SouthWest</text>
 <text x="-32.9" y="76.2" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">2 · 120°</text>
@@ -17,19 +17,19 @@
 <text x="-65.8" y="-6.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">SPlus</text>
 <text x="-65.8" y="6.3" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">West</text>
 <text x="-65.8" y="19.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">3 · 180°</text>
-<polygon points="-32.9,-95.0 -0.0,-76.0 0.0,-38.0 -32.9,-19.0 -65.8,-38.0 -65.8,-76.0" fill="#234a66" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-32.9,-95.0 0.0,-76.0 0.0,-38.0 -32.9,-19.0 -65.8,-38.0 -65.8,-76.0" fill="#234a66" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="-32.9" y="-63.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">RMinus</text>
 <text x="-32.9" y="-50.7" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">NorthWest</text>
 <text x="-32.9" y="-37.9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">4 · 240°</text>
-<polygon points="32.9,-95.0 65.8,-76.0 65.8,-38.0 32.9,-19.0 -0.0,-38.0 -0.0,-76.0" fill="#44345e" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="32.9,-95.0 65.8,-76.0 65.8,-38.0 32.9,-19.0 0.0,-38.0 0.0,-76.0" fill="#44345e" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="32.9" y="-63.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">QPlus</text>
 <text x="32.9" y="-50.7" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">NorthEast</text>
 <text x="32.9" y="-37.9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">5 · 300°</text>
 </g>
 <text x="369.0" y="229.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" text-anchor="middle" fill="#a39a90">PointyTop aliases</text>
 <g transform="translate(594.7 110.7)">
-<polygon points="-19.0,-32.9 19.0,-32.9 38.0,-0.0 19.0,32.9 -19.0,32.9 -38.0,0.0" fill="#e8883a" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
-<polygon points="38.0,0.0 76.0,-0.0 95.0,32.9 76.0,65.8 38.0,65.8 19.0,32.9" fill="#70451f" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-19.0,-32.9 19.0,-32.9 38.0,0.0 19.0,32.9 -19.0,32.9 -38.0,0.0" fill="#e8883a" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="38.0,0.0 76.0,0.0 95.0,32.9 76.0,65.8 38.0,65.8 19.0,32.9" fill="#70451f" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="57.0" y="26.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">SMinus</text>
 <text x="57.0" y="39.2" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">SouthEast</text>
 <text x="57.0" y="52.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">0 · 0°</text>
@@ -37,11 +37,11 @@
 <text x="0.0" y="59.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">RPlus</text>
 <text x="0.0" y="72.1" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">South</text>
 <text x="0.0" y="85.0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">1 · 60°</text>
-<polygon points="-76.0,0.0 -38.0,-0.0 -19.0,32.9 -38.0,65.8 -76.0,65.8 -95.0,32.9" fill="#2f4f27" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-76.0,0.0 -38.0,0.0 -19.0,32.9 -38.0,65.8 -76.0,65.8 -95.0,32.9" fill="#2f4f27" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="-57.0" y="26.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">QMinus</text>
 <text x="-57.0" y="39.2" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">SouthWest</text>
 <text x="-57.0" y="52.1" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">2 · 120°</text>
-<polygon points="-76.0,-65.8 -38.0,-65.8 -19.0,-32.9 -38.0,-0.0 -76.0,0.0 -95.0,-32.9" fill="#1f4d48" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="-76.0,-65.8 -38.0,-65.8 -19.0,-32.9 -38.0,0.0 -76.0,0.0 -95.0,-32.9" fill="#1f4d48" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="-57.0" y="-39.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">SPlus</text>
 <text x="-57.0" y="-26.6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">NorthWest</text>
 <text x="-57.0" y="-13.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">3 · 180°</text>
@@ -49,7 +49,7 @@
 <text x="0.0" y="-72.6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">RMinus</text>
 <text x="0.0" y="-59.5" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">North</text>
 <text x="0.0" y="-46.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">4 · 240°</text>
-<polygon points="38.0,-65.8 76.0,-65.8 95.0,-32.9 76.0,-0.0 38.0,0.0 19.0,-32.9" fill="#44345e" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
+<polygon points="38.0,-65.8 76.0,-65.8 95.0,-32.9 76.0,0.0 38.0,0.0 19.0,-32.9" fill="#44345e" stroke="#5a524b" stroke-width="1" stroke-linejoin="round"/>
 <text x="57.0" y="-39.7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle" fill="#f0e9e2">QPlus</text>
 <text x="57.0" y="-26.6" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="9.5" text-anchor="middle" fill="#a39a90">NorthEast</text>
 <text x="57.0" y="-13.8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" text-anchor="middle" fill="#a39a90">5 · 300°</text>
