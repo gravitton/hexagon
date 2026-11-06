@@ -15,7 +15,7 @@
 [![Go Version][ico-go-version]][link-go]
 [![Software License][ico-license]][link-licence]
 
-Hexagonal grid math library for game development
+Hexagonal grid math: coordinates, ranges, lines and field of view
 
 <hr>
 
@@ -27,21 +27,21 @@ Hexagonal grid math library for game development
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-light.svg">
   <img alt="A map of walls, rough ground, a scout and a goal in hexes: the scout's field of view of radius 6, its line to the goal, hidden behind a wall, and its field of view in a sector of two sixth-turns toward the goal" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/hero-light.svg">
 </picture>
+<br>
+<sub>Every picture in this README is drawn from what the package returns for the call beside it.</sub>
 </p>
-
-Every picture in this README is drawn from what the package returns for the call beside it.
 
 ## Features
 
-- **Axial coordinates**: two integers per hex, the third cube coordinate derived.
-- **Immutable**: every method returns a new value, and a `Hex` is a map key that compares with `==`.
-- **Traversal**: neighbors, range, ring, spiral, sectors and lines, each with an allocation-free `Seq` form.
-- **Visibility**: exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
-- **Cube space**: rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
-- **Directions**: six of them, by increasing angle, with flat-top and pointy-top compass aliases.
-- **Seven coordinate systems**: axial, offset and doubled, converting losslessly both ways.
-- **Reproducible**: fractional hexes round the same on amd64 and arm64.
-- **Extras**: `geometry` interop, JSON, name parsing and `hextest` assertions.
+- **Axial coordinates** – two integers per hex, the third cube coordinate derived.
+- **Immutable** – every method returns a new value, and a `Hex` is a map key that compares with `==`.
+- **Traversal** – neighbors, range, ring, spiral, sectors and lines, each with an allocation-free `Seq` form.
+- **Visibility** – exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
+- **Cube space** – rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
+- **Directions** – six of them, by increasing angle, with flat-top and pointy-top compass aliases.
+- **Seven coordinate systems** – axial, offset and doubled, converting losslessly both ways.
+- **Reproducible** – fractional hexes round the same on amd64 and arm64.
+- **Extras** – `geometry` interop, JSON, name parsing and `hextest` assertions.
 
 The rules behind them are in the [package documentation][link-go-dev-reference].
 
