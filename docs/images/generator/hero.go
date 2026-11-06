@@ -50,6 +50,7 @@ func (w world) field(t theme) *panel {
 		}
 	})
 	p.cell(w.scout, t.accent)
+	p.cell(w.goal, t.cool)
 
 	return p
 }
