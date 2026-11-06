@@ -1,4 +1,4 @@
-module github.com/gravitton/hexagon/docs/diagrams
+module github.com/gravitton/hexagon/docs/images/generator
 
 go 1.27
 
@@ -10,4 +10,4 @@ require (
 
 require github.com/gravitton/container v1.0.0 // indirect
 
-replace github.com/gravitton/hexagon => ../..
+replace github.com/gravitton/hexagon => ../../..

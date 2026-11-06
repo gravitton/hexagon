@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-const directory = "../images"
+const directory = ".."
 
 type figure struct {
 	name string
