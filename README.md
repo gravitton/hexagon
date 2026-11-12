@@ -430,11 +430,15 @@ in [`gravitton/grid`][link-grid-hexagons], built on it:
 - **Pathfinding** – `Grid.Path` and its searches, the same on hexes as on squares.
 - **Sets of cells** – `grid.Region`, a `container.Set` with union, intersection and difference.
 
+## Resources
+
+- [Red Blob Games: Hexagonal Grids][link-redblob-hexagons] – the hex math the package follows.
+- [Go libraries for 2D games: geometry, hexagon and grid][link-post-libraries]
+
 ## Credits
 
 - [Tomáš Novotný](https://github.com/tomas-novotny)
 - [All Contributors][link-contributors]
-- [Red Blob Games](https://www.redblobgames.com/grids/hexagons) — the canonical reference for hex grid math
 
 ## License
 
@@ -455,4 +459,6 @@ The MIT License (MIT). Please see [License File][link-licence] for more informat
 [link-workflow]:            https://github.com/gravitton/hexagon/actions
 [link-go-dev-reference]:    https://pkg.go.dev/github.com/gravitton/hexagon
 [link-coverage]:            https://coveralls.io/github/gravitton/hexagon
+[link-redblob-hexagons]:    https://www.redblobgames.com/grids/hexagons/
+[link-post-libraries]:      https://gravitton.github.io/blog/posts/gravitton-libraries/
 [link-grid-hexagons]:       https://github.com/gravitton/grid#hexagons
