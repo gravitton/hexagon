@@ -1,93 +1,5 @@
 package hex
 
-// arc is the open range of directions between two vectors from the source of a sweep,
-// counterclockwise from the first to the second, neither of them inside it: the directions a
-// blocking hex hides, between two of its corners.
-type arc struct {
-	from Hex
-	to   Hex
-}
-
-// contains reports whether the direction lies strictly inside the arc.
-func (a arc) contains(direction Hex) bool {
-	return a.from.cross(direction) > 0 && direction.cross(a.to) > 0
-}
-
-// covers reports whether the other arc lies strictly inside the arc, both its ends included.
-func (a arc) covers(other arc) bool {
-	return a.from.cross(other.from) > 0 && other.to.cross(a.to) > 0
-}
-
-// wedge is a sixth of the plane around the source of a sweep: the directions from one axis to
-// the next, each given as the step to the neighbor on it. A hex off the axes lies inside one
-// wedge with all its corners; a hex on an axis is halved by it between two.
-type wedge struct {
-	first  Hex
-	second Hex
-}
-
-// span returns the arc the hex at offset spans as seen from the source, between the two of its
-// corners furthest apart, each as three times its offset so it stays in integers. The offset
-// lies inside the wedge or on one of its axes.
-func (w wedge) span(offset Hex) arc {
-	center := offset.Multiply(3)
-
-	from, other := center.Add(w.first.Multiply(2)).Subtract(w.second), center.Add(w.first).Subtract(w.second.Multiply(2))
-	if from.cross(other) < 0 {
-		from = other
-	}
-
-	to, other := center.Add(w.second.Multiply(2)).Subtract(w.first), center.Add(w.second).Subtract(w.first.Multiply(2))
-	if to.cross(other) > 0 {
-		to = other
-	}
-
-	return arc{from, to}
-}
-
-// view is the part of every ring a sweep covers: the hexes within turns sixth-turns about a
-// direction, by position along the ring from the axis first, the one before the start of the cone.
-type view struct {
-	first Direction
-	turns int
-}
-
-// newView returns the view of the hexes within turns sixth-turns about the direction, half of
-// them either side, as Sector takes them.
-func newView(direction Direction, turns int) view {
-	turns = min(turns, 6)
-
-	return view{direction.Turn(-(turns + 1) / 2), turns}
-}
-
-// runs returns the positions of the ring at distance the view sees, and those whose blocking can
-// hide one of them. A border at an odd number of sixth-turns runs along the edge between two hexes
-// of an odd ring, and the hex outside closes it together with the one inside; a border on an axis
-// or through a center touches no hex outside.
-func (v view) runs(distance int) (run, run) {
-	ring := 6 * distance
-	reach := v.turns * distance / 2
-	from := (v.turns+1)/2*distance - reach
-	seen := run{from, min(from+2*reach, ring-1)}
-
-	if v.turns%2 == 1 && distance%2 == 1 {
-		return seen, run{seen.from - 1, min(seen.to+1, ring-1)}
-	}
-
-	return seen, seen
-}
-
-// run is the positions along a ring between two, both included.
-type run struct {
-	from int
-	to   int
-}
-
-// contains reports whether the position lies in the run.
-func (r run) contains(position int) bool {
-	return r.from <= position && position <= r.to
-}
-
 // shadowCast is a sweep of the hexes around a source, ring by ring outward, keeping the arcs
 // the blocking hexes met so far hide. The shadows of the wedges follow one another, those of a
 // wedge in order and apart, and the hexes on an axis are kept as a flag: only a hex on the same
@@ -183,6 +95,94 @@ func (c *shadowCast) ring(source Hex, distance int, part view, blocked func(Hex)
 	c.shadows, c.cast = c.cast, c.shadows[:0]
 
 	return true
+}
+
+// view is the part of every ring a sweep covers: the hexes within turns sixth-turns about a
+// direction, by position along the ring from the axis first, the one before the start of the cone.
+type view struct {
+	first Direction
+	turns int
+}
+
+// newView returns the view of the hexes within turns sixth-turns about the direction, half of
+// them either side, as Sector takes them.
+func newView(direction Direction, turns int) view {
+	turns = min(turns, 6)
+
+	return view{direction.Turn(-(turns + 1) / 2), turns}
+}
+
+// runs returns the positions of the ring at distance the view sees, and those whose blocking can
+// hide one of them. A border at an odd number of sixth-turns runs along the edge between two hexes
+// of an odd ring, and the hex outside closes it together with the one inside; a border on an axis
+// or through a center touches no hex outside.
+func (v view) runs(distance int) (run, run) {
+	ring := 6 * distance
+	reach := v.turns * distance / 2
+	from := (v.turns+1)/2*distance - reach
+	seen := run{from, min(from+2*reach, ring-1)}
+
+	if v.turns%2 == 1 && distance%2 == 1 {
+		return seen, run{seen.from - 1, min(seen.to+1, ring-1)}
+	}
+
+	return seen, seen
+}
+
+// run is the positions along a ring between two, both included.
+type run struct {
+	from int
+	to   int
+}
+
+// contains reports whether the position lies in the run.
+func (r run) contains(position int) bool {
+	return r.from <= position && position <= r.to
+}
+
+// wedge is a sixth of the plane around the source of a sweep: the directions from one axis to
+// the next, each given as the step to the neighbor on it. A hex off the axes lies inside one
+// wedge with all its corners; a hex on an axis is halved by it between two.
+type wedge struct {
+	first  Hex
+	second Hex
+}
+
+// span returns the arc the hex at offset spans as seen from the source, between the two of its
+// corners furthest apart, each as three times its offset so it stays in integers. The offset
+// lies inside the wedge or on one of its axes.
+func (w wedge) span(offset Hex) arc {
+	center := offset.Multiply(3)
+
+	from, other := center.Add(w.first.Multiply(2)).Subtract(w.second), center.Add(w.first).Subtract(w.second.Multiply(2))
+	if from.cross(other) < 0 {
+		from = other
+	}
+
+	to, other := center.Add(w.second.Multiply(2)).Subtract(w.first), center.Add(w.second).Subtract(w.first.Multiply(2))
+	if to.cross(other) > 0 {
+		to = other
+	}
+
+	return arc{from, to}
+}
+
+// arc is the open range of directions between two vectors from the source of a sweep,
+// counterclockwise from the first to the second, neither of them inside it: the directions a
+// blocking hex hides, between two of its corners.
+type arc struct {
+	from Hex
+	to   Hex
+}
+
+// contains reports whether the direction lies strictly inside the arc.
+func (a arc) contains(direction Hex) bool {
+	return a.from.cross(direction) > 0 && direction.cross(a.to) > 0
+}
+
+// covers reports whether the other arc lies strictly inside the arc, both its ends included.
+func (a arc) covers(other arc) bool {
+	return a.from.cross(other.from) > 0 && other.to.cross(a.to) > 0
 }
 
 // shading merges the shadows of a wedge with the arcs a ring adds to them, both in order, into
