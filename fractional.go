@@ -161,7 +161,11 @@ func (h FractionalHex) Round() Hex {
 		r = -q - s
 	}
 
-	return Hex{geom.Cast[int](q), geom.Cast[int](r)}
+	if !geom.IsFinite(q) || !geom.IsFinite(r) {
+		panic(geom.ErrNonFinite)
+	}
+
+	return Hex{int(q), int(r)}
 }
 
 // String returns the fractional hex as its coordinates, with two decimals: (q,r).

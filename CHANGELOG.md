@@ -12,6 +12,8 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.0...main)
+### Changed
+- `FractionalHex.Round` converts the rounded coordinates without `geom.Cast`, which checked and rounded them again
 
 ## [v1.8.0](https://github.com/gravitton/hexagon/compare/v1.7.0...v1.8.0) (2026-11-04)
 

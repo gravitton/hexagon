@@ -294,12 +294,12 @@ func TestHex_Lerp(t *testing.T) {
 		}
 	})
 	t.Run("panics for a non-finite t", func(t *testing.T) {
-		assert.Panics(t, func() {
+		assert.PanicsWith(t, func() {
 			sinkHex = a.Lerp(b, math.NaN())
-		})
-		assert.Panics(t, func() {
+		}, geom.ErrNonFinite)
+		assert.PanicsWith(t, func() {
 			sinkHex = a.Lerp(b, math.Inf(1))
-		})
+		}, geom.ErrNonFinite)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		assertAllocations(t, func() {

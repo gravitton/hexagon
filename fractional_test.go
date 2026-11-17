@@ -394,12 +394,12 @@ func TestFractionalHex_Round(t *testing.T) {
 		hextest.AssertHex(t, FracPt(10.500001, 16.500000001).Round(), Pt(11, 16))
 	})
 	t.Run("panics for a non-finite coordinate", func(t *testing.T) {
-		assert.Panics(t, func() {
+		assert.PanicsWith(t, func() {
 			sinkHex = FracPt(math.NaN(), 0).Round()
-		})
-		assert.Panics(t, func() {
+		}, geom.ErrNonFinite)
+		assert.PanicsWith(t, func() {
 			sinkHex = FracPt(0, math.Inf(-1)).Round()
-		})
+		}, geom.ErrNonFinite)
 	})
 	t.Run("an edge goes to the same side on every hex", func(t *testing.T) {
 		for _, direction := range Directions() {
