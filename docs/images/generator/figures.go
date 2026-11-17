@@ -19,6 +19,7 @@ var figures = []figure{
 	{"traversal", traversal},
 	{"sectors", sectors},
 	{"sight", sight},
+	{"walk", walk},
 	{"field", field},
 	{"transform", transform},
 	{"systems-pointy", systemsPointy},
@@ -235,6 +236,44 @@ func sight(t theme) []*panel {
 		p.cell(b, t.accentSoft)
 		p.label(a, "a", t.onAccent)
 		p.label(b, "b", t.ink)
+		panels = append(panels, p)
+	}
+
+	return panels
+}
+
+func walk(t theme) []*panel {
+	cases := []struct {
+		target hex.Hex
+		wall   hex.Hex
+	}{
+		{hex.Pt(3, 1), hex.Pt(2, 0)},
+		{hex.Pt(2, 2), hex.Pt(1, 0)},
+		{hex.Pt(2, 2), hex.Pt(0, 1)},
+	}
+
+	panels := make([]*panel, 0, len(cases))
+	for _, c := range cases {
+		blocked := contains(set(c.wall))
+		line := origin.LineTo(c.target)
+		walked := !slices.ContainsFunc(line[1:len(line)-1], blocked)
+		seen := origin.HasLineOfSight(c.target, blocked)
+
+		p := backdrop(t, 18, hex.Pt(1, 1), 2, "walking LineTo: "+verdict(walked))
+		p.note = "HasLineOfSight: " + verdict(seen)
+		p.cell(c.wall, t.wall)
+		for _, h := range line {
+			p.outline(h, t.cool, 1.5)
+		}
+		if seen {
+			p.segment(origin, c.target, t.accent, false)
+		} else {
+			p.segment(origin, c.target, t.muted, true)
+		}
+		p.cell(origin, t.accent)
+		p.cell(c.target, t.accentSoft)
+		p.label(origin, "a", t.onAccent)
+		p.label(c.target, "b", t.ink)
 		panels = append(panels, p)
 	}
 

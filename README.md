@@ -264,6 +264,25 @@ The rule reads the same from either end, so two hexes always see each other or n
 and neither end ever blocks. It differs from `LineTo`, which picks one hex per step: a hex off the
 line can block the sight, and a hex of the line the segment only touches does not.
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/walk-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/walk-light.svg">
+  <img alt="Three maps with one wall each, the hexes of the line to the target outlined and the segment between the centers drawn: a wall the line steps past hides the target from the segment only, and of two walls beside an edge the segment runs along, the one the line walks into hides the target from the walk only" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/walk-light.svg">
+</picture>
+</p>
+
+```go
+a := hex.Pt(0, 0) // among as above
+
+a.LineTo(hex.Pt(3, 1))                           // (0,0) (1,0) (1,1) (2,1) (3,1), never visiting (2,0)
+a.HasLineOfSight(hex.Pt(3, 1), among(hex.Pt(2, 0))) // false, the segment clips the wall
+
+a.LineTo(hex.Pt(2, 2))                           // (0,0) (0,1) (1,1) (1,2) (2,2), to one side of the edge
+a.HasLineOfSight(hex.Pt(2, 2), among(hex.Pt(1, 0))) // true, as walking the line says
+a.HasLineOfSight(hex.Pt(2, 2), among(hex.Pt(0, 1))) // true, where walking the line says false
+```
+
 ### Field of view
 
 <p align="center">
@@ -361,7 +380,8 @@ hex.OffsetOddR.Neighbors(index)                   // all 6 indices beside it, in
 ### Fractional hexes
 
 `FractionalHex` is the float companion, for interpolation and for landing a position from pixel
-space on the grid. `Round` gives the hex a point lies in, keeping `q + r + s = 0`:
+space on the grid; the pixel layout itself is [`grid.HexLayout`](#out-of-scope). `Round` gives
+the hex a point lies in, keeping `q + r + s = 0`:
 
 <p align="center">
 <picture>
@@ -423,12 +443,25 @@ This package is the coordinate math alone: a hex knows its neighbors, its distan
 shape on the grid, and nothing about where it is drawn or what it holds. What it leaves out is
 in [`gravitton/grid`][link-grid-hexagons], built on it:
 
-- **Pixel layout** – `grid.HexLayout` places hexes on a plane, flat-top or pointy-top, in any
-  coordinate system, and finds the hex under a point.
-- **A hexagon as a drawn shape** – `HexLayout.Polygon` gives the `geom.RegularPolygon` of a hex.
-- **Storage of a value per hex** – `grid.NewHexFlatTop` and `NewHexPointyTop` hold one per cell.
-- **Pathfinding** – `Grid.Path` and its searches, the same on hexes as on squares.
-- **Sets of cells** – `grid.Region`, a `container.Set` with union, intersection and difference.
+- **[Pixel layout](https://github.com/gravitton/grid#hexagons)** – [`HexLayout`](https://pkg.go.dev/github.com/gravitton/grid#HexLayout): where a hex is drawn, its polygon.
+- **[Storage](https://github.com/gravitton/grid#world-space)** – [`NewHexFlatTop`](https://pkg.go.dev/github.com/gravitton/grid#NewHexFlatTop) and [`NewHexPointyTop`](https://pkg.go.dev/github.com/gravitton/grid#NewHexPointyTop), a value per hex.
+- **[Pathfinding](https://github.com/gravitton/grid#pathfinding)** – [`Grid.Path`](https://pkg.go.dev/github.com/gravitton/grid#Grid.Path) and its searches.
+- **[Fields](https://github.com/gravitton/grid#fields)** – [`Grid.Reachable`](https://pkg.go.dev/github.com/gravitton/grid#Grid.Reachable) and [`Grid.Field`](https://pkg.go.dev/github.com/gravitton/grid#Grid.Field), movement on a budget.
+- **[Regions](https://github.com/gravitton/grid#regions)** – [`Region`](https://pkg.go.dev/github.com/gravitton/grid#Region), sets of cells.
+
+A layout needs no grid, and a grid speaks the offset coordinate of its system, which this
+package converts:
+
+```go
+import "github.com/gravitton/grid"
+
+layout := grid.NewHexPointyTopLayout(grid.HexPointyTopCellScale(34), hex.Axial)
+layout.Center(hex.Pt(2, -1).Point())                 // (51,-29.44), where the hex is drawn
+hex.Axial.From(layout.IndexAt(geom.Pt(60.0, -40.0))) // Hex{2, -1}, the hex under a point
+
+g := grid.NewHexPointyTop[Tile](geom.Sz(20, 15), grid.HexPointyTopCellScale(34))
+g.Path(hex.OffsetOddR.To(a), hex.OffsetOddR.To(b), passable, cost) // the cells of the cheapest path
+```
 
 ## Resources
 
