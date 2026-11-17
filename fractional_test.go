@@ -454,7 +454,7 @@ func FuzzFractionalHex_Round(f *testing.F) {
 		message := fmt.Sprintf("(%v,%v) → %s: ", q, r, rounded)
 
 		for _, neighbor := range rounded.Neighbors() {
-			assert.True(t, squaredDistanceOf(h, rounded.Float()) <= squaredDistanceOf(h, neighbor.Float())+geom.Delta, message)
+			assert.LessOrEqual(t, squaredDistanceOf(h, rounded.Float()), squaredDistanceOf(h, neighbor.Float())+geom.Delta, message)
 		}
 		hextest.AssertHex(t, rounded.Float().Round(), rounded, message)
 	})

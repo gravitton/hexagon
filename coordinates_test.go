@@ -392,7 +392,7 @@ func TestCoordinateSystem_From(t *testing.T) {
 				for y := -3; y <= 3; y++ {
 					index := geom.Pt(x, y)
 					cell := system.To(system.From(index))
-					assert.True(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y) <= 1, system.String()+" at "+index.String()+": ")
+					assert.LessOrEqual(t, geom.Abs(cell.X-x)+geom.Abs(cell.Y-y), 1, system.String()+" at "+index.String()+": ")
 				}
 			}
 		}
@@ -451,7 +451,7 @@ func FuzzCoordinateSystem_From(f *testing.F) {
 		mixed := geom.Pt(q, r)
 		for _, system := range []CoordinateSystem{DoubleWidth, DoubleHeight} {
 			cell := system.To(system.From(mixed))
-			assert.True(t, geom.Abs(cell.X-mixed.X)+geom.Abs(cell.Y-mixed.Y) <= 1, system.String()+" from "+mixed.String()+": ")
+			assert.LessOrEqual(t, geom.Abs(cell.X-mixed.X)+geom.Abs(cell.Y-mixed.Y), 1, system.String()+" from "+mixed.String()+": ")
 		}
 	})
 }

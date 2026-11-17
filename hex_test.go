@@ -214,7 +214,7 @@ func TestHex_Length(t *testing.T) {
 	})
 	t.Run("counts the rings of a spiral", func(t *testing.T) {
 		for _, h := range testHexZero.Spiral(3) {
-			assert.True(t, h.Length() <= 3, h.String()+": ")
+			assert.LessOrEqual(t, h.Length(), 3, h.String()+": ")
 		}
 	})
 	t.Run("half the sum of the cube coordinates", func(t *testing.T) {
@@ -604,7 +604,7 @@ func TestHex_Range(t *testing.T) {
 	})
 	t.Run("every hex is within the radius", func(t *testing.T) {
 		for _, h := range testHex.Range(3) {
-			assert.True(t, testHex.DistanceTo(h) <= 3)
+			assert.LessOrEqual(t, testHex.DistanceTo(h), 3)
 		}
 	})
 	t.Run("holds exactly the hexes within the radius", func(t *testing.T) {
@@ -793,7 +793,7 @@ func TestHex_Spiral(t *testing.T) {
 	t.Run("nearest first", func(t *testing.T) {
 		spiral := testHex.Spiral(3)
 		for i := 1; i < len(spiral); i++ {
-			assert.True(t, testHex.DistanceTo(spiral[i-1]) <= testHex.DistanceTo(spiral[i]))
+			assert.LessOrEqual(t, testHex.DistanceTo(spiral[i-1]), testHex.DistanceTo(spiral[i]))
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
@@ -871,14 +871,14 @@ func BenchmarkHex_SpiralSeq(b *testing.B) {
 
 func TestHex_Sector(t *testing.T) {
 	t.Run("a radius under one gives nil", func(t *testing.T) {
-		assert.True(t, testHex.Sector(0, SMinus, 1) == nil)
-		assert.True(t, testHex.Sector(-1, SMinus, 1) == nil)
+		assert.Nil(t, testHex.Sector(0, SMinus, 1))
+		assert.Nil(t, testHex.Sector(-1, SMinus, 1))
 	})
 	t.Run("negative turns give nil", func(t *testing.T) {
-		assert.True(t, testHex.Sector(3, SMinus, -1) == nil)
+		assert.Nil(t, testHex.Sector(3, SMinus, -1))
 	})
 	t.Run("DirectionNone gives nil", func(t *testing.T) {
-		assert.True(t, testHex.Sector(3, DirectionNone, 1) == nil)
+		assert.Nil(t, testHex.Sector(3, DirectionNone, 1))
 	})
 	t.Run("ring by ring by increasing angle", func(t *testing.T) {
 		assert.Equal(t, testHexZero.Sector(1, SMinus, 1), []Hex{Pt(1, 0)})
@@ -952,7 +952,7 @@ func TestHex_Sector(t *testing.T) {
 		for _, direction := range Directions() {
 			for _, h := range testHex.Sector(9, direction, 1) {
 				nearest := testHex.DirectionTo(h)
-				assert.True(t, nearest == direction || nearest == direction.Turn(-1), h.String()+": ")
+				assert.Contains(t, []Direction{direction, direction.Turn(-1)}, nearest, h.String()+": ")
 			}
 		}
 	})
@@ -984,7 +984,7 @@ func TestHex_Sector(t *testing.T) {
 				sector := testHex.Sector(9, direction, turns)
 				for i := 1; i < len(sector); i++ {
 					previous, next := testHex.DistanceTo(sector[i-1]), testHex.DistanceTo(sector[i])
-					assert.True(t, next == previous || next == previous+1, strconv.Itoa(turns)+" at "+sector[i].String()+": ")
+					assert.Contains(t, []int{previous, previous + 1}, next, strconv.Itoa(turns)+" at "+sector[i].String()+": ")
 					if next == previous {
 						assert.Equal(t, sector[i-1].DistanceTo(sector[i]), 1, strconv.Itoa(turns)+" at "+sector[i].String()+": ")
 					}
@@ -1128,7 +1128,7 @@ func TestHex_DistanceTo(t *testing.T) {
 	t.Run("never longer through a third hex", func(t *testing.T) {
 		target := Pt(2, -3)
 		for _, via := range testHexZero.Spiral(4) {
-			assert.True(t, testHex.DistanceTo(target) <= testHex.DistanceTo(via)+via.DistanceTo(target), via.String()+": ")
+			assert.LessOrEqual(t, testHex.DistanceTo(target), testHex.DistanceTo(via)+via.DistanceTo(target), via.String()+": ")
 		}
 	})
 }
@@ -1182,7 +1182,7 @@ func TestHex_DirectionTo(t *testing.T) {
 			y := 1.5 * float64(h.R)
 			gap := geom.NormalizeAngle(math.Atan2(y, x)-testHexZero.DirectionTo(h).Angle()+geom.Pi) - geom.Pi
 
-			assert.True(t, math.Abs(gap) <= geom.Pi/6+geom.Delta, h.String()+": ")
+			assert.LessOrEqual(t, math.Abs(gap), geom.Pi/6+geom.Delta, h.String()+": ")
 		}
 	})
 	t.Run("the first step of the line is that way or beside it", func(t *testing.T) {
@@ -1190,7 +1190,7 @@ func TestHex_DirectionTo(t *testing.T) {
 			first := testHex.DirectionTo(testHex.LineTo(h)[1])
 			towards := testHex.DirectionTo(h)
 
-			assert.True(t, first == towards || first == towards.Turn(1) || first == towards.Turn(-1), h.String()+": ")
+			assert.Contains(t, []Direction{towards, towards.Turn(1), towards.Turn(-1)}, first, h.String()+": ")
 		}
 	})
 }
@@ -1368,7 +1368,7 @@ func TestHex_HasLineOfSight(t *testing.T) {
 		}
 	})
 	t.Run("a hex clipped at a corner blocks though it is off the LineTo", func(t *testing.T) {
-		assert.False(t, slices.Contains(testHexZero.LineTo(Pt(3, 1)), Pt(2, 0)))
+		assert.NotContains(t, testHexZero.LineTo(Pt(3, 1)), Pt(2, 0))
 		assert.False(t, testHexZero.HasLineOfSight(Pt(3, 1), among([]Hex{Pt(2, 0)})))
 	})
 	t.Run("a hex met at one corner does not block", func(t *testing.T) {
@@ -1437,12 +1437,13 @@ func TestHex_HasLineOfSight(t *testing.T) {
 			asked := 0
 			testHexZero.HasLineOfSight(target, func(h Hex) bool {
 				asked++
-				assert.True(t, h != testHexZero && h != target, target.String()+" asked about "+h.String()+": ")
-				assert.True(t, testHexZero.DistanceTo(h)+h.DistanceTo(target) <= testHexZero.DistanceTo(target)+1, target.String()+" asked about "+h.String()+": ")
+				assert.NotEqual(t, h, testHexZero, target.String()+" asked about "+h.String()+": ")
+				assert.NotEqual(t, h, target, target.String()+" asked about "+h.String()+": ")
+				assert.LessOrEqual(t, testHexZero.DistanceTo(h)+h.DistanceTo(target), testHexZero.DistanceTo(target)+1, target.String()+" asked about "+h.String()+": ")
 
 				return false
 			})
-			assert.True(t, asked <= 2*testHexZero.DistanceTo(target), target.String()+": ")
+			assert.LessOrEqual(t, asked, 2*testHexZero.DistanceTo(target), target.String()+": ")
 		}
 	})
 	t.Run("asks about a hex at most once and only about one that can block", func(t *testing.T) {
@@ -1569,7 +1570,7 @@ func TestHex_FieldOfView(t *testing.T) {
 	}
 
 	t.Run("a negative radius sees nothing", func(t *testing.T) {
-		assert.True(t, testHex.FieldOfView(-1, everything) == nil)
+		assert.Nil(t, testHex.FieldOfView(-1, everything))
 	})
 	t.Run("a zero radius sees the hex alone", func(t *testing.T) {
 		assert.Equal(t, testHex.FieldOfView(0, everything), []Hex{testHex})
@@ -1582,15 +1583,15 @@ func TestHex_FieldOfView(t *testing.T) {
 	})
 	t.Run("a hex hides those behind it and is visible itself", func(t *testing.T) {
 		visible := testHexZero.FieldOfView(3, among([]Hex{Pt(1, 0)}))
-		assert.True(t, slices.Contains(visible, Pt(1, 0)))
-		assert.False(t, slices.Contains(visible, Pt(2, 0)))
-		assert.False(t, slices.Contains(visible, Pt(3, 0)))
-		assert.True(t, slices.Contains(visible, Pt(1, 1)))
+		assert.Contains(t, visible, Pt(1, 0))
+		assert.NotContains(t, visible, Pt(2, 0))
+		assert.NotContains(t, visible, Pt(3, 0))
+		assert.Contains(t, visible, Pt(1, 1))
 	})
 	t.Run("an edge is closed by the two hexes beside it together", func(t *testing.T) {
-		assert.True(t, slices.Contains(testHexZero.FieldOfView(2, among([]Hex{Pt(1, 0)})), Pt(1, 1)))
-		assert.True(t, slices.Contains(testHexZero.FieldOfView(2, among([]Hex{Pt(0, 1)})), Pt(1, 1)))
-		assert.False(t, slices.Contains(testHexZero.FieldOfView(2, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1)))
+		assert.Contains(t, testHexZero.FieldOfView(2, among([]Hex{Pt(1, 0)})), Pt(1, 1))
+		assert.Contains(t, testHexZero.FieldOfView(2, among([]Hex{Pt(0, 1)})), Pt(1, 1))
+		assert.NotContains(t, testHexZero.FieldOfView(2, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1))
 	})
 	t.Run("agrees with HasLineOfSight over the spiral", func(t *testing.T) {
 		for _, source := range []Hex{testHexZero, testHex, Pt(40, -17)} {
@@ -1613,7 +1614,8 @@ func TestHex_FieldOfView(t *testing.T) {
 
 			for hex, times := range asked {
 				assert.Equal(t, times, 1, hex.String()+": ")
-				assert.True(t, testHex.DistanceTo(hex) > 0 && testHex.DistanceTo(hex) < 12, hex.String()+": ")
+				assert.Greater(t, testHex.DistanceTo(hex), 0, hex.String()+": ")
+				assert.Less(t, testHex.DistanceTo(hex), 12, hex.String()+": ")
 			}
 		}
 	})
@@ -1713,14 +1715,14 @@ func TestHex_FieldOfViewSector(t *testing.T) {
 	}
 
 	t.Run("a radius under one sees nothing", func(t *testing.T) {
-		assert.True(t, testHex.FieldOfViewSector(0, QPlus, 2, everything) == nil)
-		assert.True(t, testHex.FieldOfViewSector(-1, QPlus, 2, everything) == nil)
+		assert.Nil(t, testHex.FieldOfViewSector(0, QPlus, 2, everything))
+		assert.Nil(t, testHex.FieldOfViewSector(-1, QPlus, 2, everything))
 	})
 	t.Run("negative turns see nothing", func(t *testing.T) {
-		assert.True(t, testHex.FieldOfViewSector(4, QPlus, -1, everything) == nil)
+		assert.Nil(t, testHex.FieldOfViewSector(4, QPlus, -1, everything))
 	})
 	t.Run("DirectionNone sees nothing", func(t *testing.T) {
-		assert.True(t, testHex.FieldOfViewSector(4, DirectionNone, 2, everything) == nil)
+		assert.Nil(t, testHex.FieldOfViewSector(4, DirectionNone, 2, everything))
 	})
 	t.Run("a nil blocked shows the sector", func(t *testing.T) {
 		for turns := range 8 {
@@ -1731,9 +1733,9 @@ func TestHex_FieldOfViewSector(t *testing.T) {
 		assert.Equal(t, testHex.FieldOfViewSector(5, RMinus, 3, everything), testHex.Sector(1, RMinus, 3))
 	})
 	t.Run("a hex outside closes a border edge together with the one inside", func(t *testing.T) {
-		assert.True(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0)})), Pt(1, 1)))
-		assert.True(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(0, 1)})), Pt(1, 1)))
-		assert.False(t, slices.Contains(testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1)))
+		assert.Contains(t, testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0)})), Pt(1, 1))
+		assert.Contains(t, testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(0, 1)})), Pt(1, 1))
+		assert.NotContains(t, testHexZero.FieldOfViewSector(2, SMinus, 1, among([]Hex{Pt(1, 0), Pt(0, 1)})), Pt(1, 1))
 	})
 	t.Run("agrees with HasLineOfSight over the sector", func(t *testing.T) {
 		for _, source := range []Hex{testHexZero, Pt(40, -17)} {
@@ -1783,7 +1785,8 @@ func TestHex_FieldOfViewSector(t *testing.T) {
 						message := direction.String() + " " + strconv.Itoa(turns) + " " + hex.String() + ": "
 						ring := testHex.DistanceTo(hex)
 						assert.Equal(t, times, 1, message)
-						assert.True(t, ring > 0 && ring < 12, message)
+						assert.Greater(t, ring, 0, message)
+						assert.Less(t, ring, 12, message)
 						assert.True(t, testHex.SectorContains(12, direction, turns, hex) || turns%2 == 1 && ring%2 == 1 && besideOnRing(testHex, hex, 12, direction, turns), message)
 					}
 				}
@@ -1802,7 +1805,7 @@ func TestHex_FieldOfViewSector(t *testing.T) {
 		var cone, field int
 		testHexZero.FieldOfViewSector(20, QPlus, 1, count(&cone))
 		testHexZero.FieldOfView(20, count(&field))
-		assert.True(t, 3*cone < field, strconv.Itoa(cone)+" of "+strconv.Itoa(field)+": ")
+		assert.Less(t, 3*cone, field, strconv.Itoa(cone)+" of "+strconv.Itoa(field)+": ")
 	})
 	t.Run("allocates the result at the length of the sector and the sweep", func(t *testing.T) {
 		blocked := scattered(11)
@@ -1929,7 +1932,7 @@ func TestHex_Compare(t *testing.T) {
 
 				for _, c := range hexes {
 					if a.Compare(b) < 0 && b.Compare(c) < 0 {
-						assert.True(t, a.Compare(c) < 0)
+						assert.Less(t, a.Compare(c), 0)
 					}
 				}
 			}

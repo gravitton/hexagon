@@ -126,10 +126,11 @@ func FuzzDirectionFromAngle(f *testing.F) {
 			t.Skip()
 		}
 
-		assert.True(t, direction >= SMinus && direction <= QPlus, message)
+		assert.GreaterOrEqual(t, direction, SMinus, message)
+		assert.LessOrEqual(t, direction, QPlus, message)
 
 		gap := geom.NormalizeAngle(angle-direction.Angle()+geom.Pi) - geom.Pi
-		assert.True(t, math.Abs(gap) <= geom.Pi/6+geom.Delta, message)
+		assert.LessOrEqual(t, math.Abs(gap), geom.Pi/6+geom.Delta, message)
 	})
 }
 
@@ -291,7 +292,8 @@ func TestDirection_TurnsTo(t *testing.T) {
 			for _, to := range Directions() {
 				turns := from.TurnsTo(to)
 				assert.Equal(t, from.Turn(turns), to, from.String()+" to "+to.String()+": ")
-				assert.True(t, turns >= -2 && turns <= 3, from.String()+" to "+to.String()+": ")
+				assert.GreaterOrEqual(t, turns, -2, from.String()+" to "+to.String()+": ")
+				assert.LessOrEqual(t, turns, 3, from.String()+" to "+to.String()+": ")
 			}
 		}
 	})
