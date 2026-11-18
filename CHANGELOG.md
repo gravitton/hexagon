@@ -11,8 +11,12 @@ more expensive of the two. A breaking change is marked **breaking** in its entry
 lists them under **Breaking** at the top of its section. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.0...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.1...main)
+
+## [v1.8.1](https://github.com/gravitton/hexagon/compare/v1.8.0...v1.8.1) (2026-11-18)
+
 ### Changed
+- Require `geometry` v1.19.0
 - `FractionalHex.Round` converts the rounded coordinates without `geom.Cast`, which checked and rounded them again
 
 ## [v1.8.0](https://github.com/gravitton/hexagon/compare/v1.7.0...v1.8.0) (2026-11-04)
