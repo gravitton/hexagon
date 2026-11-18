@@ -7,8 +7,8 @@ and this project follows [Semantic Versioning](http://semver.org/spec/v2.0.0.htm
 
 **a breaking change may ship in a minor release.** Breaking changes are avoided where the cost is reasonable, but a
 Go major version changes the import path for every user, and for a package with a small user base that is often the
-more expensive of the two. A breaking change is marked **breaking** in its entry, and every release that has one
-lists them under **Breaking** at the top of its section. Renames land as a rename; no deprecated alias is kept.
+more expensive of the two. A breaking change opens its entry with **breaking**, and a release summarized by theme
+opens with a **Breaking** group. Renames land as a rename; no deprecated alias is kept.
 
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.1...main)
@@ -25,27 +25,16 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ## [v1.8.0](https://github.com/gravitton/hexagon/compare/v1.7.0...v1.8.0) (2026-11-04)
 
-### Breaking
-- **breaking** `Hex.Sector`, `SectorSeq` and `SectorLen` take the width of the cone in sixth-turns after the direction: one turn is the former 30° either side, zero the ray along the direction, six or more the whole range around the hex
-
 ### Added
 - `Hex.SectorContains` reports whether a hex is in a sector without walking it
 - `Hex.FieldOfViewSector` and `FieldOfViewSectorSeq` return the hexes of a sector the source sees, sweeping only the cone and asking `blocked` only about hexes that can hide one of it
 
 ### Changed
+- **breaking** `Hex.Sector`, `SectorSeq` and `SectorLen` take the width of the cone in sixth-turns after the direction: one turn is the former 30° either side, zero the ray along the direction, six or more the whole range around the hex
 - Require `geometry` v1.18.0
 - CI runs the shared workflow of `gravitton/.github`, with the same steps, and can be started by hand
 
 ## [v1.7.0](https://github.com/gravitton/hexagon/compare/v1.6.0...v1.7.0) (2026-11-01)
-
-### Breaking
-- **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
-- **breaking** `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` are renamed `FieldOfView` and `FieldOfViewSeq`
-- **breaking** `Hex.HasLineOfSightFunc` is renamed `HasLineOfSight`
-- **breaking** `Hex.Line` and `LineSeq` are renamed `LineTo` and `LineToSeq`
-- **breaking** `Hex.HasLineOfSight` taking a `[]Hex` of blockers is removed: the sight methods take `blocked func(Hex) bool`, as `slices.Contains` in a closure on a short list or a lookup in a map on a larger one
-- **breaking** `Hex.FieldOfView`, `FieldOfViewSeq`, `FieldOfViewFunc` and `FieldOfViewFuncSeq` over given candidates are removed: filter them by `HasLineOfSight`
-- **breaking** `Hex.To` is removed: use `CoordinateSystem.To`
 
 ### Added
 - `ErrUnknownCoordinateSystem` – the sentinel a panic of a coordinate system outside the seven matches with `errors.Is`
@@ -53,7 +42,16 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.Sector` and `SectorSeq` return the cone of hexes within a radius and 30° either side of a direction, and `SectorLen` their number
 
 ### Changed
+- **breaking** The panic value of a coordinate system outside the seven is an `error` rather than a string; a `recover` that asserted a string must assert an `error`
+- **breaking** `Hex.FieldOfViewRange` and `FieldOfViewRangeSeq` are renamed `FieldOfView` and `FieldOfViewSeq`
+- **breaking** `Hex.HasLineOfSightFunc` is renamed `HasLineOfSight`
+- **breaking** `Hex.Line` and `LineSeq` are renamed `LineTo` and `LineToSeq`
 - Require `assert` v1.7.0 for the tests
+
+### Removed
+- **breaking** `Hex.HasLineOfSight` taking a `[]Hex` of blockers is removed: the sight methods take `blocked func(Hex) bool`, as `slices.Contains` in a closure on a short list or a lookup in a map on a larger one
+- **breaking** `Hex.FieldOfView`, `FieldOfViewSeq`, `FieldOfViewFunc` and `FieldOfViewFuncSeq` over given candidates are removed: filter them by `HasLineOfSight`
+- **breaking** `Hex.To` is removed: use `CoordinateSystem.To`
 
 ### Fixed
 - `Hex.Length` and `DistanceTo` no longer go negative from a distance of 2^62, where the sum of the cube coordinates overflowed
@@ -61,10 +59,6 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - `Hex.SpiralSeq` yields hexes for the largest radius, where it yielded none, so a nearest-first search needs no bound
 
 ## [v1.6.0](https://github.com/gravitton/hexagon/compare/v1.5.0...v1.6.0) (2026-10-15)
-
-### Breaking
-- **breaking** `Hex.RangeIntersection`, `AppendRangeIntersection` and `RangeIntersectionSeq` are removed: filter `RangeSeq` by `DistanceTo` the other center, or intersect two regions in `grid`
-- **breaking** `Hex.AppendRange`, `AppendRing`, `AppendSpiral`, `AppendLine`, `AppendFieldOfView` and `AppendFieldOfViewFunc` are removed: `slices.AppendSeq(dst, h.RangeSeq(radius))` on the `Seq` form of each appends the same hexes into a reused buffer and allocates nothing once it has room
 
 ### Added
 - `CoordinateSystem.Neighbors` returns the six cells beside an index in the order of `Directions`, as an array
@@ -83,6 +77,10 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 - Requires `geometry` v1.17.0, up from v1.15.0
 - CI scans for fused multiply-adds on arm64 and amd64 v3 against `.github/fused.txt` and measures coverage in the test step
 
+### Removed
+- **breaking** `Hex.RangeIntersection`, `AppendRangeIntersection` and `RangeIntersectionSeq` are removed: filter `RangeSeq` by `DistanceTo` the other center, or intersect two regions in `grid`
+- **breaking** `Hex.AppendRange`, `AppendRing`, `AppendSpiral`, `AppendLine`, `AppendFieldOfView` and `AppendFieldOfViewFunc` are removed: `slices.AppendSeq(dst, h.RangeSeq(radius))` on the `Seq` form of each appends the same hexes into a reused buffer and allocates nothing once it has room
+
 ### Fixed
 - `FractionalHex.Multiply` rounds each product before returning it, so a sum it feeds gives the same bits on every architecture
 
@@ -93,17 +91,6 @@ The package now follows `geometry` v1.15.0 convention for convention: enums have
 as text, and a count of steps is a `Turn`. Every traversal comes in three forms sharing one walk, a slice, an `Append`
 onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segment in integers rather than the hexes of
 `Line`.
-
-### Breaking
-- **breaking** `Direction.Rotate`, `Hex.Rotate` and `Hex.RotateAround` are `Turn` and `TurnAround`, following `geom.Direction.Turn`: a count of steps is a turn, and `Rotate` is kept for an angle in radians
-- **breaking** `Directions` is the function `Directions()` returning a fresh array, matching `geom.Directions()`, so a caller cannot alter the package's own list
-- **breaking** `Direction(-1)` is `DirectionNone` rather than `QPlus`; every other out-of-range value still wraps into `[SMinus, QPlus]`
-- **breaking** `CoordinateSystem.String` prints `"None"` for a value outside the seven, where it printed `CoordinateSystem(99)`
-- **breaking** `Hex.Neighbors` returns a `[6]Hex` array rather than a slice, so it allocates nothing
-- **breaking** `Hex` and `FractionalHex` have JSON tags, so a hex is stored as `{"q":1,"r":-2}` with the one-character keys `geom` uses
-- **breaking** The assertions moved to the new `hextest` package as `hextest.AssertHex` and `hextest.AssertFractionalHex`, so the main package no longer imports a test library itself. They take the expected value rather than loose `q, r` coordinates, take `assert.Testing` rather than `*testing.T`, return whether the assertion held and prefix their messages per field, like every `geomtest.Assert*` helper. `AssertFracHex` is renamed `AssertFractionalHex` and compares through `geomtest.AssertNumber`, within `geom.EpsilonRelative`, so the tolerance holds at any magnitude
-- **breaking** `Hex.HasLineOfSight`, and `FieldOfView` through it, test the exact segment between the two hex centers in integers, where they walked the hexes of `Line`: a blocker the segment clips at a corner now blocks though it is off the `Line`, a hex the segment only touches at a corner no longer blocks, and where the segment runs along the edge between two hexes, as towards a diagonal neighbor, both of them must block. This is the visibility symmetric shadow casting computes; it costs one pass over the blockers per target whatever the distance, and no float is involved
-- **breaking** `FractionalHex.Round`, and `Hex.Lerp` through it, convert through `geom.Cast` and so panic for a NaN or infinite coordinate, where they returned a platform-dependent hex
 
 ### Added
 - `DirectionNone` and `Direction.IsNone` – the absence of a direction, matching `geom.Direction`: it steps nowhere (`Offset` and `Hex` give a zero step, `Hex.Neighbor` returns the hex itself, `CoordinateSystem.Offset` gives the zero vector), turns to itself and has no angle
@@ -132,6 +119,15 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 - Tests pinning that `Directions`, `CoordinateSystems`, `CoordinateSystem.Offsets`, `Offset`, `To` and `From`, `Hex.Lerp` and `FractionalHex.Round` allocate nothing, and property tests tying `Turn`, the reflections, `Ring`, `Range`, `DistanceTo`, `FieldOfView` and the offset tables to one another
 
 ### Changed
+- **breaking** `Direction.Rotate`, `Hex.Rotate` and `Hex.RotateAround` are `Turn` and `TurnAround`, following `geom.Direction.Turn`: a count of steps is a turn, and `Rotate` is kept for an angle in radians
+- **breaking** `Directions` is the function `Directions()` returning a fresh array, matching `geom.Directions()`, so a caller cannot alter the package's own list
+- **breaking** `Direction(-1)` is `DirectionNone` rather than `QPlus`; every other out-of-range value still wraps into `[SMinus, QPlus]`
+- **breaking** `CoordinateSystem.String` prints `"None"` for a value outside the seven, where it printed `CoordinateSystem(99)`
+- **breaking** `Hex.Neighbors` returns a `[6]Hex` array rather than a slice, so it allocates nothing
+- **breaking** `Hex` and `FractionalHex` have JSON tags, so a hex is stored as `{"q":1,"r":-2}` with the one-character keys `geom` uses
+- **breaking** The assertions moved to the new `hextest` package as `hextest.AssertHex` and `hextest.AssertFractionalHex`, so the main package no longer imports a test library itself. They take the expected value rather than loose `q, r` coordinates, take `assert.Testing` rather than `*testing.T`, return whether the assertion held and prefix their messages per field, like every `geomtest.Assert*` helper. `AssertFracHex` is renamed `AssertFractionalHex` and compares through `geomtest.AssertNumber`, within `geom.EpsilonRelative`, so the tolerance holds at any magnitude
+- **breaking** `Hex.HasLineOfSight`, and `FieldOfView` through it, test the exact segment between the two hex centers in integers, where they walked the hexes of `Line`: a blocker the segment clips at a corner now blocks though it is off the `Line`, a hex the segment only touches at a corner no longer blocks, and where the segment runs along the edge between two hexes, as towards a diagonal neighbor, both of them must block. This is the visibility symmetric shadow casting computes; it costs one pass over the blockers per target whatever the distance, and no float is involved
+- **breaking** `FractionalHex.Round`, and `Hex.Lerp` through it, convert through `geom.Cast` and so panic for a NaN or infinite coordinate, where they returned a platform-dependent hex
 - Require `geometry` v1.15.0 and `assert` v1.6.0
 - `Hex.Spiral` allocates once rather than once per ring, and `HasLineOfSight` builds nothing, so a line-of-sight test allocates nothing and `FieldOfView` allocates only its result
 - `Hex.Neighbor` steps by `Direction.Hex`, so a direction has one lattice step and the two cannot disagree
@@ -153,24 +149,26 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 
 
 ## [v1.4.0](https://github.com/gravitton/hexagon/compare/v1.3.0...v1.4.0) (2026-08-26)
+
 ### Added
 - `Hex.Compare(hex) int` – orders hexes by Q and then by R in the `cmp.Compare` convention, the axial counterpart of `geom.Point.Compare`, for `slices.SortFunc` and `slices.BinarySearchFunc`. The order is total but arbitrary in space — it follows neither distance nor angle from the origin
 
 
 ## [v1.3.0](https://github.com/gravitton/hexagon/compare/v1.2.0...v1.3.0) (2026-08-26)
+
 ### Changed
 - Require Go 1.27
-- `Direction` constants are renumbered to run by increasing angle — `SMinus`, `RPlus`, `QMinus`, `SPlus`, `RMinus`, `QPlus` — matching `geometry` v1.11.0, so a positive `Rotate` step is counterclockwise in math coordinates and clockwise as drawn on a screen with Y pointing down. Everything ordered by direction follows the new order: `Directions`, the offset tables, `CoordinateSystem.Offsets`, `Hex.Neighbors`, `Hex.Ring`, and `Hex.Spiral` (**breaking**)
+- **breaking** `Direction` constants are renumbered to run by increasing angle — `SMinus`, `RPlus`, `QMinus`, `SPlus`, `RMinus`, `QPlus` — matching `geometry` v1.11.0, so a positive `Rotate` step is counterclockwise in math coordinates and clockwise as drawn on a screen with Y pointing down. Everything ordered by direction follows the new order: `Directions`, the offset tables, `CoordinateSystem.Offsets`, `Hex.Neighbors`, `Hex.Ring`, and `Hex.Spiral`
 - `Hex.Rotate` and `Hex.RotateAround` now turn in the same sense as `Direction.Rotate`, as they always did before the reorder — no change for callers, but the two are now guaranteed consistent and tested as such
-- `Hex.Ring` starts from the `SMinus` corner (angle 0) instead of the `QMinus` corner, making `Ring(1)` exactly `Neighbors()`; `Hex.Spiral` follows (**breaking**)
-- `Direction.NeighborOffset()` renamed to `Direction.Offset()`, matching `geom.Direction.Offset` and freeing the name from the package-level `NeighborOffset` function (**breaking**)
-- Compass direction aliases spelled out in full, matching `geometry`: `FlatTopSE` is now `FlatTopSouthEast`, `PointyTopNE` is now `PointyTopNorthEast`, and so on for all twelve (**breaking**)
-- `To(hex, system)` and `From(index, system)` replaced by the methods `CoordinateSystem.To(hex)` and `CoordinateSystem.From(index)`; `Hex.To(system)` is unchanged and now forwards to `system.To(hex)` (**breaking**)
-- `NeighborOffsets(index, system)` and `NeighborOffset(index, system, direction)` replaced by the methods `CoordinateSystem.Offsets(index)` and `CoordinateSystem.Offset(index, direction)`, matching the method style `geometry` v1.10.0 moved to (**breaking**)
-- `NeighborOffsetsAxial`, `NeighborOffsetsOffsetOddR`, `NeighborOffsetsOffsetEvenR`, `NeighborOffsetsOffsetOddQ`, `NeighborOffsetsOffsetEvenQ`, `NeighborOffsetsDoubleWidth`, and `NeighborOffsetsDoubleHeight` removed — `CoordinateSystem.Offsets` covers all seven (**breaking**)
-- `DirectionsOffsetOddR`, `DirectionsOffsetEvenR`, `DirectionsOffsetOddQ`, `DirectionsOffsetEvenQ`, `DirectionsDoubleWidth`, and `DirectionsDoubleHeight` unexported, now reached through `CoordinateSystem.Offsets` (**breaking**)
-- `ToAxial`, `ToOffsetOddR`, `ToOffsetEvenR`, `ToOffsetOddQ`, `ToOffsetEvenQ`, `ToDoubleWidth`, `ToDoubleHeight` and their seven `From` counterparts unexported; `CoordinateSystem.To` and `CoordinateSystem.From` are the entry points (**breaking**)
-- `Directions` now lists the six `Direction` values rather than their offset vectors, matching `geom.Directions`; the vectors moved to the unexported `directionOffsets`, reachable via `Direction.Offset` (**breaking**)
+- **breaking** `Hex.Ring` starts from the `SMinus` corner (angle 0) instead of the `QMinus` corner, making `Ring(1)` exactly `Neighbors()`; `Hex.Spiral` follows
+- **breaking** `Direction.NeighborOffset()` renamed to `Direction.Offset()`, matching `geom.Direction.Offset` and freeing the name from the package-level `NeighborOffset` function
+- **breaking** Compass direction aliases spelled out in full, matching `geometry`: `FlatTopSE` is now `FlatTopSouthEast`, `PointyTopNE` is now `PointyTopNorthEast`, and so on for all twelve
+- **breaking** `To(hex, system)` and `From(index, system)` replaced by the methods `CoordinateSystem.To(hex)` and `CoordinateSystem.From(index)`; `Hex.To(system)` is unchanged and now forwards to `system.To(hex)`
+- **breaking** `NeighborOffsets(index, system)` and `NeighborOffset(index, system, direction)` replaced by the methods `CoordinateSystem.Offsets(index)` and `CoordinateSystem.Offset(index, direction)`, matching the method style `geometry` v1.10.0 moved to
+- **breaking** `NeighborOffsetsAxial`, `NeighborOffsetsOffsetOddR`, `NeighborOffsetsOffsetEvenR`, `NeighborOffsetsOffsetOddQ`, `NeighborOffsetsOffsetEvenQ`, `NeighborOffsetsDoubleWidth`, and `NeighborOffsetsDoubleHeight` removed — `CoordinateSystem.Offsets` covers all seven
+- **breaking** `DirectionsOffsetOddR`, `DirectionsOffsetEvenR`, `DirectionsOffsetOddQ`, `DirectionsOffsetEvenQ`, `DirectionsDoubleWidth`, and `DirectionsDoubleHeight` unexported, now reached through `CoordinateSystem.Offsets`
+- **breaking** `ToAxial`, `ToOffsetOddR`, `ToOffsetEvenR`, `ToOffsetOddQ`, `ToOffsetEvenQ`, `ToDoubleWidth`, `ToDoubleHeight` and their seven `From` counterparts unexported; `CoordinateSystem.To` and `CoordinateSystem.From` are the entry points
+- **breaking** `Directions` now lists the six `Direction` values rather than their offset vectors, matching `geom.Directions`; the vectors moved to the unexported `directionOffsets`, reachable via `Direction.Offset`
 - `mod6` replaced by `geom.Mod` from `geometry` v1.10.0
 
 ### Added
@@ -185,10 +183,6 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 
 
 ## [v1.2.0](https://github.com/gravitton/hexagon/compare/v1.1.0...v1.2.0) (2026-05-03)
-### Breaking Changes
-- `H(q, r int)` constructor renamed to `Pt(q, r int)`
-- `F(q, r float64)` constructor renamed to `FracPt(q, r float64)`
-- `Layout` type removed from the package (moved to [`gravitton/grid`](https://github.com/gravitton/grid))
 
 ### Added
 - `Hex.IsZero() bool` — reports whether the hex equals the zero value `{0, 0}`
@@ -197,8 +191,16 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 - Named direction aliases for flat-top grids: `FlatTopSE`, `FlatTopNE`, `FlatTopN`, `FlatTopNW`, `FlatTopSW`, `FlatTopS`
 - Named direction aliases for pointy-top grids: `PointyTopE`, `PointyTopNE`, `PointyTopNW`, `PointyTopW`, `PointyTopSW`, `PointyTopSE`
 
+### Changed
+- **breaking** `H(q, r int)` constructor renamed to `Pt(q, r int)`
+- **breaking** `F(q, r float64)` constructor renamed to `FracPt(q, r float64)`
+
+### Removed
+- **breaking** `Layout` type removed from the package (moved to [`gravitton/grid`](https://github.com/gravitton/grid))
+
 
 ## [v1.1.0](https://github.com/gravitton/hexagon/compare/v1.0.0...v1.1.0) (2026-04-25)
+
 ### Added
 - `Hex.Ring(radius)` — hexes at exactly the given distance from a center hex, ordered counterclockwise
 - `Hex.Spiral(radius)` — all hexes from center outward to radius, ring by ring (nearest-first traversal)
@@ -209,7 +211,8 @@ onto a reused buffer and an `iter.Seq`, and line of sight tests the exact segmen
 - `Direction.Rotate(steps)` — advances a direction by `steps` positions, with wrap-around and negative support
 
 
-## v1.0.0 (2025-10-27)
+## [v1.0.0](https://github.com/gravitton/hexagon/commits/v1.0.0) (2025-10-27)
+
 ### Added
 - Support for multiple hex coordinate systems
 - Support direction offsets
