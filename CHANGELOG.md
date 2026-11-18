@@ -11,7 +11,9 @@ more expensive of the two. A breaking change opens its entry with **breaking**, 
 opens with a **Breaking** group. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.1...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.9.0...main)
+
+## [v1.9.0](https://github.com/gravitton/hexagon/compare/v1.8.1...v1.9.0) (2026-11-18)
 
 ### Added
 - `Hex.ChunkIndex` and `HexFromChunkIndex` return the index of a hex within its chunk of a given radius, below `RangeLen` of the radius, and the hex within the radius of the origin that has an index, so a chunk or a wrap-around map stores its hexes in a slice; a negative radius panics with an error wrapping `ErrNegativeChunkRadius`
