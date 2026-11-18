@@ -227,7 +227,7 @@ hexagon's sides.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-light.svg">
-  <img alt="A map tiled with hexagonal chunks of radius 2 in three colours, the chunk holding a hex outlined, and the line from the center of that chunk to the hex" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-light.svg">
+  <img alt="A map tiled with hexagonal chunks of radius 2 in three colours: the chunk holding a hex outlined, the hex as far from the origin as from the center of its chunk, and every hex numbered by its index within its chunk" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-light.svg">
 </picture>
 </p>
 
@@ -235,14 +235,16 @@ hexagon's sides.
 h := hex.Pt(3, 0)
 chunk := h.Chunk(2)  // (1,0), the chunk of radius 2 holding h, a hex of the coarser grid
 chunk.ChunkCenter(2) // (5,-2), the center of that chunk; Chunk of it is the chunk again
-h.ChunkLocal(2)      // (-2,2), h from the center of its chunk
+h.ChunkLocal(2)      // (-2,2), h from the center of its chunk, where a map of radius 2 wraps it
+h.ChunkIndex(2)      // 5, its slot in a slice of hex.RangeLen(2), the same in every chunk
 ```
 
 The ranges of one radius tile the plane, so every hex lies in exactly one chunk, and the chunks
 form a hex grid of their own: `Neighbors` of a chunk are the chunks around it, and
-`chunk.ChunkCenter(2).Range(2)` lists its hexes. `ChunkLocal` keeps a hex within the radius of the
-origin, which is the wrap of a map that wraps around: a unit leaving one edge of a hexagonal map of
-radius `r` comes back at `h.ChunkLocal(r)`.
+`chunk.ChunkCenter(2).Range(2)` lists its hexes. A map that wraps around is the chunk of its own
+radius repeated over the plane: `ChunkLocal` wraps a position back onto it, and a slice of
+`RangeLen` indexed by `ChunkIndex` holds its tiles, so any hex, on the map or off its edge, reads
+its tile without a wrap. `HexFromChunkIndex` is the hex of a slot.
 
 ### Sectors
 

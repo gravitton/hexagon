@@ -34,6 +34,64 @@ func TestHex_Constructor(t *testing.T) {
 	hextest.AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
 }
 
+func TestHexFromChunkIndex(t *testing.T) {
+	t.Run("the hexes hexx gives", func(t *testing.T) {
+		hextest.AssertHex(t, HexFromChunkIndex(72, 5), Pt(-1, -2))
+		hextest.AssertHex(t, HexFromChunkIndex(5, 2), Pt(-2, 2))
+		hextest.AssertHex(t, HexFromChunkIndex(0, 3), Pt(0, 0))
+	})
+	t.Run("undoes ChunkIndex within the range", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, h := range testHexZero.Range(radius) {
+				hextest.AssertHex(t, HexFromChunkIndex(h.ChunkIndex(radius), radius), h, strconv.Itoa(radius)+" "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("wraps an index outside the range", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			area := RangeLen(radius)
+			for index := range area {
+				for _, turns := range []int{-3, -1, 1, 4} {
+					hextest.AssertHex(t, HexFromChunkIndex(index+turns*area, radius), HexFromChunkIndex(index, radius), strconv.Itoa(radius)+" "+strconv.Itoa(index)+": ")
+				}
+			}
+		}
+	})
+	t.Run("panics for a negative radius", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			sinkHex = HexFromChunkIndex(0, -1)
+		}, ErrNegativeChunkRadius)
+	})
+}
+
+func BenchmarkHexFromChunkIndex(b *testing.B) {
+	for b.Loop() {
+		sinkHex = HexFromChunkIndex(100, 8)
+	}
+}
+
+func FuzzHexFromChunkIndex(f *testing.F) {
+	f.Add(0, 0)
+	f.Add(72, 5)
+	f.Add(30300, 100)
+
+	f.Fuzz(func(t *testing.T, index, radius int) {
+		if radius < 0 || radius > 1000 || index < 0 || index >= RangeLen(radius) {
+			t.Skip()
+		}
+
+		hextest.AssertHex(t, HexFromChunkIndex(index, radius), hexmodOf(index, radius), strconv.Itoa(index)+" in "+strconv.Itoa(radius)+": ")
+	})
+}
+
+// hexmodOf is hexx's from_hexmod_coordinates, the closed form of an index in [0, RangeLen(radius)).
+func hexmodOf(index, radius int) Hex {
+	shift := 3*radius + 2
+	ms, mcs := (index+radius)/shift, (index+2*radius)/(shift-1)
+
+	return Hex{ms*(radius+1) - mcs*radius, index - ms*(2*radius+1) - mcs*(radius+1)}
+}
+
 func TestParseHex(t *testing.T) {
 	t.Run("the form String prints", func(t *testing.T) {
 		h, err := ParseHex("(-1,3)")
@@ -620,6 +678,55 @@ func TestHex_ChunkLocal(t *testing.T) {
 			sinkHex = testHex.ChunkLocal(-1)
 		}, ErrNegativeChunkRadius)
 	})
+}
+
+func TestHex_ChunkIndex(t *testing.T) {
+	t.Run("the indices hexx gives", func(t *testing.T) {
+		assert.Equal(t, Pt(23, 45).ChunkIndex(5), 72)
+		assert.Equal(t, Pt(3, 0).ChunkIndex(2), 5)
+		assert.Equal(t, Pt(-7, 4).ChunkIndex(3), 1)
+	})
+	t.Run("zero at the center", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, chunk := range testHex.Spiral(2) {
+				assert.Equal(t, chunk.ChunkCenter(radius).ChunkIndex(radius), 0, strconv.Itoa(radius)+" "+chunk.String()+": ")
+			}
+		}
+	})
+	t.Run("the index of ChunkLocal", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, h := range testHex.Spiral(12) {
+				assert.Equal(t, h.ChunkIndex(radius), h.ChunkLocal(radius).ChunkIndex(radius), strconv.Itoa(radius)+" "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("numbers every chunk from zero once", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			want := make([]int, RangeLen(radius))
+			for index := range want {
+				want[index] = index
+			}
+			for _, chunk := range testHex.Spiral(2) {
+				indices := make([]int, 0, RangeLen(radius))
+				for _, h := range chunk.ChunkCenter(radius).Range(radius) {
+					indices = append(indices, h.ChunkIndex(radius))
+				}
+				slices.Sort(indices)
+				assert.Equal(t, indices, want, strconv.Itoa(radius)+" "+chunk.String()+": ")
+			}
+		}
+	})
+	t.Run("panics for a negative radius", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			sinkInt = testHex.ChunkIndex(-1)
+		}, ErrNegativeChunkRadius)
+	})
+}
+
+func BenchmarkHex_ChunkIndex(b *testing.B) {
+	for b.Loop() {
+		sinkInt = testHex.ChunkIndex(8)
+	}
 }
 
 func TestHex_Neighbor(t *testing.T) {
@@ -2412,6 +2519,11 @@ func ExamplePt() {
 	// -1 3 -2
 }
 
+func ExampleHexFromChunkIndex() {
+	fmt.Println(HexFromChunkIndex(5, 2))
+	// Output: (-2,2)
+}
+
 func ExampleParseHex() {
 	h, err := ParseHex("(-1,3)")
 	fmt.Println(h, err)
@@ -2456,8 +2568,14 @@ func ExampleHex_Turn() {
 func ExampleHex_Chunk() {
 	h := Pt(3, 0)
 	chunk := h.Chunk(2)
-	fmt.Println(chunk, chunk.ChunkCenter(2), h.ChunkLocal(2))
-	// Output: (1,0) (5,-2) (-2,2)
+	fmt.Println(chunk, chunk.ChunkCenter(2), h.ChunkLocal(2), h.ChunkIndex(2))
+	// Output: (1,0) (5,-2) (-2,2) 5
+}
+
+func ExampleHex_ChunkIndex() {
+	h := Pt(3, 0)
+	fmt.Println(h.ChunkIndex(2), h.ChunkLocal(2).ChunkIndex(2))
+	// Output: 5 5
 }
 
 func ExampleHex_Neighbor() {

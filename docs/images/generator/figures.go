@@ -207,10 +207,10 @@ func disc(t theme, radius float64, caption string) *panel {
 }
 
 func chunks(t theme) []*panel {
-	h := hex.Pt(3, 0)
-	chunk, center := h.Chunk(2), h.Chunk(2).ChunkCenter(2)
+	h, view := hex.Pt(3, 0), hex.Pt(2, -1)
+	chunk, center, local := h.Chunk(2), h.Chunk(2).ChunkCenter(2), h.ChunkLocal(2)
 
-	holding := tiling(t, 2, "h.Chunk(2)")
+	holding := tiling(t, view, "h.Chunk(2)")
 	for _, member := range center.Range(2) {
 		holding.outline(member, t.accent, 2)
 	}
@@ -218,22 +218,38 @@ func chunks(t theme) []*panel {
 	holding.label(h, "h", t.onAccent)
 	holding.note = "the chunk " + chunk.String()
 
-	local := tiling(t, 2, "h.ChunkLocal(2)")
-	local.segment(center, h, t.accent, false)
-	local.cell(center, t.cool)
-	local.label(center, "c", t.onAccent)
-	local.cell(h, t.accent)
-	local.label(h, "h", t.onAccent)
-	local.note = h.ChunkLocal(2).String() + " from c, chunk.ChunkCenter(2)"
+	wrap := tiling(t, view, "h.ChunkLocal(2)")
+	wrap.segment(center, h, t.accent, false)
+	wrap.segment(origin, local, t.accent, false)
+	wrap.cell(center, t.cool)
+	wrap.label(center, "c", t.onAccent)
+	wrap.cell(origin, t.cool)
+	wrap.label(origin, "o", t.onAccent)
+	wrap.cell(h, t.accent)
+	wrap.label(h, "h", t.onAccent)
+	wrap.cell(local, t.accent)
+	wrap.label(local, "h", t.onAccent)
+	wrap.note = local.String() + " from c, where h wraps onto the map around o"
 
-	return []*panel{holding, local}
+	index := tiling(t, view, "h.ChunkIndex(2)")
+	for _, cell := range view.Range(5) {
+		if cell.ChunkIndex(2) == h.ChunkIndex(2) {
+			index.outline(cell, t.accent, 2)
+		}
+		index.label(cell, strconv.Itoa(cell.ChunkIndex(2)), t.ink)
+	}
+	index.cell(h, t.accent)
+	index.label(h, strconv.Itoa(h.ChunkIndex(2)), t.onAccent)
+	index.note = "every chunk numbers its hexes alike"
+
+	return []*panel{holding, wrap, index}
 }
 
-func tiling(t theme, radius int, caption string) *panel {
-	p := newPanel(t, pointyTop, 12, caption)
+func tiling(t theme, view hex.Hex, caption string) *panel {
+	p := newPanel(t, pointyTop, 14, caption)
 	fills := [3]string{t.accentSoft, t.coolSoft, t.leafSoft}
-	for _, h := range origin.Range(7) {
-		chunk := h.Chunk(radius)
+	for _, h := range view.Range(5) {
+		chunk := h.Chunk(2)
 		p.cell(h, fills[geom.FloorMod(chunk.Q-chunk.R, 3)])
 	}
 

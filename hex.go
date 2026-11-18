@@ -23,6 +23,13 @@ func Pt(q, r int) Hex {
 	return Hex{q, r}
 }
 
+// HexFromChunkIndex returns the hex within radius of the origin whose ChunkIndex is index, so it
+// undoes ChunkIndex on a hex ChunkLocal returns. An index outside [0, RangeLen(radius)) wraps into
+// it. It panics for a negative radius.
+func HexFromChunkIndex(index, radius int) Hex {
+	return Hex{0, index}.ChunkLocal(radius)
+}
+
 // ParseHex returns the hex in the form String prints, and an error for any other string. Each
 // coordinate is an integer geom.Parse accepts; a fractional one is an error, not rounded.
 func ParseHex(s string) (Hex, error) {
@@ -211,6 +218,18 @@ func (h Hex) ChunkCenter(radius int) Hex {
 // radius.
 func (h Hex) ChunkLocal(radius int) Hex {
 	return h.Subtract(h.Chunk(radius).ChunkCenter(radius))
+}
+
+// ChunkIndex returns the index of the hex within its chunk of radius, in [0, RangeLen(radius)) and
+// zero at the center, every hex of a chunk a different one, so a chunk or a map that wraps around
+// stores its hexes in a slice of RangeLen(radius). It is the same for every hex with the same
+// ChunkLocal. It panics for a negative radius.
+func (h Hex) ChunkIndex(radius int) int {
+	if radius < 0 {
+		panic(fmt.Errorf("%w %d", ErrNegativeChunkRadius, radius))
+	}
+
+	return geom.FloorMod(h.R+(3*radius+2)*h.Q, RangeLen(radius))
 }
 
 // Neighbor returns the neighbor in the direction, and the hex itself for DirectionNone.
