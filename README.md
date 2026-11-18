@@ -36,7 +36,7 @@ Hexagonal grid math: coordinates, ranges, lines and field of view
 - **Axial coordinates** – two integers per hex, the third cube coordinate derived.
 - **Immutable** – every method returns a new value, and a `Hex` is a map key that compares with `==`.
 - **Traversal** – neighbors, range, ring, spiral, circles, sectors and lines, each with an allocation-free `Seq` form.
-- **Chunks** – the coarser grid that tiles a map with hexagonal chunks, exact in integers, for chunked and wrap-around maps.
+- **Chunks** – hexagonal chunks of any radius: the chunk, center, wrap and slice index of a hex, exact in integers.
 - **Visibility** – exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
 - **Cube space** – rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
 - **Directions** – six of them, by increasing angle, with flat-top and pointy-top compass aliases.
