@@ -4,10 +4,10 @@ go 1.27
 
 require (
 	github.com/gravitton/geometry v1.20.0
-	github.com/gravitton/grid v1.4.0
-	github.com/gravitton/hexagon v1.8.1
+	github.com/gravitton/grid v1.5.0
+	github.com/gravitton/hexagon v1.9.0
 )
 
-require github.com/gravitton/container v1.0.1 // indirect
+require github.com/gravitton/container v1.0.2 // indirect
 
 replace github.com/gravitton/hexagon => ../../..
