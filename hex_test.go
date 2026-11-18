@@ -1975,7 +1975,7 @@ func FuzzHex_FieldOfView(f *testing.F) {
 
 		source := Pt(q, r)
 		blocked := func(hex Hex) bool {
-			return geom.Mod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
+			return geom.FloorMod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
 		}
 
 		assert.Equal(t, source.FieldOfView(radius, blocked), seenAmong(source, source.Spiral(radius), blocked), source.String()+" within "+strconv.Itoa(radius)+": ")
@@ -2163,7 +2163,7 @@ func FuzzHex_FieldOfViewSector(f *testing.F) {
 
 		source := Pt(q, r)
 		blocked := func(hex Hex) bool {
-			return geom.Mod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
+			return geom.FloorMod(hex.Q*factorQ+hex.R*factorR, modulus) == 0
 		}
 
 		message := source.String() + " within " + strconv.Itoa(radius) + " " + strconv.Itoa(direction) + " " + strconv.Itoa(turns) + ": "
@@ -2378,7 +2378,7 @@ func among(hexes []Hex) func(Hex) bool {
 // linear form of the coordinates.
 func scattered(modulus int) func(Hex) bool {
 	return func(hex Hex) bool {
-		return geom.Mod(hex.Q*7+hex.R*13, modulus) == 3%modulus
+		return geom.FloorMod(hex.Q*7+hex.R*13, modulus) == 3%modulus
 	}
 }
 

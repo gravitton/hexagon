@@ -140,7 +140,7 @@ func (h Hex) Lerp(hex Hex, t float64) Hex {
 // Turn returns the hex turned about the origin by steps sixth-turns of increasing angle; negative
 // steps go the other way.
 func (h Hex) Turn(steps int) Hex {
-	switch geom.Mod(steps, 6) {
+	switch geom.FloorMod(steps, 6) {
 	case 1:
 		return Hex{-h.R, -h.S()}
 	case 2:

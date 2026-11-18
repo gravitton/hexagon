@@ -68,7 +68,7 @@ func DirectionFromAngle(angle float64) Direction {
 		return DirectionNone
 	}
 
-	return geom.Mod(Direction(math.Round(geom.NormalizeAngle(angle)/(geom.Pi/3))), 6)
+	return geom.FloorMod(Direction(math.Round(geom.NormalizeAngle(angle)/(geom.Pi/3))), 6)
 }
 
 // ParseDirection returns the direction with the name String prints, and an error for any other
@@ -104,7 +104,7 @@ func (d Direction) normalize() Direction {
 		return DirectionNone
 	}
 
-	return geom.Mod(d, 6)
+	return geom.FloorMod(d, 6)
 }
 
 // Opposite returns the direction turned by half a turn.
@@ -119,7 +119,7 @@ func (d Direction) Turn(steps int) Direction {
 		return DirectionNone
 	}
 
-	return geom.Mod(d.normalize()+Direction(geom.Mod(steps, 6)), 6)
+	return geom.FloorMod(d.normalize()+Direction(geom.FloorMod(steps, 6)), 6)
 }
 
 // TurnsTo returns the fewest steps Turn takes from the direction to the given one, from -2 to 3,
@@ -129,7 +129,7 @@ func (d Direction) TurnsTo(direction Direction) int {
 		return 0
 	}
 
-	return int(geom.Mod(direction.normalize()-d.normalize()+2, 6)) - 2
+	return int(geom.FloorMod(direction.normalize()-d.normalize()+2, 6)) - 2
 }
 
 // IsNone reports whether the direction is DirectionNone.

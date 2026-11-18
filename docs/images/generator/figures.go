@@ -234,7 +234,7 @@ func tiling(t theme, radius int, caption string) *panel {
 	fills := [3]string{t.accentSoft, t.coolSoft, t.leafSoft}
 	for _, h := range origin.Range(7) {
 		chunk := h.Chunk(radius)
-		p.cell(h, fills[geom.Mod(chunk.Q-chunk.R, 3)])
+		p.cell(h, fills[geom.FloorMod(chunk.Q-chunk.R, 3)])
 	}
 
 	return p
@@ -528,7 +528,7 @@ func rounding(t theme) []*panel {
 			at := geom.Pt(x, y)
 			h := hex.Axial.From(p.layout.IndexAt(at))
 			if h.Length() <= 2 {
-				p.circle(at, 1.3, style{fill: colors[geom.Mod(h.Q-h.R, 3)]})
+				p.circle(at, 1.3, style{fill: colors[geom.FloorMod(h.Q-h.R, 3)]})
 			}
 		}
 	}

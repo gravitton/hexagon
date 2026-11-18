@@ -75,7 +75,7 @@ func (h FractionalHex) Lerp(hex FractionalHex, t float64) FractionalHex {
 // negative steps go the other way. The result is exact but for one rounding of s, however many
 // steps it takes.
 func (h FractionalHex) Turn(steps int) FractionalHex {
-	switch geom.Mod(steps, 6) {
+	switch geom.FloorMod(steps, 6) {
 	case 1:
 		return FractionalHex{-h.R, -h.S()}
 	case 2:

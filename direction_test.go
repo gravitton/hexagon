@@ -298,7 +298,7 @@ func TestDirection_TurnsTo(t *testing.T) {
 		}
 	})
 	t.Run("wraps out of range values without overflow", func(t *testing.T) {
-		assert.Equal(t, Direction(math.MaxInt).TurnsTo(Direction(math.MinInt)), Direction(math.MaxInt%6).TurnsTo(geom.Mod(Direction(math.MinInt), 6)))
+		assert.Equal(t, Direction(math.MaxInt).TurnsTo(Direction(math.MinInt)), Direction(math.MaxInt%6).TurnsTo(geom.FloorMod(Direction(math.MinInt), 6)))
 	})
 	t.Run("none takes no steps", func(t *testing.T) {
 		assert.Equal(t, DirectionNone.TurnsTo(RPlus), 0)

@@ -17,6 +17,9 @@ opens with a **Breaking** group. Renames land as a rename; no deprecated alias i
 - `Hex.Chunk`, `ChunkCenter` and `ChunkLocal` return the chunk of a given radius holding a hex, the center of a chunk, and a hex relative to the center of its chunk, for chunked and wrap-around maps, exact in integers; a negative radius panics with an error wrapping `ErrNegativeChunkRadius`
 - `Hex.Circle` and `CircleSeq` return the hexes whose centers lie within a Euclidean radius, border included, in the order of `Compare`; a NaN or infinite radius panics
 
+### Changed
+- Require `geometry` v1.20.0
+
 ## [v1.8.1](https://github.com/gravitton/hexagon/compare/v1.8.0...v1.8.1) (2026-11-18)
 
 ### Changed
