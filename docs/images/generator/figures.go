@@ -18,6 +18,7 @@ var figures = []figure{
 	{"neighbors", neighbors},
 	{"traversal", traversal},
 	{"circles", circles},
+	{"chunks", chunks},
 	{"sectors", sectors},
 	{"sight", sight},
 	{"walk", walk},
@@ -201,6 +202,40 @@ func disc(t theme, radius float64, caption string) *panel {
 
 	step := p.center(hex.Pt(1, 0)).Subtract(p.center(origin)).Length()
 	p.circle(p.center(origin), radius*step, style{stroke: t.muted, width: 1.2, dashed: true})
+
+	return p
+}
+
+func chunks(t theme) []*panel {
+	h := hex.Pt(3, 0)
+	chunk, center := h.Chunk(2), h.Chunk(2).ChunkCenter(2)
+
+	holding := tiling(t, 2, "h.Chunk(2)")
+	for _, member := range center.Range(2) {
+		holding.outline(member, t.accent, 2)
+	}
+	holding.cell(h, t.accent)
+	holding.label(h, "h", t.onAccent)
+	holding.note = "the chunk " + chunk.String()
+
+	local := tiling(t, 2, "h.ChunkLocal(2)")
+	local.segment(center, h, t.accent, false)
+	local.cell(center, t.cool)
+	local.label(center, "c", t.onAccent)
+	local.cell(h, t.accent)
+	local.label(h, "h", t.onAccent)
+	local.note = h.ChunkLocal(2).String() + " from c, chunk.ChunkCenter(2)"
+
+	return []*panel{holding, local}
+}
+
+func tiling(t theme, radius int, caption string) *panel {
+	p := newPanel(t, pointyTop, 12, caption)
+	fills := [3]string{t.accentSoft, t.coolSoft, t.leafSoft}
+	for _, h := range origin.Range(7) {
+		chunk := h.Chunk(radius)
+		p.cell(h, fills[geom.Mod(chunk.Q-chunk.R, 3)])
+	}
 
 	return p
 }

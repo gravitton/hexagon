@@ -36,6 +36,7 @@ Hexagonal grid math: coordinates, ranges, lines and field of view
 - **Axial coordinates** – two integers per hex, the third cube coordinate derived.
 - **Immutable** – every method returns a new value, and a `Hex` is a map key that compares with `==`.
 - **Traversal** – neighbors, range, ring, spiral, circles, sectors and lines, each with an allocation-free `Seq` form.
+- **Chunks** – the coarser grid that tiles a map with hexagonal chunks, exact in integers, for chunked and wrap-around maps.
 - **Visibility** – exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
 - **Cube space** – rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
 - **Directions** – six of them, by increasing angle, with flat-top and pointy-top compass aliases.
@@ -219,6 +220,29 @@ Euclidean radius, with neighbors one apart and the border included. A whole radi
 gives exactly `Range`, since every ring beyond it has its nearest hexes farther than the radius, so
 a round blast or aura takes a radius between whole numbers, where the circle bulges past the
 hexagon's sides.
+
+### Chunks
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-light.svg">
+  <img alt="A map tiled with hexagonal chunks of radius 2 in three colours, the chunk holding a hex outlined, and the line from the center of that chunk to the hex" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/chunks-light.svg">
+</picture>
+</p>
+
+```go
+h := hex.Pt(3, 0)
+chunk := h.Chunk(2)  // (1,0), the chunk of radius 2 holding h, a hex of the coarser grid
+chunk.ChunkCenter(2) // (5,-2), the center of that chunk; Chunk of it is the chunk again
+h.ChunkLocal(2)      // (-2,2), h from the center of its chunk
+```
+
+The ranges of one radius tile the plane, so every hex lies in exactly one chunk, and the chunks
+form a hex grid of their own: `Neighbors` of a chunk are the chunks around it, and
+`chunk.ChunkCenter(2).Range(2)` lists its hexes. `ChunkLocal` keeps a hex within the radius of the
+origin, which is the wrap of a map that wraps around: a unit leaving one edge of a hexagonal map of
+radius `r` comes back at `h.ChunkLocal(r)`.
 
 ### Sectors
 

@@ -475,6 +475,153 @@ func TestHex_ReflectS(t *testing.T) {
 	})
 }
 
+func TestHex_Chunk(t *testing.T) {
+	t.Run("the chunks hexx gives", func(t *testing.T) {
+		hextest.AssertHex(t, Pt(23, 45).Chunk(5), Pt(-1, 7))
+		hextest.AssertHex(t, Pt(3, 0).Chunk(2), Pt(1, 0))
+		hextest.AssertHex(t, Pt(2, 1).Chunk(2), Pt(0, 1))
+		hextest.AssertHex(t, Pt(-7, 4).Chunk(3), Pt(-1, 0))
+	})
+	t.Run("zero radius is the hex itself", func(t *testing.T) {
+		for _, h := range testHex.Spiral(3) {
+			hextest.AssertHex(t, h.Chunk(0), h, h.String()+": ")
+		}
+	})
+	t.Run("a chunk holds exactly the range around its center", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, chunk := range testHex.Spiral(2) {
+				center := chunk.ChunkCenter(radius)
+				for _, h := range center.Spiral(radius + 1) {
+					assert.Equal(t, h.Chunk(radius) == chunk, center.DistanceTo(h) <= radius, strconv.Itoa(radius)+" "+h.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("turns with the hex", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, h := range testHex.Spiral(12) {
+				for steps := range 6 {
+					hextest.AssertHex(t, h.Turn(steps).Chunk(radius), h.Chunk(radius).Turn(steps), strconv.Itoa(radius)+" "+h.String()+": ")
+				}
+			}
+		}
+	})
+	t.Run("far from the origin", func(t *testing.T) {
+		far := Pt(-1000000, 999999)
+		for _, radius := range testChunkRadii {
+			hextest.AssertHex(t, far.Chunk(radius).ChunkCenter(radius).Add(far.ChunkLocal(radius)), far, strconv.Itoa(radius)+": ")
+			assert.LessOrEqual(t, far.ChunkLocal(radius).Length(), radius, strconv.Itoa(radius)+": ")
+		}
+	})
+	t.Run("panics for a negative radius", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			sinkHex = testHex.Chunk(-1)
+		}, ErrNegativeChunkRadius)
+	})
+}
+
+func BenchmarkHex_Chunk(b *testing.B) {
+	for b.Loop() {
+		sinkHex = testHex.Chunk(8)
+	}
+}
+
+func FuzzHex_Chunk(f *testing.F) {
+	f.Add(0, 0, 0)
+	f.Add(23, 45, 5)
+	f.Add(-1000000, 999999, 9)
+
+	f.Fuzz(func(t *testing.T, q, r, radius int) {
+		if max(geom.Abs(q), geom.Abs(r)) > 1e6 || radius < 0 || radius > 100 {
+			t.Skip()
+		}
+
+		h := Pt(q, r)
+		chunk := h.Chunk(radius)
+		message := h.String() + " in " + strconv.Itoa(radius) + ": "
+		assert.LessOrEqual(t, chunk.ChunkCenter(radius).DistanceTo(h), radius, message)
+		for _, neighbor := range chunk.Neighbors() {
+			assert.Greater(t, neighbor.ChunkCenter(radius).DistanceTo(h), radius, message)
+		}
+	})
+}
+
+func TestHex_ChunkCenter(t *testing.T) {
+	t.Run("the centers hexx gives", func(t *testing.T) {
+		hextest.AssertHex(t, Pt(-1, 7).ChunkCenter(5), Pt(24, 47))
+		hextest.AssertHex(t, Pt(1, 0).ChunkCenter(2), Pt(5, -2))
+		hextest.AssertHex(t, Pt(0, 1).ChunkCenter(2), Pt(2, 3))
+	})
+	t.Run("zero radius is the hex itself", func(t *testing.T) {
+		for _, h := range testHex.Spiral(3) {
+			hextest.AssertHex(t, h.ChunkCenter(0), h, h.String()+": ")
+		}
+	})
+	t.Run("undone by Chunk", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, chunk := range testHex.Spiral(6) {
+				hextest.AssertHex(t, chunk.ChunkCenter(radius).Chunk(radius), chunk, strconv.Itoa(radius)+" "+chunk.String()+": ")
+			}
+		}
+	})
+	t.Run("neighboring chunks have centers 2r+1 apart", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, neighbor := range testHex.Neighbors() {
+				assert.Equal(t, testHex.ChunkCenter(radius).DistanceTo(neighbor.ChunkCenter(radius)), 2*radius+1, strconv.Itoa(radius)+" "+neighbor.String()+": ")
+			}
+		}
+	})
+	t.Run("panics for a negative radius", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			sinkHex = testHex.ChunkCenter(-1)
+		}, ErrNegativeChunkRadius)
+	})
+}
+
+func TestHex_ChunkLocal(t *testing.T) {
+	t.Run("the local hexes hexx gives", func(t *testing.T) {
+		hextest.AssertHex(t, Pt(23, 45).ChunkLocal(5), Pt(-1, -2))
+		hextest.AssertHex(t, Pt(3, 0).ChunkLocal(2), Pt(-2, 2))
+		hextest.AssertHex(t, Pt(-7, 4).ChunkLocal(3), Pt(0, 1))
+	})
+	t.Run("zero radius is the origin", func(t *testing.T) {
+		for _, h := range testHex.Spiral(3) {
+			hextest.AssertHex(t, h.ChunkLocal(0), Pt(0, 0), h.String()+": ")
+		}
+	})
+	t.Run("added to the center of the chunk is the hex", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, h := range testHex.Spiral(12) {
+				hextest.AssertHex(t, h.Chunk(radius).ChunkCenter(radius).Add(h.ChunkLocal(radius)), h, strconv.Itoa(radius)+" "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("keeps a hex within the range", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, h := range testHexZero.Range(radius) {
+				hextest.AssertHex(t, h.ChunkLocal(radius), h, strconv.Itoa(radius)+" "+h.String()+": ")
+			}
+		}
+	})
+	t.Run("wraps every chunk onto the range once", func(t *testing.T) {
+		for _, radius := range testChunkRadii {
+			for _, chunk := range testHex.Spiral(2) {
+				local := make([]Hex, 0, RangeLen(radius))
+				for _, h := range chunk.ChunkCenter(radius).Range(radius) {
+					local = append(local, h.ChunkLocal(radius))
+				}
+				slices.SortFunc(local, Hex.Compare)
+				assert.Equal(t, local, testHexZero.Range(radius), strconv.Itoa(radius)+" "+chunk.String()+": ")
+			}
+		}
+	})
+	t.Run("panics for a negative radius", func(t *testing.T) {
+		assert.PanicsWith(t, func() {
+			sinkHex = testHex.ChunkLocal(-1)
+		}, ErrNegativeChunkRadius)
+	})
+}
+
 func TestHex_Neighbor(t *testing.T) {
 	t.Run("one step in each direction", func(t *testing.T) {
 		hextest.AssertHex(t, testHex.Neighbor(SMinus), Pt(0, 3))
@@ -2251,6 +2398,7 @@ func seenAmong(source Hex, hexes []Hex, blocked func(Hex) bool) []Hex {
 var (
 	testHex         = Pt(-1, 3)
 	testHexZero     = Pt(0, 0)
+	testChunkRadii  = []int{0, 1, 2, 3, 5, 8}
 	testCircleRadii = []float64{0, 0.5, 1, 1.5, math.Sqrt(3), 2, 2.5, 3, math.Sqrt(13), 4.5, 6, 6.5, 7, 12.3, 40}
 )
 
@@ -2303,6 +2451,13 @@ func ExampleHex_Turn() {
 	// (0,3)
 	// (3,-3)
 	// (-3,0)
+}
+
+func ExampleHex_Chunk() {
+	h := Pt(3, 0)
+	chunk := h.Chunk(2)
+	fmt.Println(chunk, chunk.ChunkCenter(2), h.ChunkLocal(2))
+	// Output: (1,0) (5,-2) (-2,2)
 }
 
 func ExampleHex_Neighbor() {

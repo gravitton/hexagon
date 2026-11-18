@@ -10,9 +10,10 @@
 //     address a grid by two integers.
 //
 // Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral],
-// [Hex.Circle], [Hex.Sector] and [Hex.LineTo], line of sight and field of view, and turning and
-// reflection in cube space. Package hextest holds test assertions. The shapes and vectors this package builds on
-// are in github.com/gravitton/geometry.
+// [Hex.Circle], [Hex.Sector] and [Hex.LineTo], line of sight and field of view, turning and
+// reflection in cube space, and the chunks of a coarser grid that tiles it, [Hex.Chunk],
+// [Hex.ChunkCenter] and [Hex.ChunkLocal]. Package hextest holds test assertions. The shapes and
+// vectors this package builds on are in github.com/gravitton/geometry.
 //
 // # Coordinates
 //
@@ -92,7 +93,9 @@
 //     is NaN or infinite or carries the position past the range of float64: a non-finite position
 //     lies on no hex, and [FractionalHex.IsFinite] tests for one;
 //   - a NaN or infinite radius to [Hex.Circle], and to [Hex.CircleSeq] when its walk starts: such a
-//     circle has no edge to stop at, and the panic value is [geom.ErrNonFinite].
+//     circle has no edge to stop at, and the panic value is [geom.ErrNonFinite];
+//   - a negative radius to [Hex.Chunk], [Hex.ChunkCenter] and [Hex.ChunkLocal]: no chunks have
+//     one, and the panic value is an error that errors.Is matches to [ErrNegativeChunkRadius].
 //
 // A finite position beyond the range of int rounds to a platform-dependent hex, and a radius or a
 // distance too large to allocate the slice for is outside the contract. Circle is exact for a

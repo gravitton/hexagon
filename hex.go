@@ -177,6 +177,42 @@ func (h Hex) ReflectS() Hex {
 	return Hex{h.R, h.Q}
 }
 
+// Chunk returns the chunk of radius holding the hex, as a hex of the coarser grid that tiles this
+// one with the ranges of radius around the centers ChunkCenter returns. Every hex lies in exactly
+// one chunk, and a zero radius returns the hex itself. It panics for a negative radius.
+func (h Hex) Chunk(radius int) Hex {
+	if radius < 0 {
+		panic(fmt.Errorf("%w %d", ErrNegativeChunkRadius, radius))
+	}
+
+	area, shift := RangeLen(radius), 3*radius+2
+	q, r, s := h.QRS()
+	x, y, z := geom.FloorDiv(r+shift*q, area), geom.FloorDiv(s+shift*r, area), geom.FloorDiv(q+shift*s, area)
+
+	return Hex{geom.FloorDiv(1+x-y, 3), geom.FloorDiv(1+y-z, 3)}
+}
+
+// ChunkCenter returns the center of the chunk the hex stands for in the coarser grid of radius, as
+// a hex of this grid, so Chunk of the result is the hex. The centers are the sums of whole multiples
+// of (2r+1, -r) and its sixth-turn, and a zero radius returns the hex itself. It panics for a
+// negative radius.
+func (h Hex) ChunkCenter(radius int) Hex {
+	if radius < 0 {
+		panic(fmt.Errorf("%w %d", ErrNegativeChunkRadius, radius))
+	}
+
+	q, r, s := h.QRS()
+
+	return Hex{q*(radius+1) - radius*s, r*(radius+1) - radius*q}
+}
+
+// ChunkLocal returns the hex relative to the center of its chunk of radius, a hex within radius of
+// the origin, so it wraps a hex into the range of a map that wraps around. It panics for a negative
+// radius.
+func (h Hex) ChunkLocal(radius int) Hex {
+	return h.Subtract(h.Chunk(radius).ChunkCenter(radius))
+}
+
 // Neighbor returns the neighbor in the direction, and the hex itself for DirectionNone.
 func (h Hex) Neighbor(direction Direction) Hex {
 	return h.Add(direction.Hex())
