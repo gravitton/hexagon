@@ -35,7 +35,7 @@ Hexagonal grid math: coordinates, ranges, lines and field of view
 
 - **Axial coordinates** – two integers per hex, the third cube coordinate derived.
 - **Immutable** – every method returns a new value, and a `Hex` is a map key that compares with `==`.
-- **Traversal** – neighbors, range, ring, spiral, sectors and lines, each with an allocation-free `Seq` form.
+- **Traversal** – neighbors, range, ring, spiral, circles, sectors and lines, each with an allocation-free `Seq` form.
 - **Visibility** – exact, symmetric line of sight and field of view, with a single-sweep field over a whole range.
 - **Cube space** – rotation by sixths of a turn, around any hex, and reflection across the q-, r- and s-axis.
 - **Directions** – six of them, by increasing angle, with flat-top and pointy-top compass aliases.
@@ -197,6 +197,28 @@ works with every one of them and allocates nothing once the buffer has room.
 buffer := make([]hex.Hex, 0, hex.RangeLen(2)) // 19 hexes within radius 2; RingLen sizes a ring
 buffer = slices.AppendSeq(buffer[:0], h.RangeSeq(2))
 ```
+
+### Circles
+
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/circles-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/circles-light.svg">
+  <img alt="The circles of radius the square root of three, four and four and a half around a hex, each drawn over the hexes whose centers it holds: the range of one with the six diagonal neighbors, the hexagonal range of four, and that range with twelve hexes of the next ring" src="https://raw.githubusercontent.com/gravitton/hexagon/refs/heads/main/docs/images/circles-light.svg">
+</picture>
+</p>
+
+```go
+h.Circle(math.Sqrt(3)) // the 13 hexes whose centers lie within √3 of h: Range(1) and the diagonal neighbors; also CircleSeq
+h.Circle(4)            // the 61 hexes of Range(4)
+h.Circle(4.5)          // 73 hexes, Range(4) and the 12 hexes of ring 5 nearest to h
+```
+
+`Circle` is the round area beside the hexagonal `Range`: the hexes whose centers lie within a
+Euclidean radius, with neighbors one apart and the border included. A whole radius under seven
+gives exactly `Range`, since every ring beyond it has its nearest hexes farther than the radius, so
+a round blast or aura takes a radius between whole numbers, where the circle bulges past the
+hexagon's sides.
 
 ### Sectors
 

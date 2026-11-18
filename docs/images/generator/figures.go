@@ -17,6 +17,7 @@ var figures = []figure{
 	{"directions", directions},
 	{"neighbors", neighbors},
 	{"traversal", traversal},
+	{"circles", circles},
 	{"sectors", sectors},
 	{"sight", sight},
 	{"walk", walk},
@@ -177,6 +178,31 @@ func traversal(t theme) []*panel {
 	line.label(b, "b", t.onAccent)
 
 	return []*panel{disc, ring, spiral, line}
+}
+
+func circles(t theme) []*panel {
+	exact := disc(t, math.Sqrt(3), "h.Circle(math.Sqrt(3))")
+	exact.note = "the range of one and the diagonals"
+
+	whole := disc(t, 4, "h.Circle(4)")
+	whole.note = "the hexes of Range(4)"
+
+	half := disc(t, 4.5, "h.Circle(4.5)")
+	half.note = "Range(4) and twelve hexes of ring five"
+
+	return []*panel{exact, whole, half}
+}
+
+func disc(t theme, radius float64, caption string) *panel {
+	p := backdrop(t, 13, origin, 5, caption)
+	p.cells(origin.Circle(radius), t.accentSoft)
+	p.cell(origin, t.accent)
+	p.label(origin, "h", t.onAccent)
+
+	step := p.center(hex.Pt(1, 0)).Subtract(p.center(origin)).Length()
+	p.circle(p.center(origin), radius*step, style{stroke: t.muted, width: 1.2, dashed: true})
+
+	return p
 }
 
 func sectors(t theme) []*panel {

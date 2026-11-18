@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"iter"
+	"math"
 	"slices"
 	"strings"
 
@@ -288,6 +289,41 @@ func (h Hex) SpiralSeq(radius int) iter.Seq[Hex] {
 	}
 }
 
+// Circle returns the hexes whose centers lie within radius of the center of the hex, itself
+// included, in the order of Compare. The radius is Euclidean, in the units where neighbors are
+// one apart, and a hex is in when the square root of its squared distance, as math.Sqrt rounds
+// it, is at most the radius. It returns nil for a negative radius, and panics for a NaN or
+// infinite one.
+func (h Hex) Circle(radius float64) []Hex {
+	limit := circleLimit(radius)
+	if limit < 0 {
+		return nil
+	}
+
+	return slices.AppendSeq(make([]Hex, 0, circleLen(limit)), h.CircleSeq(radius))
+}
+
+// CircleSeq returns an iterator over the hexes of Circle, in the same order. It panics for a NaN
+// or infinite radius when the walk starts.
+func (h Hex) CircleSeq(radius float64) iter.Seq[Hex] {
+	return func(yield func(Hex) bool) {
+		limit := circleLimit(radius)
+		if limit < 0 {
+			return
+		}
+
+		width := circleWidth(limit)
+		for q := -width; q <= width; q++ {
+			low, high := circleRows(limit, q)
+			for r := low; r <= high; r++ {
+				if !yield(Hex{h.Q + q, h.R + r}) {
+					return
+				}
+			}
+		}
+	}
+}
+
 // Sector returns the hexes within radius of the hex and within turns sixth-turns about the
 // direction, half of them either side, both borders included, ring by ring outward, by increasing
 // angle in each ring. Zero turns is the ray along the direction, and six or more the whole range,
@@ -352,6 +388,52 @@ func (h Hex) SectorContains(radius int, direction Direction, turns int, hex Hex)
 	}
 
 	return position <= min(turns, 6)*ring/2
+}
+
+// circleLimit returns the largest squared distance a hex of Circle may have, q²+qr+r² of its
+// offset, and -1 for a negative radius. One below the rounded square of the radius is surely
+// within it, so the search only climbs to the rounded square root Circle promises.
+func circleLimit(radius float64) int {
+	if !geom.IsFinite(radius) {
+		panic(geom.ErrNonFinite)
+	}
+	if radius < 0 {
+		return -1
+	}
+
+	limit := max(int(radius*radius)-1, 0)
+	for math.Sqrt(float64(limit+1)) <= radius {
+		limit++
+	}
+
+	return limit
+}
+
+// circleLen returns the length of Circle for the limit of circleLimit, column by column.
+func circleLen(limit int) int {
+	length := 0
+	width := circleWidth(limit)
+	for q := -width; q <= width; q++ {
+		low, high := circleRows(limit, q)
+		length += max(high-low+1, 0)
+	}
+
+	return length
+}
+
+// circleWidth returns the largest |q| of a column within the limit, the integer square root of
+// 4·limit/3.
+func circleWidth(limit int) int {
+	return int(math.Sqrt(float64(4 * limit / 3)))
+}
+
+// circleRows returns the first and last r of the offsets in column q within the limit, the
+// integers with (2r+q)² at most 4·limit-3q², and a first past the last where there are none. The
+// square root of an integer this small floors exactly.
+func circleRows(limit, q int) (int, int) {
+	reach := int(math.Sqrt(float64(4*limit - 3*q*q)))
+
+	return -((q + reach) >> 1), (reach - q) >> 1
 }
 
 // DistanceTo returns the distance to the given hex in steps.

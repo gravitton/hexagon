@@ -13,6 +13,9 @@ lists them under **Breaking** at the top of its section. Renames land as a renam
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.8.1...main)
 
+### Added
+- `Hex.Circle` and `CircleSeq` return the hexes whose centers lie within a Euclidean radius, border included, in the order of `Compare`; a NaN or infinite radius panics
+
 ## [v1.8.1](https://github.com/gravitton/hexagon/compare/v1.8.0...v1.8.1) (2026-11-18)
 
 ### Changed

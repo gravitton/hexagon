@@ -869,6 +869,185 @@ func BenchmarkHex_SpiralSeq(b *testing.B) {
 	}
 }
 
+func TestHex_Circle(t *testing.T) {
+	t.Run("negative radius is nil", func(t *testing.T) {
+		assert.Equal(t, testHexZero.Circle(-0.5), nil)
+	})
+	t.Run("radius under one is the center", func(t *testing.T) {
+		for _, radius := range []float64{0, 0.5, 0.99} {
+			assert.Equal(t, testHex.Circle(radius), []Hex{testHex}, strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+		}
+	})
+	t.Run("a whole radius under seven is the range of that radius", func(t *testing.T) {
+		for radius := range 7 {
+			assert.Equal(t, testHex.Circle(float64(radius)), testHex.Range(radius), strconv.Itoa(radius)+": ")
+		}
+	})
+	t.Run("radius seven bulges past the range", func(t *testing.T) {
+		assert.Greater(t, len(testHex.Circle(7)), RangeLen(7))
+	})
+	t.Run("the computed distance of a hex includes it", func(t *testing.T) {
+		circle := testHex.Circle(math.Sqrt(3))
+		assert.Equal(t, len(circle), 13)
+		for _, diagonal := range testHex.DiagonalNeighbors() {
+			assert.True(t, slices.Contains(circle, diagonal), diagonal.String()+": ")
+		}
+	})
+	t.Run("holds exactly the hexes within the radius", func(t *testing.T) {
+		for _, radius := range testCircleRadii {
+			assert.Equal(t, testHex.Circle(radius), circleOf(testHex, radius), strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+		}
+	})
+	t.Run("lies between the range of the radius and the range it reaches across", func(t *testing.T) {
+		for _, radius := range testCircleRadii {
+			circle := testHex.Circle(radius)
+			inner, outer := int(radius), int(2*radius/math.Sqrt(3))
+			message := strconv.FormatFloat(radius, 'g', -1, 64) + ": "
+			for _, h := range testHex.Range(inner) {
+				assert.True(t, slices.Contains(circle, h), message+h.String()+": ")
+			}
+			for _, h := range circle {
+				assert.LessOrEqual(t, testHex.DistanceTo(h), outer, message+h.String()+": ")
+			}
+		}
+	})
+	t.Run("the same under every sixth-turn about the hex", func(t *testing.T) {
+		for _, radius := range testCircleRadii {
+			circle := testHex.Circle(radius)
+			for steps := range 6 {
+				turned := make([]Hex, 0, len(circle))
+				for _, h := range circle {
+					turned = append(turned, h.TurnAround(testHex, steps))
+				}
+				slices.SortFunc(turned, Hex.Compare)
+				assert.Equal(t, turned, circle, strconv.FormatFloat(radius, 'g', -1, 64)+" by "+strconv.Itoa(steps)+": ")
+			}
+		}
+	})
+	t.Run("grows with the radius", func(t *testing.T) {
+		for i := 1; i < len(testCircleRadii); i++ {
+			larger := testHex.Circle(testCircleRadii[i])
+			for _, h := range testHex.Circle(testCircleRadii[i-1]) {
+				assert.True(t, slices.Contains(larger, h), h.String()+": ")
+			}
+		}
+	})
+	t.Run("fills its capacity", func(t *testing.T) {
+		for _, radius := range testCircleRadii {
+			circle := testHex.Circle(radius)
+			assert.Equal(t, cap(circle), len(circle), strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+		}
+	})
+	t.Run("ordered like Compare", func(t *testing.T) {
+		assert.True(t, slices.IsSortedFunc(testHex.Circle(6.5), Hex.Compare))
+	})
+	t.Run("panics for a non-finite radius", func(t *testing.T) {
+		for _, radius := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
+			assert.PanicsWith(t, func() {
+				sinkHexes = testHex.Circle(radius)
+			}, geom.ErrNonFinite)
+		}
+	})
+	t.Run("allocates once", func(t *testing.T) {
+		assertAllocations(t, func() {
+			sinkHexes = testHex.Circle(6.5)
+		}, 1.0)
+	})
+}
+
+func BenchmarkHex_Circle(b *testing.B) {
+	for b.Loop() {
+		sinkHexes = testHex.Circle(10.5)
+	}
+}
+
+func FuzzHex_Circle(f *testing.F) {
+	f.Add(0, 0, 0.0)
+	f.Add(-1, 3, 6.5)
+	f.Add(40, -17, 1.7320508075688772)
+	f.Add(-1000000, 999999, 23.9)
+
+	f.Fuzz(func(t *testing.T, q, r int, radius float64) {
+		if max(geom.Abs(q), geom.Abs(r)) > 1e6 || !geom.IsFinite(radius) || radius < -1 || radius > 30 {
+			t.Skip()
+		}
+
+		center := Pt(q, r)
+		assert.Equal(t, center.Circle(radius), circleOf(center, radius), center.String()+" within "+strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+	})
+}
+
+// circleOf returns the hexes of the range around center that reaches every hex within the
+// radius, kept where the square root of their squared distance is at most it, and nil for a
+// negative radius.
+func circleOf(center Hex, radius float64) []Hex {
+	var circle []Hex
+	for _, h := range center.Range(int(2*radius/math.Sqrt(3)) + 1) {
+		q, r := h.Subtract(center).QR()
+		if math.Sqrt(float64(q*q+q*r+r*r)) <= radius {
+			circle = append(circle, h)
+		}
+	}
+
+	return circle
+}
+
+func TestHex_CircleSeq(t *testing.T) {
+	t.Run("yields the hexes of Circle in order", func(t *testing.T) {
+		for _, radius := range testCircleRadii {
+			assert.Equal(t, slices.Collect(testHex.CircleSeq(radius)), testHex.Circle(radius), strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+		}
+	})
+	t.Run("negative radius yields nothing", func(t *testing.T) {
+		for range testHex.CircleSeq(-0.5) {
+			assert.Fail(t, "yielded a hex")
+		}
+	})
+	t.Run("stops when the loop breaks", func(t *testing.T) {
+		for _, radius := range []float64{0, 1, 2.5} {
+			for stop := range len(testHex.Circle(radius)) {
+				walked := 0
+				for range testHex.CircleSeq(radius) {
+					if walked == stop {
+						break
+					}
+					walked++
+				}
+				assert.Equal(t, walked, stop, strconv.FormatFloat(radius, 'g', -1, 64)+": ")
+			}
+		}
+	})
+	t.Run("panics for a non-finite radius when the walk starts", func(t *testing.T) {
+		walk := testHex.CircleSeq(math.NaN())
+		assert.PanicsWith(t, func() {
+			for h := range walk {
+				sinkHex = h
+			}
+		}, geom.ErrNonFinite)
+	})
+	t.Run("allocates nothing", func(t *testing.T) {
+		assertAllocations(t, func() {
+			for h := range testHex.CircleSeq(6.5) {
+				sinkHex = h
+			}
+		}, 0.0)
+	})
+	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
+		buffer := make([]Hex, 0, len(testHex.Circle(6.5)))
+		assertAllocations(t, func() {
+			sinkHexes = slices.AppendSeq(buffer, testHex.CircleSeq(6.5))
+		}, 0.0)
+	})
+}
+
+func BenchmarkHex_CircleSeq(b *testing.B) {
+	for b.Loop() {
+		for h := range testHex.CircleSeq(10.5) {
+			sinkHex = h
+		}
+	}
+}
+
 func TestHex_Sector(t *testing.T) {
 	t.Run("a radius under one gives nil", func(t *testing.T) {
 		assert.Nil(t, testHex.Sector(0, SMinus, 1))
@@ -2070,8 +2249,9 @@ func seenAmong(source Hex, hexes []Hex, blocked func(Hex) bool) []Hex {
 }
 
 var (
-	testHex     = Pt(-1, 3)
-	testHexZero = Pt(0, 0)
+	testHex         = Pt(-1, 3)
+	testHexZero     = Pt(0, 0)
+	testCircleRadii = []float64{0, 0.5, 1, 1.5, math.Sqrt(3), 2, 2.5, 3, math.Sqrt(13), 4.5, 6, 6.5, 7, 12.3, 40}
 )
 
 func ExamplePt() {
@@ -2178,6 +2358,14 @@ func ExampleHex_SpiralSeq() {
 		}
 	}
 	// Output: nearest occupied hex: (0,-1)
+}
+
+func ExampleHex_Circle() {
+	fmt.Println(Pt(0, 0).Circle(math.Sqrt(3)))
+	fmt.Println(len(Pt(0, 0).Circle(4)), len(Pt(0, 0).Circle(4.5)))
+	// Output:
+	// [(-2,1) (-1,-1) (-1,0) (-1,1) (-1,2) (0,-1) (0,0) (0,1) (1,-2) (1,-1) (1,0) (1,1) (2,-1)]
+	// 61 73
 }
 
 func ExampleHex_Sector() {

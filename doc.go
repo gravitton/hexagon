@@ -10,8 +10,8 @@
 //     address a grid by two integers.
 //
 // Hex covers neighbors, distance, the traversals [Hex.Range], [Hex.Ring], [Hex.Spiral],
-// [Hex.Sector] and [Hex.LineTo], line of sight and field of view, and turning and reflection in
-// cube space. Package hextest holds test assertions. The shapes and vectors this package builds on
+// [Hex.Circle], [Hex.Sector] and [Hex.LineTo], line of sight and field of view, and turning and
+// reflection in cube space. Package hextest holds test assertions. The shapes and vectors this package builds on
 // are in github.com/gravitton/geometry.
 //
 // # Coordinates
@@ -38,8 +38,8 @@
 //
 // # Allocations
 //
-// Only a method whose result is a slice allocates, once: Range, Ring, Spiral, Sector and LineTo
-// with the exact capacity of the result. [Hex.FieldOfView] and [Hex.FieldOfViewSector] are the
+// Only a method whose result is a slice allocates, once: Range, Ring, Spiral, Circle, Sector and
+// LineTo with the exact capacity of the result. [Hex.FieldOfView] and [Hex.FieldOfViewSector] are the
 // exception: they allocate room for the range or the sector and, in every form, one buffer more,
 // proportional to the radius, unless blocked is nil or the radius is under two. Each has a Seq
 // form, an iterator that walks the same hexes in the same order without a buffer for them, and
@@ -74,8 +74,8 @@
 //
 // # Panics
 //
-// Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring, Spiral
-// and FieldOfView and nothing from their Seq forms, a zero radius gives the center alone, a line
+// Degenerate inputs answer rather than panic: a negative radius gives nil from Range, Ring, Spiral,
+// Circle and FieldOfView and nothing from their Seq forms, a zero radius gives the center alone, a line
 // from a hex to itself is that one hex. [Hex.Sector] and [Hex.FieldOfViewSector] leave the center
 // out, so they give nil for a radius under one, for negative turns and for DirectionNone, which
 // gives the hex itself from [Hex.Neighbor] and [Hex.DiagonalNeighbor], and is the answer of
@@ -90,10 +90,13 @@
 //     [ErrUnknownCoordinateSystem];
 //   - a NaN or infinite coordinate to [FractionalHex.Round], and to [Hex.Lerp] through it a t that
 //     is NaN or infinite or carries the position past the range of float64: a non-finite position
-//     lies on no hex, and [FractionalHex.IsFinite] tests for one.
+//     lies on no hex, and [FractionalHex.IsFinite] tests for one;
+//   - a NaN or infinite radius to [Hex.Circle], and to [Hex.CircleSeq] when its walk starts: such a
+//     circle has no edge to stop at, and the panic value is [geom.ErrNonFinite].
 //
 // A finite position beyond the range of int rounds to a platform-dependent hex, and a radius or a
-// distance too large to allocate the slice for is outside the contract. So is a radius near the
+// distance too large to allocate the slice for is outside the contract. Circle is exact for a
+// radius under 2²⁵. So is a radius near the
 // range of int to RangeSeq, which starts from its far edge; RingSeq, SpiralSeq and SectorSeq walk
 // from the center, so a search with no bound on its radius uses SpiralSeq and breaks.
 //
