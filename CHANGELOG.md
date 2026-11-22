@@ -11,7 +11,9 @@ more expensive of the two. A breaking change opens its entry with **breaking**, 
 opens with a **Breaking** group. Renames land as a rename; no deprecated alias is kept.
 
 
-## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.9.0...main)
+## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.9.1...main)
+
+## [v1.9.1](https://github.com/gravitton/hexagon/compare/v1.9.0...v1.9.1) (2026-11-22)
 
 ### Changed
 - Require `geometry` v1.20.1
