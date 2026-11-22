@@ -1,8 +1,8 @@
 github.com/gravitton/assert v1.9.0 h1:TSE2x8ElQbn2gHUcI6KFJQNdwhmiVM2CwKQKaPHLHEA=
 github.com/gravitton/assert v1.9.0/go.mod h1:yVqrLcw3zNJ/nttsqylX+C5Z12Yow7cC6ZB4k92pHik=
-github.com/gravitton/container v1.0.2 h1:N01i4bCCILYJgOl0CLg/5EiNA3+EX+s6yNpRjbWoeac=
-github.com/gravitton/container v1.0.2/go.mod h1:mBgzYMs9MyB4l+tEc1AjSVD+VHXxRmaplBphXws+OqI=
+github.com/gravitton/container v1.1.0 h1:quvZ+EpDEBSk7TPVazuXS+4vCS8nBgt87Q9VU7x/QWw=
+github.com/gravitton/container v1.1.0/go.mod h1:IPIY+xYhDFQSdzBww4kf1nhMkEGwq/HqEdURY0DuzkU=
 github.com/gravitton/geometry v1.20.1 h1:UUSQRAf4Ns/QdnxLfGapVCjDjQR8sQWLSPqusR7gow8=
 github.com/gravitton/geometry v1.20.1/go.mod h1:nCPh9NECpqmw2Pj92cng3Zf6txnWBl+b9Hl6PA1ov04=
-github.com/gravitton/grid v1.6.0 h1:ckGc+ojLckuPvRupuRUEqf9UZQ2/qIKNSNQp/oGhnOM=
-github.com/gravitton/grid v1.6.0/go.mod h1:MpSt+DQMcNOqC/9rEHuG4eWxgmaxp3mlHDRCdg1QRU8=
+github.com/gravitton/grid v1.6.1 h1:GhYvv33kA0rIXtUefbG/49E4EAihWoS+WCrBlV+Hezk=
+github.com/gravitton/grid v1.6.1/go.mod h1:Vn1cJFkoa0AL899COWlcM8zdAYEy5nsNra6TE9ZlVi4=
