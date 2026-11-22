@@ -13,6 +13,10 @@ opens with a **Breaking** group. Renames land as a rename; no deprecated alias i
 
 ## [Unreleased](https://github.com/gravitton/hexagon/compare/v1.9.0...main)
 
+### Changed
+- Require `geometry` v1.20.1
+- Require `assert` v1.9.0 for the tests
+
 ## [v1.9.0](https://github.com/gravitton/hexagon/compare/v1.8.1...v1.9.0) (2026-11-18)
 
 ### Added

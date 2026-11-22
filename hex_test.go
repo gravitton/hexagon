@@ -14,22 +14,6 @@ import (
 	"github.com/gravitton/hexagon/hextest"
 )
 
-var (
-	sinkHex        Hex
-	sinkHexes      []Hex
-	sinkBool       bool
-	sinkInt        int
-	sinkFracHex    FractionalHex
-	sinkDirection  Direction
-	sinkDirections [6]Direction
-	sinkSystems    [7]CoordinateSystem
-	sinkPoint      geom.Point[int]
-	sinkPoints     [6]geom.Point[int]
-	sinkVector     geom.Vector[int]
-	sinkVectors    [6]geom.Vector[int]
-	sinkString     string
-)
-
 func TestHex_Constructor(t *testing.T) {
 	hextest.AssertHex(t, Pt(-1, 3), Hex{Q: -1, R: 3})
 }
@@ -82,14 +66,6 @@ func FuzzHexFromChunkIndex(f *testing.F) {
 
 		hextest.AssertHex(t, HexFromChunkIndex(index, radius), hexmodOf(index, radius), strconv.Itoa(index)+" in "+strconv.Itoa(radius)+": ")
 	})
-}
-
-// hexmodOf is hexx's from_hexmod_coordinates, the closed form of an index in [0, RangeLen(radius)).
-func hexmodOf(index, radius int) Hex {
-	shift := 3*radius + 2
-	ms, mcs := (index+radius)/shift, (index+2*radius)/(shift-1)
-
-	return Hex{ms*(radius+1) - mcs*radius, index - ms*(2*radius+1) - mcs*(radius+1)}
 }
 
 func TestParseHex(t *testing.T) {
@@ -360,9 +336,9 @@ func TestHex_Lerp(t *testing.T) {
 		}, geom.ErrNonFinite)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHex = a.Lerp(b, 0.3)
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -762,9 +738,9 @@ func TestHex_Neighbors(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHex = testHex.Neighbors()[0]
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -827,9 +803,9 @@ func TestHex_DiagonalNeighbors(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHex = testHex.DiagonalNeighbors()[0]
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -871,9 +847,9 @@ func TestHex_Range(t *testing.T) {
 		assert.True(t, slices.IsSortedFunc(testHex.Range(3), Hex.Compare))
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHex.Range(3)
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -909,17 +885,17 @@ func TestHex_RangeSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHex.RangeSeq(3) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.RangeSeq(3))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -965,9 +941,9 @@ func TestHex_Ring(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHex.Ring(3)
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -1003,17 +979,17 @@ func TestHex_RingSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHex.RingSeq(3) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RingLen(3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.RingSeq(3))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1051,9 +1027,9 @@ func TestHex_Spiral(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHex.Spiral(3)
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -1101,17 +1077,17 @@ func TestHex_SpiralSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHex.SpiralSeq(3) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.SpiralSeq(3))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1203,9 +1179,9 @@ func TestHex_Circle(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHex.Circle(6.5)
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -1229,21 +1205,6 @@ func FuzzHex_Circle(f *testing.F) {
 		center := Pt(q, r)
 		assert.Equal(t, center.Circle(radius), circleOf(center, radius), center.String()+" within "+strconv.FormatFloat(radius, 'g', -1, 64)+": ")
 	})
-}
-
-// circleOf returns the hexes of the range around center that reaches every hex within the
-// radius, kept where the square root of their squared distance is at most it, and nil for a
-// negative radius.
-func circleOf(center Hex, radius float64) []Hex {
-	var circle []Hex
-	for _, h := range center.Range(int(2*radius/math.Sqrt(3)) + 1) {
-		q, r := h.Subtract(center).QR()
-		if math.Sqrt(float64(q*q+q*r+r*r)) <= radius {
-			circle = append(circle, h)
-		}
-	}
-
-	return circle
 }
 
 func TestHex_CircleSeq(t *testing.T) {
@@ -1280,17 +1241,17 @@ func TestHex_CircleSeq(t *testing.T) {
 		}, geom.ErrNonFinite)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHex.CircleSeq(6.5) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, len(testHex.Circle(6.5)))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.CircleSeq(6.5))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1437,9 +1398,9 @@ func TestHex_Sector(t *testing.T) {
 	t.Run("allocates once at its length", func(t *testing.T) {
 		for _, turns := range []int{0, 1, 4, 6} {
 			assert.Equal(t, cap(testHex.Sector(5, QPlus, turns)), SectorLen(5, turns), strconv.Itoa(turns)+": ")
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkHexes = testHex.Sector(5, QPlus, turns)
-			}, 1.0)
+			}, 1)
 		}
 	})
 }
@@ -1485,17 +1446,17 @@ func TestHex_SectorSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHex.SectorSeq(4, SPlus, 1) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, SectorLen(4, 1))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHex.SectorSeq(4, SPlus, 1))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1530,9 +1491,9 @@ func TestHex_SectorContains(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkBool = testHex.SectorContains(9, QPlus, 3, Pt(5, -9))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1671,9 +1632,9 @@ func TestHex_LineTo(t *testing.T) {
 		}
 	})
 	t.Run("allocates once", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHexZero.LineTo(Pt(4, -1))
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -1738,17 +1699,17 @@ func TestHex_LineToSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHexZero.LineToSeq(Pt(4, -1)) {
 				sinkHex = h
 			}
-		}, 0.0)
+		}, 0)
 	})
 	t.Run("slices.AppendSeq allocates nothing with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, 5)
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.LineToSeq(Pt(4, -1)))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1915,9 +1876,9 @@ func TestHex_HasLineOfSight(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		blocked := among([]Hex{Pt(9, 9)})
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkBool = testHexZero.HasLineOfSight(Pt(4, -1), blocked)
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -1960,41 +1921,6 @@ func FuzzHex_HasLineOfSight(f *testing.F) {
 			}), message)
 		}
 	})
-}
-
-// runsThrough reports whether the segment between the centers of source and target passes
-// through the inside of hex. It clips the segment against the three bands of cube space the hex
-// is the meet of, a formulation that shares nothing with the corner test it checks.
-func runsThrough(source, target, hex Hex) bool {
-	start, step := source.Subtract(hex), target.Subtract(source)
-	startQ, startR, startS := start.QRS()
-	stepQ, stepR, stepS := step.QRS()
-
-	enter, leave := 0.0, 1.0
-	for _, band := range [3][2]int{{startQ - startR, stepQ - stepR}, {startR - startS, stepR - stepS}, {startS - startQ, stepS - stepQ}} {
-		offset, slope := float64(band[0]), float64(band[1])
-		if slope == 0 {
-			if math.Abs(offset) >= 1 {
-				return false
-			}
-			continue
-		}
-
-		enter = max(enter, min((-1-offset)/slope, (1-offset)/slope))
-		leave = min(leave, max((-1-offset)/slope, (1-offset)/slope))
-	}
-
-	return leave-enter > geom.Delta
-}
-
-// everyNth returns the hexes at every stride-th place of the given ones.
-func everyNth(hexes []Hex, stride int) []Hex {
-	var result []Hex
-	for i := stride - 1; i < len(hexes); i += stride {
-		result = append(result, hexes[i])
-	}
-
-	return result
 }
 
 func TestHex_FieldOfView(t *testing.T) {
@@ -2055,9 +1981,9 @@ func TestHex_FieldOfView(t *testing.T) {
 	t.Run("allocates the result at the length of the range and the sweep", func(t *testing.T) {
 		blocked := scattered(11)
 		assert.Equal(t, cap(testHexZero.FieldOfView(10, blocked)), RangeLen(10))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHexZero.FieldOfView(10, blocked)
-		}, 2.0)
+		}, 2)
 	})
 }
 
@@ -2108,17 +2034,17 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates the sweep alone", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHexZero.FieldOfViewSeq(6, blocked) {
 				sinkHex = h
 			}
-		}, 1.0)
+		}, 1)
 	})
 	t.Run("slices.AppendSeq allocates the sweep alone with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(6))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(6, blocked))
-		}, 1.0)
+		}, 1)
 	})
 	t.Run("allocates the sweep once however many shadows it holds", func(t *testing.T) {
 		// A blocker on an axis casts a shadow into both wedges beside it, which these rings
@@ -2127,18 +2053,18 @@ func TestHex_FieldOfViewSeq(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(12))
 		for _, blocked := range []func(Hex) bool{axes, scattered(2), scattered(3)} {
 			for radius := 2; radius <= 12; radius++ {
-				assert.Equal(t, testing.AllocsPerRun(10, func() {
+				assert.Allocates(t, func() {
 					sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(radius, blocked))
-				}), 1.0, "within "+strconv.Itoa(radius)+": ")
+				}, 1, "within "+strconv.Itoa(radius)+": ")
 			}
 		}
 	})
 	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
 		buffer := make([]Hex, 0, RangeLen(6))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(6, nil))
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSeq(1, blocked))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -2243,9 +2169,9 @@ func TestHex_FieldOfViewSector(t *testing.T) {
 	t.Run("allocates the result at the length of the sector and the sweep", func(t *testing.T) {
 		blocked := scattered(11)
 		assert.Equal(t, cap(testHexZero.FieldOfViewSector(10, QPlus, 3, blocked)), SectorLen(10, 3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = testHexZero.FieldOfViewSector(10, QPlus, 3, blocked)
-		}, 2.0)
+		}, 2)
 	})
 }
 
@@ -2278,18 +2204,6 @@ func FuzzHex_FieldOfViewSector(f *testing.F) {
 	})
 }
 
-// besideOnRing reports whether the hex has a neighbor on its own ring around source that the
-// sector contains.
-func besideOnRing(source, hex Hex, radius int, direction Direction, turns int) bool {
-	for _, neighbor := range hex.Neighbors() {
-		if source.DistanceTo(neighbor) == source.DistanceTo(hex) && source.SectorContains(radius, direction, turns, neighbor) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func TestHex_FieldOfViewSectorSeq(t *testing.T) {
 	blocked := scattered(5)
 
@@ -2313,24 +2227,24 @@ func TestHex_FieldOfViewSectorSeq(t *testing.T) {
 		}
 	})
 	t.Run("allocates the sweep alone", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			for h := range testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked) {
 				sinkHex = h
 			}
-		}, 1.0)
+		}, 1)
 	})
 	t.Run("slices.AppendSeq allocates the sweep alone with room", func(t *testing.T) {
 		buffer := make([]Hex, 0, SectorLen(6, 3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, blocked))
-		}, 1.0)
+		}, 1)
 	})
 	t.Run("slices.AppendSeq allocates nothing where nothing can hide", func(t *testing.T) {
 		buffer := make([]Hex, 0, SectorLen(6, 3))
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(6, RPlus, 3, nil))
 			sinkHexes = slices.AppendSeq(buffer, testHexZero.FieldOfViewSectorSeq(1, RPlus, 3, blocked))
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -2440,9 +2354,9 @@ func TestHex_String(t *testing.T) {
 		assert.Equal(t, Pt(math.MinInt64, math.MaxInt64).String(), "(-9223372036854775808,9223372036854775807)")
 	})
 	t.Run("allocates the string alone", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkString = Pt(math.MinInt64, math.MaxInt64).String()
-		}, 1.0)
+		}, 1)
 	})
 }
 
@@ -2461,53 +2375,6 @@ func TestHex_JSON(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(data, &decoded))
 	hextest.AssertHex(t, decoded, testHex)
 }
-
-// assertAllocations asserts that f allocates the expected number of times on average. It checks
-// nothing under the race detector, which allocates on its own.
-func assertAllocations(t *testing.T, f func(), expected float64, messages ...string) {
-	t.Helper()
-
-	if race {
-		return
-	}
-
-	assert.Equal(t, testing.AllocsPerRun(100, f), expected, messages...)
-}
-
-// among returns the predicate holding for the given hexes and no other.
-func among(hexes []Hex) func(Hex) bool {
-	return func(hex Hex) bool {
-		return slices.Contains(hexes, hex)
-	}
-}
-
-// scattered returns the predicate holding for one hex in modulus, spread over the plane by a
-// linear form of the coordinates.
-func scattered(modulus int) func(Hex) bool {
-	return func(hex Hex) bool {
-		return geom.FloorMod(hex.Q*7+hex.R*13, modulus) == 3%modulus
-	}
-}
-
-// seenAmong returns the given hexes source has a line of sight to past the hexes blocked reports,
-// in their order.
-func seenAmong(source Hex, hexes []Hex, blocked func(Hex) bool) []Hex {
-	var seen []Hex
-	for _, h := range hexes {
-		if source.HasLineOfSight(h, blocked) {
-			seen = append(seen, h)
-		}
-	}
-
-	return seen
-}
-
-var (
-	testHex         = Pt(-1, 3)
-	testHexZero     = Pt(0, 0)
-	testChunkRadii  = []int{0, 1, 2, 3, 5, 8}
-	testCircleRadii = []float64{0, 0.5, 1, 1.5, math.Sqrt(3), 2, 2.5, 3, math.Sqrt(13), 4.5, 6, 6.5, 7, 12.3, 40}
-)
 
 func ExamplePt() {
 	h := Pt(-1, 3)
@@ -2760,3 +2627,122 @@ func ExampleHex_Compare() {
 	fmt.Println(hexes)
 	// Output: [(-1,0) (1,-3) (1,2)]
 }
+
+// hexmodOf is hexx's from_hexmod_coordinates, the closed form of an index in [0, RangeLen(radius)).
+func hexmodOf(index, radius int) Hex {
+	shift := 3*radius + 2
+	ms, mcs := (index+radius)/shift, (index+2*radius)/(shift-1)
+
+	return Hex{ms*(radius+1) - mcs*radius, index - ms*(2*radius+1) - mcs*(radius+1)}
+}
+
+// circleOf returns the hexes of the range around center that reaches every hex within the
+// radius, kept where the square root of their squared distance is at most it, and nil for a
+// negative radius.
+func circleOf(center Hex, radius float64) []Hex {
+	var circle []Hex
+	for _, h := range center.Range(int(2*radius/math.Sqrt(3)) + 1) {
+		q, r := h.Subtract(center).QR()
+		if math.Sqrt(float64(q*q+q*r+r*r)) <= radius {
+			circle = append(circle, h)
+		}
+	}
+
+	return circle
+}
+
+// runsThrough reports whether the segment between the centers of source and target passes
+// through the inside of hex. It clips the segment against the three bands of cube space the hex
+// is the meet of, a formulation that shares nothing with the corner test it checks.
+func runsThrough(source, target, hex Hex) bool {
+	start, step := source.Subtract(hex), target.Subtract(source)
+	startQ, startR, startS := start.QRS()
+	stepQ, stepR, stepS := step.QRS()
+
+	enter, leave := 0.0, 1.0
+	for _, band := range [3][2]int{{startQ - startR, stepQ - stepR}, {startR - startS, stepR - stepS}, {startS - startQ, stepS - stepQ}} {
+		offset, slope := float64(band[0]), float64(band[1])
+		if slope == 0 {
+			if math.Abs(offset) >= 1 {
+				return false
+			}
+			continue
+		}
+
+		enter = max(enter, min((-1-offset)/slope, (1-offset)/slope))
+		leave = min(leave, max((-1-offset)/slope, (1-offset)/slope))
+	}
+
+	return leave-enter > geom.Delta
+}
+
+// everyNth returns the hexes at every stride-th place of the given ones.
+func everyNth(hexes []Hex, stride int) []Hex {
+	var result []Hex
+	for i := stride - 1; i < len(hexes); i += stride {
+		result = append(result, hexes[i])
+	}
+
+	return result
+}
+
+// besideOnRing reports whether the hex has a neighbor on its own ring around source that the
+// sector contains.
+func besideOnRing(source, hex Hex, radius int, direction Direction, turns int) bool {
+	for _, neighbor := range hex.Neighbors() {
+		if source.DistanceTo(neighbor) == source.DistanceTo(hex) && source.SectorContains(radius, direction, turns, neighbor) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// among returns the predicate holding for the given hexes and no other.
+func among(hexes []Hex) func(Hex) bool {
+	return func(hex Hex) bool {
+		return slices.Contains(hexes, hex)
+	}
+}
+
+// scattered returns the predicate holding for one hex in modulus, spread over the plane by a
+// linear form of the coordinates.
+func scattered(modulus int) func(Hex) bool {
+	return func(hex Hex) bool {
+		return geom.FloorMod(hex.Q*7+hex.R*13, modulus) == 3%modulus
+	}
+}
+
+// seenAmong returns the given hexes source has a line of sight to past the hexes blocked reports,
+// in their order.
+func seenAmong(source Hex, hexes []Hex, blocked func(Hex) bool) []Hex {
+	var seen []Hex
+	for _, h := range hexes {
+		if source.HasLineOfSight(h, blocked) {
+			seen = append(seen, h)
+		}
+	}
+
+	return seen
+}
+
+var (
+	sinkHex        Hex
+	sinkHexes      []Hex
+	sinkBool       bool
+	sinkInt        int
+	sinkFracHex    FractionalHex
+	sinkDirection  Direction
+	sinkDirections [6]Direction
+	sinkSystems    [7]CoordinateSystem
+	sinkPoint      geom.Point[int]
+	sinkPoints     [6]geom.Point[int]
+	sinkVector     geom.Vector[int]
+	sinkVectors    [6]geom.Vector[int]
+	sinkString     string
+
+	testHex         = Pt(-1, 3)
+	testHexZero     = Pt(0, 0)
+	testChunkRadii  = []int{0, 1, 2, 3, 5, 8}
+	testCircleRadii = []float64{0, 0.5, 1, 1.5, math.Sqrt(3), 2, 2.5, 3, math.Sqrt(13), 4.5, 6, 6.5, 7, 12.3, 40}
+)

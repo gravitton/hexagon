@@ -38,9 +38,9 @@ func TestDirections(t *testing.T) {
 		assert.Equal(t, PointyTopNorthEast, QPlus)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkDirections = Directions()
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -62,9 +62,9 @@ func TestDirectionOffsets(t *testing.T) {
 		assert.Equal(t, SMinus.Offset(), geom.Vec(1, 0))
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkVectors = DirectionOffsets()
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -409,8 +409,6 @@ func TestDirection_JSON(t *testing.T) {
 	})
 }
 
-var axialDirection = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-
 func ExampleDirectionFromAngle() {
 	fmt.Println(DirectionFromAngle(0))
 	fmt.Println(DirectionFromAngle(math.Pi))
@@ -453,3 +451,5 @@ func ExampleDirection_Hex() {
 	// RMinus (0,-1)
 	// QPlus (1,-1)
 }
+
+var axialDirection = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}

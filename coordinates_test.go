@@ -20,9 +20,9 @@ func TestCoordinateSystems(t *testing.T) {
 		assert.Equal(t, CoordinateSystems()[0], Axial)
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
-		assertAllocations(t, func() {
+		assert.Allocates(t, func() {
 			sinkSystems = CoordinateSystems()
-		}, 0.0)
+		}, 0)
 	})
 }
 
@@ -147,9 +147,9 @@ func TestCoordinateSystem_Offsets(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkVectors = system.Offsets(geom.Pt(1, 1))
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 }
@@ -211,9 +211,9 @@ func TestCoordinateSystem_Offset(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkVector = system.Offset(geom.Pt(1, 1), RPlus)
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 	t.Run("panics for a system outside the seven", func(t *testing.T) {
@@ -260,9 +260,9 @@ func TestCoordinateSystem_Neighbor(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkPoint = system.Neighbor(geom.Pt(1, 1), RPlus)
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 }
@@ -299,9 +299,9 @@ func TestCoordinateSystem_Neighbors(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkPoints = system.Neighbors(geom.Pt(1, 1))
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 }
@@ -352,9 +352,9 @@ func TestCoordinateSystem_To(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkPoint = system.To(testHex)
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 }
@@ -413,9 +413,9 @@ func TestCoordinateSystem_From(t *testing.T) {
 	})
 	t.Run("allocates nothing", func(t *testing.T) {
 		for _, system := range CoordinateSystems() {
-			assertAllocations(t, func() {
+			assert.Allocates(t, func() {
 				sinkHex = system.From(geom.Pt(3, 5))
-			}, 0.0, system.String()+": ")
+			}, 0, system.String()+": ")
 		}
 	})
 }
@@ -491,105 +491,6 @@ func TestCoordinateSystem_JSON(t *testing.T) {
 	})
 }
 
-// deriveOffsets computes the neighbor offsets of a system straight from Directions and the
-// coordinate conversion, which is the definition the literal tables cache.
-func deriveOffsets(system CoordinateSystem, index geom.Point[int]) [6]geom.Vector[int] {
-	h := system.From(index)
-
-	var offsets [6]geom.Vector[int]
-	for i, direction := range Directions() {
-		neighbor := system.To(h.Neighbor(direction))
-		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
-	}
-
-	return offsets
-}
-
-var testConversions = []struct {
-	hex          Hex
-	offsetOddR   geom.Point[int]
-	offsetEvenR  geom.Point[int]
-	offsetOddQ   geom.Point[int]
-	offsetEvenQ  geom.Point[int]
-	doubleWidth  geom.Point[int]
-	doubleHeight geom.Point[int]
-}{
-	{
-		hex:          Pt(0, 0),
-		offsetOddR:   geom.Pt(0, 0),
-		offsetEvenR:  geom.Pt(0, 0),
-		offsetOddQ:   geom.Pt(0, 0),
-		offsetEvenQ:  geom.Pt(0, 0),
-		doubleWidth:  geom.Pt(0, 0),
-		doubleHeight: geom.Pt(0, 0),
-	},
-	{
-		hex:          Pt(1, 0),
-		offsetOddR:   geom.Pt(1, 0),
-		offsetEvenR:  geom.Pt(1, 0),
-		offsetOddQ:   geom.Pt(1, 0),
-		offsetEvenQ:  geom.Pt(1, 1),
-		doubleWidth:  geom.Pt(2, 0),
-		doubleHeight: geom.Pt(1, 1),
-	},
-	{
-		hex:          Pt(1, -1),
-		offsetOddR:   geom.Pt(0, -1),
-		offsetEvenR:  geom.Pt(1, -1),
-		offsetOddQ:   geom.Pt(1, -1),
-		offsetEvenQ:  geom.Pt(1, 0),
-		doubleWidth:  geom.Pt(1, -1),
-		doubleHeight: geom.Pt(1, -1),
-	},
-	{
-		hex:          Pt(0, -1),
-		offsetOddR:   geom.Pt(-1, -1),
-		offsetEvenR:  geom.Pt(0, -1),
-		offsetOddQ:   geom.Pt(0, -1),
-		offsetEvenQ:  geom.Pt(0, -1),
-		doubleWidth:  geom.Pt(-1, -1),
-		doubleHeight: geom.Pt(0, -2),
-	},
-	{
-		hex:          Pt(-1, 0),
-		offsetOddR:   geom.Pt(-1, 0),
-		offsetEvenR:  geom.Pt(-1, 0),
-		offsetOddQ:   geom.Pt(-1, -1),
-		offsetEvenQ:  geom.Pt(-1, 0),
-		doubleWidth:  geom.Pt(-2, 0),
-		doubleHeight: geom.Pt(-1, -1),
-	},
-	{
-		hex:          Pt(-1, 1),
-		offsetOddR:   geom.Pt(-1, 1),
-		offsetEvenR:  geom.Pt(0, 1),
-		offsetOddQ:   geom.Pt(-1, 0),
-		offsetEvenQ:  geom.Pt(-1, 1),
-		doubleWidth:  geom.Pt(-1, 1),
-		doubleHeight: geom.Pt(-1, 1),
-	},
-	{
-		hex:          Pt(0, 1),
-		offsetOddR:   geom.Pt(0, 1),
-		offsetEvenR:  geom.Pt(1, 1),
-		offsetOddQ:   geom.Pt(0, 1),
-		offsetEvenQ:  geom.Pt(0, 1),
-		doubleWidth:  geom.Pt(1, 1),
-		doubleHeight: geom.Pt(0, 2),
-	},
-}
-
-var offsetOddRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionOddRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
-var offsetEvenRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetOddQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var offsetOddQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionOddCol = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
-var offsetEvenQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
-var doubleWidthDirection = [6]geom.Vector[int]{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
-var doubleHeightDirection = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
-
 func ExampleCoordinateSystem_Offset() {
 	fmt.Println(OffsetOddR.Offset(geom.Pt(0, 0), PointyTopNorthWest))
 	fmt.Println(OffsetOddR.Offset(geom.Pt(0, 1), PointyTopNorthWest))
@@ -627,3 +528,104 @@ func ExampleCoordinateSystem_From() {
 	// (1,0)
 	// (1,0)
 }
+
+// deriveOffsets computes the neighbor offsets of a system straight from Directions and the
+// coordinate conversion, which is the definition the literal tables cache.
+func deriveOffsets(system CoordinateSystem, index geom.Point[int]) [6]geom.Vector[int] {
+	h := system.From(index)
+
+	var offsets [6]geom.Vector[int]
+	for i, direction := range Directions() {
+		neighbor := system.To(h.Neighbor(direction))
+		offsets[i] = geom.Vec(neighbor.X-index.X, neighbor.Y-index.Y)
+	}
+
+	return offsets
+}
+
+var (
+	offsetOddRDirectionOddRow   = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+	offsetOddRDirectionEvenRow  = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+	offsetEvenRDirectionOddRow  = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1)}
+	offsetEvenRDirectionEvenRow = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, -1)}
+	offsetOddQDirectionOddCol   = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+	offsetOddQDirectionEvenCol  = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+	offsetEvenQDirectionOddCol  = [6]geom.Vector[int]{geom.Vec(1, 0), geom.Vec(0, 1), geom.Vec(-1, 0), geom.Vec(-1, -1), geom.Vec(0, -1), geom.Vec(1, -1)}
+	offsetEvenQDirectionEvenCol = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 1), geom.Vec(-1, 1), geom.Vec(-1, 0), geom.Vec(0, -1), geom.Vec(1, 0)}
+	doubleWidthDirection        = [6]geom.Vector[int]{geom.Vec(2, 0), geom.Vec(1, 1), geom.Vec(-1, 1), geom.Vec(-2, 0), geom.Vec(-1, -1), geom.Vec(1, -1)}
+	doubleHeightDirection       = [6]geom.Vector[int]{geom.Vec(1, 1), geom.Vec(0, 2), geom.Vec(-1, 1), geom.Vec(-1, -1), geom.Vec(0, -2), geom.Vec(1, -1)}
+
+	testConversions = []struct {
+		hex          Hex
+		offsetOddR   geom.Point[int]
+		offsetEvenR  geom.Point[int]
+		offsetOddQ   geom.Point[int]
+		offsetEvenQ  geom.Point[int]
+		doubleWidth  geom.Point[int]
+		doubleHeight geom.Point[int]
+	}{
+		{
+			hex:          Pt(0, 0),
+			offsetOddR:   geom.Pt(0, 0),
+			offsetEvenR:  geom.Pt(0, 0),
+			offsetOddQ:   geom.Pt(0, 0),
+			offsetEvenQ:  geom.Pt(0, 0),
+			doubleWidth:  geom.Pt(0, 0),
+			doubleHeight: geom.Pt(0, 0),
+		},
+		{
+			hex:          Pt(1, 0),
+			offsetOddR:   geom.Pt(1, 0),
+			offsetEvenR:  geom.Pt(1, 0),
+			offsetOddQ:   geom.Pt(1, 0),
+			offsetEvenQ:  geom.Pt(1, 1),
+			doubleWidth:  geom.Pt(2, 0),
+			doubleHeight: geom.Pt(1, 1),
+		},
+		{
+			hex:          Pt(1, -1),
+			offsetOddR:   geom.Pt(0, -1),
+			offsetEvenR:  geom.Pt(1, -1),
+			offsetOddQ:   geom.Pt(1, -1),
+			offsetEvenQ:  geom.Pt(1, 0),
+			doubleWidth:  geom.Pt(1, -1),
+			doubleHeight: geom.Pt(1, -1),
+		},
+		{
+			hex:          Pt(0, -1),
+			offsetOddR:   geom.Pt(-1, -1),
+			offsetEvenR:  geom.Pt(0, -1),
+			offsetOddQ:   geom.Pt(0, -1),
+			offsetEvenQ:  geom.Pt(0, -1),
+			doubleWidth:  geom.Pt(-1, -1),
+			doubleHeight: geom.Pt(0, -2),
+		},
+		{
+			hex:          Pt(-1, 0),
+			offsetOddR:   geom.Pt(-1, 0),
+			offsetEvenR:  geom.Pt(-1, 0),
+			offsetOddQ:   geom.Pt(-1, -1),
+			offsetEvenQ:  geom.Pt(-1, 0),
+			doubleWidth:  geom.Pt(-2, 0),
+			doubleHeight: geom.Pt(-1, -1),
+		},
+		{
+			hex:          Pt(-1, 1),
+			offsetOddR:   geom.Pt(-1, 1),
+			offsetEvenR:  geom.Pt(0, 1),
+			offsetOddQ:   geom.Pt(-1, 0),
+			offsetEvenQ:  geom.Pt(-1, 1),
+			doubleWidth:  geom.Pt(-1, 1),
+			doubleHeight: geom.Pt(-1, 1),
+		},
+		{
+			hex:          Pt(0, 1),
+			offsetOddR:   geom.Pt(0, 1),
+			offsetEvenR:  geom.Pt(1, 1),
+			offsetOddQ:   geom.Pt(0, 1),
+			offsetEvenQ:  geom.Pt(0, 1),
+			doubleWidth:  geom.Pt(1, 1),
+			doubleHeight: geom.Pt(0, 2),
+		},
+	}
+)
